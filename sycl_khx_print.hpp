@@ -1919,18 +1919,18 @@ inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... ar
   write_literal_segment(out, fmt, pos, fmt_len);
 }
 
-// Flush buf: escape % → %% then output.
-// ACPP SSCP __acpp_sscp_print has different backends:
-//   PTX/CUDA: calls vprintf(msg, nullptr) — interprets % as format specifiers
-//   Host/CPU: calls fputs(msg, stdout) — prints verbatim
-// __acpp_sscp_is_host is false for BOTH backends in SSCP kernels, so we
-// cannot distinguish at runtime. We escape % → %% here, which is correct
-// for CUDA (vprintf renders %% as %). This breaks CPU SSCP (fputs prints
-// %% literally), but we favor GPU correctness.
+// Flush buf: pick the right output path per ACPP SSCP backend.
+// __acpp_sscp_print has different backends:
+//   PTX/CUDA: vprintf(msg, nullptr) — interprets % as format specifiers
+//   Host/CPU: fputs(msg, stdout) — prints verbatim
+// AdaptiveCpp's compile_if_else lets us branch at JIT time on the actual
+// backend, so we escape % → %% only on the device path and bypass it on
+// host (where fputs would render %% literally).
 inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
+#if defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
 __acpp_if_target_sscp(
   sycl::AdaptiveCpp_jit::compile_if_else(
-    sycl::AdaptiveCpp_jit::reflect<sycl::AdaptiveCpp_jit::reflection_query::compiler_backend>() == 
+    sycl::AdaptiveCpp_jit::reflect<sycl::AdaptiveCpp_jit::reflection_query::compiler_backend>() ==
       sycl::AdaptiveCpp_jit::compiler_backend::host,
       [&](){
   (void)escape_pct;
@@ -1957,6 +1957,13 @@ __acpp_if_target_sscp(
 });
 };
 )
+#else
+  // Host-only coverage build: no ACPP headers, just write through.
+  (void)escape_pct;
+  out.data[out.len] = '\0';
+  fputs(out.data, stdout);
+#endif
+}
 } // namespace buffer_path
 
 #endif // FMT_SYCL_ACPP
