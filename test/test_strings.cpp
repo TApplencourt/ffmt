@@ -41,7 +41,7 @@ RUN(PRINT("{:>10c}\n", 'C'));
 RUN(PRINT("{}\n", "hello world"));
 {
   const char *env = "cpu-char-* copied";
-#if defined(FMT_STD_PATH) || defined(FMT_SYCL_HOST) || defined(FMT_SYCL_HOST_ACPP)
+#if defined(FMT_STD_PATH) || !(defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP)
   RUN(PRINT("{}\n", env));
 #else
   size_t len = std::strlen(env) + 1;

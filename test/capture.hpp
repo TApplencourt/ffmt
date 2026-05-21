@@ -13,7 +13,11 @@
 #include <unistd.h>
 
 #include "../sycl_khx_print.hpp"
-#if !defined(FMT_SYCL_HOST) && !defined(FMT_SYCL_HOST_ACPP)
+// Pull in <sycl/sycl.hpp> only when the TU is built for a SYCL backend
+// (so capture_stdout can take a sycl::queue&). Host test rig and OpenMP
+// backends don't define SYCL_LANGUAGE_VERSION and don't have ACPP, so
+// they skip this include.
+#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
 #include <sycl/sycl.hpp>
 #endif
 
@@ -42,7 +46,8 @@ static std::string capture_stdout(auto&& fn) {
   return result;
 }
 
-// unused in test_main.cpp which includes this header but only calls test_*()
+// unused in test_main_{sycl,host}.cpp which include this header but only
+// call test_*()
 [[maybe_unused]] static bool diff_output(const char* name,
                         const std::string& expected,
                         const std::string& actual) {

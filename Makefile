@@ -33,8 +33,14 @@ endif
 
 ALL_BINS := $(TEST_BINS) $(FUZZ_BINS) $(FUZZ_FM) $(FUZZ_PCT)
 
+# Per-test names that share an aggregating main (test_main_host.cpp + the
+# coverage host build). The standalone TEST_NAMES set above also includes
+# these but adds the buffer_path/escape_percent tests that don't have a
+# corresponding test_X() function declared in test_main_host.cpp.
+COV_TESTS := integers floats strings layout misc formatter
+
 .PHONY: all build test test-format test-fuzz test-fuzz-pct test-ffast \
-        readme-examples coverage clean
+        readme-examples test-host coverage clean
 
 all: test
 
@@ -153,40 +159,72 @@ test-ffast: $(FUZZ_FM)
 	done; \
 	exit $$fail
 
-# ── Coverage (host-only, no SYCL device needed) ─────────────
+# ── Host tests + coverage (host-only, no SYCL device, no OpenMP) ──
+# Both targets build test_main_host.cpp + per-test .o files twice — once
+# with FMT_SYCL_BUFFER_PATH=0 (specifiers path) and once with =1 (buffer
+# path). Emit on both sides is ::printf via libc, so the std vs sycl
+# diff inside each test_X() is meaningful.
+#
+# `test-host` is the plain pass/fail variant. `coverage` is the same
+# build with -fprofile-instr-generate -fcoverage-mapping added (and
+# an llvm-cov report at the end). Pattern rules below are templatized
+# on a prefix (test_main_host_X / cov_X) and a flag string ($(COV_FLAGS)
+# for coverage, empty for test-host).
+#
+# HOST_TEMPLATE args:
+#   $(1) = file prefix      ("test_main_host" or "cov")
+#   $(2) = extra flags      ("" or "$(COV_FLAGS)")
 
+define HOST_TEMPLATE
+$(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o) build/$(1)_specifiers_fuzz.o
+$(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS),build/$(1)_buffer_$$(t).o)     build/$(1)_buffer_fuzz.o
+
+build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+
+build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+
+build/$(1)_specifiers_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+
+build/$(1)_buffer_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+
+build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -O2 $(2) -c $$< -o $$@
+
+build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -O2 $(2) -c $$< -o $$@
+
+build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
+	$$(CXX) $(2) $$^ -o $$@
+
+build/$(1)_buffer: build/$(1)_buffer_main.o $$($(1)_OBJS_BUFFER)
+	$$(CXX) $(2) $$^ -o $$@
+endef
+
+$(eval $(call HOST_TEMPLATE,test_main_host,))
+
+test-host: build/test_main_host_specifiers build/test_main_host_buffer
+	@fail=0; \
+	for variant in specifiers buffer; do \
+	  t0=$$(date +%s%N); \
+	  ./build/test_main_host_$$variant; rc=$$?; \
+	  ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	  if [ $$rc -eq 0 ]; then echo "test_main_host_$$variant: PASS ($${ms}ms)"; \
+	  else echo "test_main_host_$$variant: FAIL ($${ms}ms)"; fail=1; fi; \
+	done; \
+	exit $$fail
+
+# Coverage: same build + -fprofile-instr-generate -fcoverage-mapping.
 LLVM_PROFDATA = $(shell $(CXX) -print-prog-name=llvm-profdata)
 LLVM_COV      = $(shell $(CXX) -print-prog-name=llvm-cov)
 COV_FLAGS     := -fprofile-instr-generate -fcoverage-mapping
 
-COV_TESTS     := integers floats strings layout misc formatter
-COV_DPC_OBJS  := $(foreach t,$(COV_TESTS),build/cov_dpc_$(t).o) build/cov_dpc_fuzz.o
-COV_ACPP_OBJS := $(foreach t,$(COV_TESTS),build/cov_acpp_$(t).o) build/cov_acpp_fuzz.o
-COV_ALL       := build/cov_dpc_all build/cov_acpp_all
+$(eval $(call HOST_TEMPLATE,cov,$(COV_FLAGS)))
 
-build/cov_dpc_%.o: $(TEST_DIR)/test_%.cpp $(TEST_HDRS) sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST -DTEST_NO_MAIN -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_acpp_%.o: $(TEST_DIR)/test_%.cpp $(TEST_HDRS) sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST_ACPP -DTEST_NO_MAIN -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_dpc_fuzz.o: $(TEST_DIR)/fuzz.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST -DTEST_NO_MAIN -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_acpp_fuzz.o: $(TEST_DIR)/fuzz.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST_ACPP -DTEST_NO_MAIN -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_dpc_main.o: $(TEST_DIR)/test_main_host.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_acpp_main.o: $(TEST_DIR)/test_main_host.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$(CXX) $(CXXFLAGS) -DFMT_SYCL_HOST_ACPP -O2 $(COV_FLAGS) -c $< -o $@
-
-build/cov_dpc_all: build/cov_dpc_main.o $(COV_DPC_OBJS)
-	$(CXX) $(COV_FLAGS) $^ -o $@
-
-build/cov_acpp_all: build/cov_acpp_main.o $(COV_ACPP_OBJS)
-	$(CXX) $(COV_FLAGS) $^ -o $@
+COV_ALL := build/cov_specifiers build/cov_buffer
 
 coverage: $(COV_ALL)
 	@rm -f build/cov_*.profraw

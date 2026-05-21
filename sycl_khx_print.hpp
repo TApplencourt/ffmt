@@ -9,19 +9,26 @@
 
 #pragma once
 
+// ── Compiler detection (auto, not user-overridable) ─────────────────────
+// FMT_SYCL_COMPILER_ACPP gates ACPP-only builtins (__acpp_if_target_sscp,
+// AdaptiveCpp_jit, …). SYCL_LANGUAGE_VERSION is the canonical "SYCL is in
+// scope" predicate (auto-defined by any SYCL compiler with -fsycl).
+#if defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
+  #define FMT_SYCL_COMPILER_ACPP 1
+#else
+  #define FMT_SYCL_COMPILER_ACPP 0
+#endif
+
 // ── Knob 1: formatting path ─────────────────────────────────────────────
 // 1 = buffer path  (build a char[] in fmt_buf, emit once via FMT_SYCL_EMIT_BUFFER).
 // 0 = SPIRV path   (compile-time printf format string, emit via FMT_SYCL_EMIT_PRINTF
 //                   with live args). The SPIRV path only handles printf-compatible
 //                   specs; the buffer path handles the full feature set.
 // Default: buffer for AdaptiveCpp and clang-OpenMP-CUDA, SPIRV otherwise.
-// User may #define before include to override.
+// User may #define before include to override (the host test rig does this
+// to exercise both paths through libc printf).
 #if !defined(FMT_SYCL_BUFFER_PATH)
-  #if defined(FMT_SYCL_HOST_ACPP)
-    #define FMT_SYCL_BUFFER_PATH 1
-  #elif defined(FMT_SYCL_HOST)
-    #define FMT_SYCL_BUFFER_PATH 0
-  #elif defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
+  #if FMT_SYCL_COMPILER_ACPP
     #define FMT_SYCL_BUFFER_PATH 1
   // clang OpenMP target offload to NVPTX: plain printf accepts our buffer
   // verbatim, and we'd rather have full {:b}/{:^}/dragonbox spec coverage.
@@ -34,12 +41,19 @@
   #endif
 #endif
 
-// ── Knob 2: compiler detection (auto, not user-overridable) ─────────────
-// Used to gate ACPP-only builtins (__acpp_if_target_sscp, AdaptiveCpp_jit, …).
-#if defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
-  #define FMT_SYCL_COMPILER_ACPP 1
+// ── SYCL headers ─────────────────────────────────────────────────────────
+// Include SYCL only when we know SYCL types are in scope; otherwise pull in
+// <cstdio> for the host/OpenMP backends (and the host test rig). The same
+// derived condition gates the built-in formatter<sycl::range/id/item/nd_item>
+// specializations at the bottom of the header.
+#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
+  #if FMT_SYCL_COMPILER_ACPP
+    #include <sycl/sycl.hpp>
+  #else
+    #include <sycl/ext/oneapi/experimental/builtins.hpp>
+  #endif
 #else
-  #define FMT_SYCL_COMPILER_ACPP 0
+  #include <cstdio>
 #endif
 
 // ── OpenMP-target-SPIR64 auto-install (icpx-only) ────────────────────────
@@ -55,79 +69,56 @@
 // precedence; if you're mixing acpp with OpenMP, you probably wanted the
 // buffer path.
 #if defined(__INTEL_LLVM_COMPILER) && defined(_OPENMP) \
-    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP
-  #if !defined(FMT_SYCL_BUFFER_PATH)
-    #define FMT_SYCL_BUFFER_PATH 0
+    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP \
+    && !defined(FMT_SYCL_EMIT_PRINTF)
+  // __spirv_ocl_printf, declared as a template with both opencl_constant and
+  // plain overloads — overload resolution picks the right one based on the
+  // AS of our format string (always AS=2 thanks to FMT_SYCL_CONST_AS below).
+  #if defined(__SPIR__) || defined(__SPIRV__)
+    template <typename... Args>
+    extern int __spirv_ocl_printf(
+        const __attribute__((opencl_constant)) char* Format, Args... args);
+    template <typename... Args>
+    extern int __spirv_ocl_printf(const char* Format, Args... args);
   #endif
-  #if !defined(FMT_SYCL_NO_SYCL_HEADERS)
-    #define FMT_SYCL_NO_SYCL_HEADERS
+  namespace sycl { namespace ext { namespace khx { namespace print_detail {
+  #if defined(__SPIR__) || defined(__SPIRV__)
+    template <typename... Args>
+    inline int omp_printf(const __attribute__((opencl_constant)) char* fmt,
+                          Args... args) {
+      return __spirv_ocl_printf(fmt, args...);
+    }
+    template <typename... Args>
+    inline int omp_printf(const char* fmt, Args... args) {
+      return __spirv_ocl_printf(fmt, args...);
+    }
+  #else
+    // Host pass of the same TU: forward to libc printf.
+    template <typename... Args>
+    inline int omp_printf(const char* fmt, Args... args) {
+      return ::printf(fmt, args...);
+    }
   #endif
-  #if !defined(FMT_SYCL_EMIT_PRINTF)
-    // __spirv_ocl_printf, declared as a template with both opencl_constant and
-    // plain overloads — overload resolution picks the right one based on the
-    // AS of our format string (always AS=2 thanks to FMT_SYCL_CONST_AS below).
-    #if defined(__SPIR__) || defined(__SPIRV__)
-      template <typename... Args>
-      extern int __spirv_ocl_printf(
-          const __attribute__((opencl_constant)) char* Format, Args... args);
-      template <typename... Args>
-      extern int __spirv_ocl_printf(const char* Format, Args... args);
-    #endif
-    #if !(defined(__SPIR__) || defined(__SPIRV__))
-      #include <cstdio>
-    #endif
-    namespace sycl { namespace ext { namespace khx { namespace print_detail {
-    #if defined(__SPIR__) || defined(__SPIRV__)
-      template <typename... Args>
-      inline int omp_printf(const __attribute__((opencl_constant)) char* fmt,
-                            Args... args) {
-        return __spirv_ocl_printf(fmt, args...);
-      }
-      template <typename... Args>
-      inline int omp_printf(const char* fmt, Args... args) {
-        return __spirv_ocl_printf(fmt, args...);
-      }
-    #else
-      // Host pass of the same TU: forward to libc printf.
-      template <typename... Args>
-      inline int omp_printf(const char* fmt, Args... args) {
-        return ::printf(fmt, args...);
-      }
-    #endif
-    }}}} // namespace sycl::ext::khx::print_detail
-    #define FMT_SYCL_EMIT_PRINTF(...) \
-      ::sycl::ext::khx::print_detail::omp_printf(__VA_ARGS__)
-  #endif
+  }}}} // namespace sycl::ext::khx::print_detail
+  #define FMT_SYCL_EMIT_PRINTF(...) \
+    ::sycl::ext::khx::print_detail::omp_printf(__VA_ARGS__)
 #endif
 
 // ── clang OpenMP-target (CUDA/NVPTX) auto-install ───────────────────────
 // When the TU is built with `clang -fopenmp --offload-arch=sm_XX` (mainline
-// LLVM clang offloading to NVIDIA), use the buffer path with plain ::printf
-// as the emit. Unlike icpx-SPIR64, NVPTX's printf accepts any pointer-to-
-// char as the format string (verified empirically — runtime buffers, static
-// constexpr arrays, all fine). The buffer path also gives the full spec
-// coverage ({:b}, {:^}, custom fill, dragonbox) the user expects.
-//
-// Gated on __clang__ && _OPENMP && !__INTEL_LLVM_COMPILER (icpx defines
-// __clang__ too, but we route it through the SPIR64 path above) and not
-// SYCL or ACPP.
+// LLVM clang offloading to NVIDIA), the buffer path's emit is plain
+// ::printf. Unlike icpx-SPIR64, NVPTX's printf accepts any pointer-to-char
+// as the format string (verified empirically — runtime buffers, static
+// constexpr arrays, all fine). Gated on __clang__ && _OPENMP &&
+// !__INTEL_LLVM_COMPILER (icpx defines __clang__ too, but routes through
+// the SPIR64 path above) and not SYCL or ACPP.
 #if defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER) \
-    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP
-  #if !defined(FMT_SYCL_BUFFER_PATH)
-    #define FMT_SYCL_BUFFER_PATH 1
-  #endif
-  #if !defined(FMT_SYCL_NO_SYCL_HEADERS)
-    #define FMT_SYCL_NO_SYCL_HEADERS
-  #endif
-  #if !defined(FMT_SYCL_EMIT_BUFFER)
-    #include <cstdio>
-    // printf("%s", buf) — literal format, buffer as %s arg. % chars in the
-    // buffer are passed verbatim to the SPIR printf wouldn't be — but NVPTX
-    // printf with a %s arg doesn't re-interpret the arg, so escape_pct is
-    // irrelevant here.
-    #define FMT_SYCL_EMIT_BUFFER(out, escape_pct) \
-      do { (void)(escape_pct); ::printf("%s", (out).data); } while (0)
-  #endif
+    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP \
+    && !defined(FMT_SYCL_EMIT_BUFFER)
+  // printf("%s", buf) — literal format, buffer as %s arg. % chars in the
+  // buffer pass through verbatim (printf doesn't re-interpret %s args).
+  #define FMT_SYCL_EMIT_BUFFER(out, escape_pct) \
+    do { (void)(escape_pct); ::printf("%s", (out).data); } while (0)
 #endif
 
 // ── Address-space attribute for SPIRV-path format strings ───────────────
@@ -147,40 +138,26 @@
   #endif
 #endif
 
-// ── Knob 4: SYCL headers available? ─────────────────────────────────────
-// Gates the built-in formatter<sycl::range/id/item/nd_item> specializations.
-// Coverage shims (FMT_SYCL_HOST{,_ACPP}) and FMT_SYCL_NO_SYCL_HEADERS opt out.
-#if defined(FMT_SYCL_HOST) || defined(FMT_SYCL_HOST_ACPP) || defined(FMT_SYCL_NO_SYCL_HEADERS)
-  #define FMT_SYCL_HAVE_SYCL_HEADERS 0
-  #include <cstdio>
-#else
-  #define FMT_SYCL_HAVE_SYCL_HEADERS 1
-  #if FMT_SYCL_COMPILER_ACPP
-    #include <sycl/sycl.hpp>
-  #else
-    #include <sycl/ext/oneapi/experimental/builtins.hpp>
-  #endif
-#endif
-
-// ── Knob 3: emit hooks ──────────────────────────────────────────────────
-// FMT_SYCL_EMIT_BUFFER(s, len)   — buffer path: emit a null-terminated char[]
-// FMT_SYCL_EMIT_PRINTF(fmt, ...) — SPIRV path: invoke a printf-like sink
-// Either may be user-defined before include to plug in OpenMP, custom streams,
-// instrumented emit, etc.
+// ── Emit hook defaults ──────────────────────────────────────────────────
+// FMT_SYCL_EMIT_BUFFER(out, escape_pct) — buffer path: emit out.data as a
+//   null-terminated char[]. `escape_pct` is a hint that the emit syscall
+//   treats % as a format specifier (CUDA vprintf via ACPP); verbatim
+//   writers ignore it.
+// FMT_SYCL_EMIT_PRINTF(fmt, ...) — SPIRV path: invoke a printf-like sink.
+// Either may be user-defined before include to plug in OpenMP, custom
+// streams, instrumented emit, etc.
 //
-// Buffer-path default:
-//   - ACPP: JIT-branch on device vs host backend (__acpp_sscp_print / fputs);
-//     also escapes % → %% on the device path (CUDA printf interprets %).
-//   - Otherwise: plain fputs (host coverage, OpenMP, plain CPU).
-//
-// SPIRV-path default:
-//   - FMT_SYCL_HOST: ::printf
-//   - Otherwise: sycl::ext::oneapi::experimental::printf
+// Defaults:
+//   ACPP buffer path: JIT-branch on device vs host backend (__acpp_sscp_print
+//     vs fputs), escaping % only on the device path.
+//   Otherwise buffer: plain fputs (host test, OpenMP, plain CPU).
+//   SPIRV with SYCL: sycl::ext::oneapi::experimental::printf.
+//   SPIRV without SYCL: ::printf (host test, etc.).
 #if !defined(FMT_SYCL_EMIT_PRINTF)
-  #if defined(FMT_SYCL_HOST)
-    #define FMT_SYCL_EMIT_PRINTF(...) ::printf(__VA_ARGS__)
-  #else
+  #if defined(SYCL_LANGUAGE_VERSION)
     #define FMT_SYCL_EMIT_PRINTF(...) ::sycl::ext::oneapi::experimental::printf(__VA_ARGS__)
+  #else
+    #define FMT_SYCL_EMIT_PRINTF(...) ::printf(__VA_ARGS__)
   #endif
 #endif
 
@@ -2443,7 +2420,7 @@ inline void apply_print(Tup &t, std::index_sequence<Is...>) {
 // Only enabled when <sycl/sycl.hpp> is in play (skips host-only coverage builds
 // which include the header without SYCL).
 
-#if FMT_SYCL_HAVE_SYCL_HEADERS
+#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
 
 namespace sycl {
 namespace ext {
@@ -2537,7 +2514,7 @@ struct formatter<::sycl::nd_item<N>> {
 } // namespace ext
 } // namespace sycl
 
-#endif // FMT_SYCL_HAVE_SYCL_HEADERS
+#endif // SYCL_LANGUAGE_VERSION || ACPP
 
 // Convenience macro — nicer syntax without explicit template angle brackets
 #if FMT_SYCL_BUFFER_PATH

@@ -42,7 +42,8 @@ static char rand_char() { return static_cast<char>(33 + rng() % 94); }
 #define FUZZ_CHAR(spec) \
   for (int _i = 0; _i < N_ITER; _i++) { auto _v = rand_char(); RUN(P(spec, _v)); }
 
-#if defined(FMT_SYCL_HOST) || defined(FMT_SYCL_HOST_ACPP)
+// Host test rig (no queue). SYCL/ACPP build uses the queue-based variant below.
+#if !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP
 bool test_fuzz() {
   rng_state = SEED;
   auto std_out = capture_stdout([&]() {
