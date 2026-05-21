@@ -14,13 +14,20 @@
 // 0 = SPIRV path   (compile-time printf format string, emit via FMT_SYCL_EMIT_PRINTF
 //                   with live args). The SPIRV path only handles printf-compatible
 //                   specs; the buffer path handles the full feature set.
-// Default: buffer for AdaptiveCpp, SPIRV otherwise. User may #define before include.
+// Default: buffer for AdaptiveCpp and clang-OpenMP-CUDA, SPIRV otherwise.
+// User may #define before include to override.
 #if !defined(FMT_SYCL_BUFFER_PATH)
   #if defined(FMT_SYCL_HOST_ACPP)
     #define FMT_SYCL_BUFFER_PATH 1
   #elif defined(FMT_SYCL_HOST)
     #define FMT_SYCL_BUFFER_PATH 0
   #elif defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
+    #define FMT_SYCL_BUFFER_PATH 1
+  // clang OpenMP target offload to NVPTX: plain printf accepts our buffer
+  // verbatim, and we'd rather have full {:b}/{:^}/dragonbox spec coverage.
+  // icpx-OpenMP (also __clang__) goes via the SPIRV path below.
+  #elif defined(__clang__) && defined(_OPENMP) \
+        && !defined(__INTEL_LLVM_COMPILER) && !defined(SYCL_LANGUAGE_VERSION)
     #define FMT_SYCL_BUFFER_PATH 1
   #else
     #define FMT_SYCL_BUFFER_PATH 0
@@ -90,6 +97,36 @@
     }}}} // namespace sycl::ext::khx::print_detail
     #define FMT_SYCL_EMIT_PRINTF(...) \
       ::sycl::ext::khx::print_detail::omp_printf(__VA_ARGS__)
+  #endif
+#endif
+
+// ── clang OpenMP-target (CUDA/NVPTX) auto-install ───────────────────────
+// When the TU is built with `clang -fopenmp --offload-arch=sm_XX` (mainline
+// LLVM clang offloading to NVIDIA), use the buffer path with plain ::printf
+// as the emit. Unlike icpx-SPIR64, NVPTX's printf accepts any pointer-to-
+// char as the format string (verified empirically — runtime buffers, static
+// constexpr arrays, all fine). The buffer path also gives the full spec
+// coverage ({:b}, {:^}, custom fill, dragonbox) the user expects.
+//
+// Gated on __clang__ && _OPENMP && !__INTEL_LLVM_COMPILER (icpx defines
+// __clang__ too, but we route it through the SPIR64 path above) and not
+// SYCL or ACPP.
+#if defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER) \
+    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP
+  #if !defined(FMT_SYCL_BUFFER_PATH)
+    #define FMT_SYCL_BUFFER_PATH 1
+  #endif
+  #if !defined(FMT_SYCL_NO_SYCL_HEADERS)
+    #define FMT_SYCL_NO_SYCL_HEADERS
+  #endif
+  #if !defined(FMT_SYCL_EMIT_BUFFER)
+    #include <cstdio>
+    // printf("%s", buf) — literal format, buffer as %s arg. % chars in the
+    // buffer are passed verbatim to the SPIR printf wouldn't be — but NVPTX
+    // printf with a %s arg doesn't re-interpret the arg, so escape_pct is
+    // irrelevant here.
+    #define FMT_SYCL_EMIT_BUFFER(out, escape_pct) \
+      do { (void)(escape_pct); ::printf("%s", (out).data); } while (0)
   #endif
 #endif
 
@@ -205,6 +242,16 @@ namespace print_detail {
 // Uses compressed cache tables (216 bytes) — GPU-friendly.
 
 #if FMT_SYCL_BUFFER_PATH
+// OpenMP target-offload backends (clang/CUDA) need the dragonbox lookup
+// tables (and the functions that index into them) visible on the device
+// side, otherwise nvlink fails with "Undefined reference to
+// double_pow10_significands". `inline constexpr` makes the host emit the
+// symbol but doesn't propagate it to NVPTX. The `#pragma omp declare
+// target` wrap fixes that for any OpenMP-aware compiler; ignored when
+// _OPENMP is undefined (icpx -fsycl, acpp, plain CPU coverage).
+#ifdef _OPENMP
+#pragma omp declare target
+#endif
 namespace dragonbox {
 
 struct uint128 {
@@ -762,6 +809,9 @@ template <typename T> inline auto format_shortest(char *buf, T value) -> int {
 }
 
 } // namespace dragonbox
+#ifdef _OPENMP
+#pragma omp end declare target
+#endif
 #endif // FMT_SYCL_BUFFER_PATH
 
 // ============================================================
