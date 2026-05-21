@@ -8,7 +8,7 @@ bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
 
   auto std_out = capture_stdout([&]() {
 #define FMT_STD_PATH
-#if FMT_SYCL_ACPP
+#if FMT_SYCL_BUFFER_PATH
     // ACPP device path uses a fixed fmt_buf and silently truncates per print
     // call. Mirror that on the std reference so tests can include long output.
 #define PRINT(fmt_str, ...)                                                   \

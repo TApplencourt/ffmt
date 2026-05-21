@@ -54,7 +54,7 @@ RUN(PRINT("{:+200d}\n", 7));        // sign+overflow: hits sign-bound check
 RUN(PRINT("{:0200d}\n", 7));        // zero-pad+overflow: hits zfill-bound check
 RUN(PRINT("{:150.2f}\n", 3.14));
 // '#' prefix and '^' alignment are ACPP-only (DPC++ rejects them).
-#if FMT_SYCL_ACPP
+#if FMT_SYCL_BUFFER_PATH
 RUN(PRINT("{:#200x}\n", 0xff));     // prefix+overflow: hits prefix-bound check
 RUN(PRINT("{:^200s}\n", "x"));      // center align with truncation
 #endif

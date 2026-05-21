@@ -158,7 +158,7 @@ RUN(PRINT("{}\n", 0.001f));
 //   - small_divisor path → check_divisibility_and_divide_by_pow10
 //     + compute_mul_parity<double> + umul192_lower128
 //     + remove_trailing_zeros<uint64_t> inner loop
-#if FMT_SYCL_ACPP
+#if FMT_SYCL_BUFFER_PATH
 RUN(PRINT("{}\n", 1.2676506002282294e+30));  // 2^100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 7.888609052210118e-31));   // 2^-100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision

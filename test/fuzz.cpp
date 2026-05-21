@@ -198,7 +198,7 @@ for (int _i = 0; _i < N_ITER; _i++) {
   RUN(P("result={{{}}} value={{{:+.2f}}}\n", i, d));
 }
 
-#if FMT_SYCL_ACPP
+#if FMT_SYCL_BUFFER_PATH
 FUZZ_INT("{:x}\n", rand_int)
 FUZZ_INT("{:X}\n", rand_int)
 FUZZ_INT("{:o}\n", rand_int)
