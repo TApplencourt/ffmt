@@ -119,6 +119,19 @@ auto-indexed `{}` placeholders only — positional indices (`{0}`, `{1}`)
 and format specs (`{:>5}`) on the custom-formatter arg are rejected at
 compile time. Calls with all-primitive args are unaffected.
 
+### Floating-point: FTZ/DAZ depends on the runtime
+
+Printed values reflect whatever the runtime does with subnormals. Some
+toolchain CRTs enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at
+startup — notably `icpx` does whenever any TU is compiled at `-O1` or
+higher — while others (glibc + g++, and most SYCL device runtimes) leave
+subnormals intact. The library does not paper over this: a value like
+`std::numeric_limits<float>::denorm_min()` may print as `1.4013e-45` in
+one environment and `0` in another, matching the local
+`printf`/`std::format`. To get the unflushed result under `icpx`, compile
+with `-fno-fast-math` (or `-fp-model=precise`); the host test suite in
+this repo does exactly that for portability across icpx/gcc/clang.
+
 ### Backend differences
 
 **AdaptiveCpp (ACPP)** supports the full `std::format` spec. The entire output is accumulated into a buffer before printing, so all features work atomically.
@@ -142,6 +155,17 @@ Features only available on ACPP:
 - Alternate hex (`{:#x}` with signed int)
 - Dynamic width/precision (`{:{}}`, `{:.{}}`)
 - Dragonbox shortest-decimal float (default `{}` with floats)
+
+### Spec target: `std::format`, not `fmt::format`
+
+Where the two disagree, this header matches `std::format` / `std::print`
+(C++20 `[format.string.std]` → `[charconv.to.chars]/3.7`): the default `{}`
+on a float picks the **shorter** of fixed vs scientific, ties go to fixed.
+`{fmt}`'s `fmt::format` predates this rule and instead uses a fixed
+`exp_upper = min(16, digits10+1)` cap, so the two libraries print e.g.
+`fmt::format("{}", 1.0e15)` as `1000000000000000` while
+`std::format("{}", 1.0e15)` is `1e+15`. We follow `std::format` — it's the
+only choice that lets `make test-format` diff against a real reference.
 
 ### ACPP buffer limit
 

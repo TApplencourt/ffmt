@@ -151,6 +151,7 @@ RUN(PRINT("{}\n", -0.0f));
 RUN(PRINT("{}\n", 0.001));
 RUN(PRINT("{}\n", 0.001f));
 
+
 // ACPP-only: dragonbox paths that round numbers don't hit. These default
 // `{}` outputs use shortest-round-trip representation which std::format
 // matches but printf("%g") (DPC++ path) does not (capped at 6 sig digits).
@@ -165,6 +166,36 @@ RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision
 RUN(PRINT("{}\n", 1234567.89));              // small_divisor
 RUN(PRINT("{}\n", 1.234));                   // small_divisor
 RUN(PRINT("{}\n", 7.89));                    // small_divisor
+
+// Dragonbox small_divisor + parity-check coverage.  These doubles are
+// chosen so r ∈ {0, deltai, > deltai}, hitting the three branches in
+// compute_nearest_normal<double>: the right-endpoint-tie `goto
+// small_divisor` (line ~666), the unconditional `goto small_divisor`
+// (line ~669), and the parity-disambiguation path (lines ~671-675).
+RUN(PRINT("{}\n", 9007199254740994.0));      // 2^53 + 2 — boundary, exact
+RUN(PRINT("{}\n", 1.4012984643248171e-44));  // exercises compute_mul_parity
+RUN(PRINT("{}\n", 0.1));                     // 0.1 binary — tie-break parity
+RUN(PRINT("{}\n", 0.2));                     // 0.2 binary — tie-break parity
+RUN(PRINT("{}\n", 9.999999999999998));       // r > deltai branch
+RUN(PRINT("{}\n", 4.9406564584124654e-324)); // smallest subnormal double
+RUN(PRINT("{}\n", 2.2250738585072009e-308)); // largest subnormal double
+
+// Same paths for float-precision dragonbox (compute_mul_parity<float>).
+RUN(PRINT("{}\n", 0.1f));
+RUN(PRINT("{}\n", 0.2f));
+RUN(PRINT("{}\n", 16777218.0f));             // 2^24 + 2 — fixed/sci boundary
+RUN(PRINT("{}\n", 1.4013e-45f));             // float denorm range
+
+// Fixed/scientific boundary — std::format picks the shorter form, tie → fixed.
+// Buffer path uses dragonbox + use_fixed() length comparison; the SPIRV path
+// uses printf %g which follows a different rule (exp < -4 || exp >= precision).
+RUN(PRINT("{}\n", 1000000.0));         // exp=6, sig=1 → sci (1e+06 vs 1000000)
+RUN(PRINT("{}\n", 100000.0));          // exp=5, sig=1 → sci (1e+05 vs 100000)
+RUN(PRINT("{}\n", 10000.0));           // exp=4, sig=1 → tie → fixed (10000)
+RUN(PRINT("{}\n", 1234567890.0));      // exp=9, sig=10 → fixed
+RUN(PRINT("{}\n", 1234567890123456.0));// exp=15, sig=16 → fixed
+RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → sci
+RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
 #endif
 
 

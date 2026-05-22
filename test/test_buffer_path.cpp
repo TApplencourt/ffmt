@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME buffer_path
 #define TEST_INC "test_buffer_path.cpp"
-#include "test_body.inc"
+#include "test_select_body.inc"
 #else
 
 // ── Integers (from test_integers.cpp) ──
@@ -158,5 +158,38 @@ RUN(PRINT("{:<20a}\n", 3.14));
 RUN(PRINT("{:>20a}\n", 3.14));
 RUN(PRINT("{:^20a}\n", 3.14));
 RUN(PRINT("{:*>20a}\n", 3.14));
+
+// ── Type-instantiation coverage ──
+// write_int_rt<int8_t/short/int64_t/uint64_t/long>: integer specs through
+// less common types so the per-type buffer_path::write_int_rt instantiations
+// actually get exercised by coverage.
+RUN(PRINT("{:b}\n", static_cast<int8_t>(-5)));
+RUN(PRINT("{:x}\n", static_cast<int8_t>(-5)));
+RUN(PRINT("{:b}\n", static_cast<short>(-300)));
+RUN(PRINT("{:x}\n", static_cast<short>(-300)));
+RUN(PRINT("{:b}\n", static_cast<int64_t>(-1)));
+RUN(PRINT("{:x}\n", static_cast<int64_t>(-1)));
+RUN(PRINT("{:b}\n", static_cast<uint64_t>(0xDEADBEEFCAFEULL)));
+RUN(PRINT("{:o}\n", static_cast<uint64_t>(0xDEADBEEFCAFEULL)));
+RUN(PRINT("{:b}\n", 1L));
+RUN(PRINT("{:#x}\n", -1L));
+
+// hex_float_to_buf_rt<float>: {:a} on float (tests above only use double).
+RUN(PRINT("{:a}\n", 3.14f));
+RUN(PRINT("{:A}\n", 3.14f));
+RUN(PRINT("{:a}\n", 0.0f));
+RUN(PRINT("{:a}\n", -0.0f));
+RUN(PRINT("{:a}\n", std::numeric_limits<float>::infinity()));
+RUN(PRINT("{:#a}\n", 1.5f));
+
+// resolve_int_arg dispatch for type combinations not hit elsewhere:
+// dynamic width/precision with mixed integer types and floats.
+RUN(PRINT("{:{}d}\n", 42, static_cast<short>(8)));      // resolve_int_arg<short>
+RUN(PRINT("{:{}d}\n", 42, static_cast<int64_t>(8)));    // resolve_int_arg<int64_t>
+RUN(PRINT("{:{}d}\n", 42, static_cast<uint64_t>(8)));   // resolve_int_arg<uint64_t>
+RUN(PRINT("{:{}d}\n", 42, 8L));                         // resolve_int_arg<long>
+RUN(PRINT("{:{}d}\n", 42, static_cast<unsigned>(8)));   // resolve_int_arg<unsigned>
+RUN(PRINT("{:{}d}\n", 42, static_cast<int8_t>(8)));     // resolve_int_arg<int8_t>
+RUN(PRINT("{:{}d}\n", 42, static_cast<uint8_t>(8)));    // resolve_int_arg<uint8_t>
 
 #endif

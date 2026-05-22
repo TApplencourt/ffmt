@@ -718,7 +718,18 @@ inline auto write_digits(char *buf, uint64_t n, int num_digits) -> char * {
   return end;
 }
 
-constexpr auto use_fixed(int exp, int exp_upper) -> bool { return exp >= -4 && exp < exp_upper; }
+// std::format "general" rule: pick shorter of fixed vs scientific; tie → fixed.
+// `exp` is the decimal exponent of the most-significant digit; `sig_size` is the
+// number of significant digits in the shortest round-trip representation.
+constexpr auto use_fixed(int exp, int sig_size) -> bool {
+  if (exp < -4) return false;
+  int fixed_len = exp >= 0
+                      ? (exp + 1 >= sig_size ? exp + 1 : sig_size + 1)
+                      : 2 + (-exp - 1) + sig_size;
+  int abs_exp = exp < 0 ? -exp : exp;
+  int sci_len = sig_size + (sig_size > 1 ? 1 : 0) + 2 + (abs_exp >= 100 ? 3 : 2);
+  return fixed_len <= sci_len;
+}
 
 template <typename T> inline auto format_shortest(char *buf, T value) -> int {
   if (value == T(0)) {
@@ -731,14 +742,9 @@ template <typename T> inline auto format_shortest(char *buf, T value) -> int {
   int sig_size = count_digits(significand);
   int exponent = dec.exponent + sig_size - 1;
 
-  constexpr int exp_upper =
-      std::numeric_limits<T>::digits10 != 0
-          ? (16 < std::numeric_limits<T>::digits10 + 1 ? 16 : std::numeric_limits<T>::digits10 + 1)
-          : 16;
-
   char *p = buf;
 
-  if (use_fixed(exponent, exp_upper)) {
+  if (use_fixed(exponent, sig_size)) {
     if (exponent >= 0) {
       int int_digits = exponent + 1;
       if (int_digits >= sig_size) {
@@ -1293,17 +1299,6 @@ template <char EffType, typename T> inline auto printf_cast(T arg) {
   } else if constexpr (EffType == 'u' || EffType == 'x' || EffType == 'X' || EffType == 'o') {
     return unsigned_int_cast(arg);
   } else if constexpr (is_float_format(EffType)) {
-#ifdef __OPTIMIZE__
-    // At O1+, the host runtime enables DAZ/FTZ, so std::format treats float
-    // subnormals as zero.  Match that on the device: without this, the float
-    // is promoted to double (where the value is normal) and printf outputs a
-    // non-zero result that disagrees with the host reference.
-    if constexpr (std::same_as<U, float>) {
-      auto bits = __builtin_bit_cast(uint32_t, arg);
-      if ((bits & 0x7F800000u) == 0 && (bits & 0x007FFFFFu) != 0)
-        return (bits & 0x80000000u) ? -0.0 : 0.0;
-    }
-#endif
     return static_cast<double>(arg);
   }
   else

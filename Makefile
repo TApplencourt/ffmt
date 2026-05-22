@@ -1,5 +1,14 @@
 SHELL    := /bin/bash
-CXXFLAGS := -std=c++20 -Wall -Werror
+# -fno-fast-math: keep float subnormals intact. icpx's CRT enables
+# FTZ/DAZ at startup whenever any TU is compiled at -O1+, which makes
+# std::format/printf flush subnormals to zero on the host while the
+# SYCL device runtime does not — breaking the host-reference diff for
+# values like float denorm_min. Disabling fast-math keeps host and
+# device agreeing across icpx/gcc/clang.
+CXXFLAGS := -std=c++20 -Wall -Werror -fno-fast-math
+# CI / sanitizer injection: append to CXXFLAGS without disturbing the base
+# flags above (e.g. EXTRA_CXXFLAGS="-fsanitize=address,undefined").
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 ifdef USE_ACPP
   export PATH := $(HOME)/projet/p26.02/install/bin:$(PATH)
@@ -35,9 +44,13 @@ ALL_BINS := $(TEST_BINS) $(FUZZ_BINS) $(FUZZ_FM) $(FUZZ_PCT)
 
 # Per-test names that share an aggregating main (test_main_host.cpp + the
 # coverage host build). The standalone TEST_NAMES set above also includes
-# these but adds the buffer_path/escape_percent tests that don't have a
-# corresponding test_X() function declared in test_main_host.cpp.
-COV_TESTS := integers floats strings layout misc formatter
+# these but adds escape_percent which is GPU-only.
+#
+# COV_TESTS_COMMON: compiles for both FMT_SYCL_BUFFER_PATH values.
+# COV_TESTS_BUFFER_ONLY: buffer-path-only specs ({:a}, {:b}, {:^}, ...) —
+#   the specifiers path rejects these at compile time via static_assert.
+COV_TESTS             := integers floats strings layout misc formatter
+COV_TESTS_BUFFER_ONLY := buffer_path
 
 .PHONY: all build test test-format test-fuzz test-fuzz-pct test-ffast \
         readme-examples test-host coverage clean
@@ -177,7 +190,7 @@ test-ffast: $(FUZZ_FM)
 
 define HOST_TEMPLATE
 $(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o) build/$(1)_specifiers_fuzz.o
-$(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS),build/$(1)_buffer_$$(t).o)     build/$(1)_buffer_fuzz.o
+$(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o) build/$(1)_buffer_fuzz.o
 
 build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
 	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
@@ -198,10 +211,10 @@ build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.h
 	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -O2 $(2) -c $$< -o $$@
 
 build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
-	$$(CXX) $(2) $$^ -o $$@
+	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
 
 build/$(1)_buffer: build/$(1)_buffer_main.o $$($(1)_OBJS_BUFFER)
-	$$(CXX) $(2) $$^ -o $$@
+	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
 endef
 
 $(eval $(call HOST_TEMPLATE,test_main_host,))
@@ -226,17 +239,28 @@ $(eval $(call HOST_TEMPLATE,cov,$(COV_FLAGS)))
 
 COV_ALL := build/cov_specifiers build/cov_buffer
 
-coverage: $(COV_ALL)
+# Run instrumented binaries and merge into one .profdata. Split out so both
+# the human-readable `coverage` target and CI's `coverage-json` can share it.
+build/coverage.profdata: $(COV_ALL)
 	@rm -f build/cov_*.profraw
 	@for bin in $(COV_ALL); do \
 	  LLVM_PROFILE_FILE="$$bin.profraw" ./$$bin > /dev/null; \
 	done
-	@$(LLVM_PROFDATA) merge -o build/coverage.profdata build/cov_*.profraw
-	@$(LLVM_COV) report $(firstword $(COV_ALL)) \
-	  $(addprefix -object ,$(wordlist 2,$(words $(COV_ALL)),$(COV_ALL))) \
-	  -instr-profile=build/coverage.profdata \
-	  -sources sycl_khx_print.hpp
+	@$(LLVM_PROFDATA) merge -o $@ build/cov_*.profraw
 	@rm -f build/cov_*.profraw
+
+COV_OBJS := $(firstword $(COV_ALL)) \
+            $(addprefix -object ,$(wordlist 2,$(words $(COV_ALL)),$(COV_ALL)))
+
+coverage: build/coverage.profdata
+	@$(LLVM_COV) report $(COV_OBJS) -instr-profile=$< -sources sycl_khx_print.hpp
+
+# Machine-readable summary for CI non-regression check. The stderr redirect
+# silences llvm-cov's "N functions have mismatched data" warning that would
+# otherwise land on the same stream and break naive `> coverage.json` capture.
+coverage-json: build/coverage.profdata
+	@$(LLVM_COV) export $(COV_OBJS) -instr-profile=$< \
+	  -sources sycl_khx_print.hpp -summary-only --format=text 2>/dev/null
 
 clean:
 	rm -rf build/
