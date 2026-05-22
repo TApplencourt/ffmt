@@ -29,7 +29,7 @@ jobs:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Show toolchain
         run: ${{ matrix.cxx }} --version
       - name: Build + run host tests
@@ -41,7 +41,7 @@ jobs:
     env:
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Need the base branch for the comparison build.
           fetch-depth: 0
