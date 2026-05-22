@@ -43,21 +43,40 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       CXX: clang++
-      # Bumping this (or accepting a drop) requires an explicit edit to this
-      # file, which is the gate. Regions are the most stable signal across
-      # llvm-cov versions; lines/branches are noisier.
-      COVERAGE_BASELINE_REGIONS: "91.55"
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need the base branch for the comparison build.
+          fetch-depth: 0
       - name: Install llvm + jq
         run: sudo apt-get update && sudo apt-get install -y llvm jq
-      - name: Build + run coverage
-        run: make -j$(nproc) coverage-json > coverage.json
-      - name: Check non-regression
+      - name: Pick base ref
+        id: base
         run: |
-          actual=$(jq -r '.data[0].files[]
-                         | select(.filename | endswith("sycl_khx_print.hpp"))
-                         | .summary.regions.percent' coverage.json)
-          printf 'Regions coverage: %.2f%% (baseline: %s%%)\n' "$actual" "$COVERAGE_BASELINE_REGIONS"
-          awk -v a="$actual" -v b="$COVERAGE_BASELINE_REGIONS" \
-            'BEGIN { if (a+0 < b+0) { printf("FAIL: %.2f%% < baseline %.2f%%\n", a, b); exit 1 } }'
+          # PR runs compare against the merge base. Pushes fall back to
+          # comparing against origin/main so direct pushes are still gated.
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            echo "ref=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Coverage on base
+        run: |
+          git worktree add ../base ${{ steps.base.outputs.ref }}
+          make -C ../base -j$(nproc) coverage-json > base.json
+      - name: Coverage on this branch
+        run: make -j$(nproc) coverage-json > head.json
+      - name: Compare
+        run: |
+          pct() { jq -r '.data[0].files[]
+                        | select(.filename | endswith("sycl_khx_print.hpp"))
+                        | .summary.regions.percent' "$1"; }
+          base=$(pct base.json)
+          head=$(pct head.json)
+          printf 'Regions coverage — base: %.4f%%  head: %.4f%%\n' "$base" "$head"
+          # 0.01pp slack: identical builds occasionally wobble at the 5th
+          # decimal (rounding when the region count differs by an
+          # always-false `if constexpr` branch, etc.). A real regression
+          # moves the number by much more than this.
+          awk -v b="$base" -v h="$head" \
+            'BEGIN { if (h+0 < b+0 - 0.01) { printf("FAIL: %.4f%% < base %.4f%% (drop)\n", h, b); exit 1 } }'
