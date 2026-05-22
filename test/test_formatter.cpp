@@ -4,7 +4,7 @@
 
 #include "capture.hpp" // pulls in <format> and sycl_khx_print.hpp
 
-#if !defined(FMT_SYCL_HOST) && !defined(FMT_SYCL_HOST_ACPP)
+#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
 #include "sycl_std_formatters.hpp"
 #endif
 
@@ -64,7 +64,7 @@ RUN(PRINTLN("plain {} works too", 42));
 // PRINT (no newline) variant
 RUN(PRINT("[{}]\n", test_fmt::point{0, 0}));
 
-#if !defined(FMT_SYCL_HOST) && !defined(FMT_SYCL_HOST_ACPP)
+#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
 // SYCL types — only available in real device builds
 RUN(PRINTLN("range = {}", sycl::range<1>{4}));
 RUN(PRINTLN("range = {}", sycl::range<2>{4, 8}));

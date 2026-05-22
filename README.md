@@ -7,7 +7,7 @@
 
 ## Quick example
 
-> Source: [`example_readme1.cpp`](example_readme1.cpp)
+> Source: [`example_sycl_readme1.cpp`](example_sycl_readme1.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -35,7 +35,7 @@ and how to add your own.
 
 ## Advanced example
 
-> Source: [`example_readme2.cpp`](example_readme2.cpp)
+> Source: [`example_sycl_readme2.cpp`](example_sycl_readme2.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -119,9 +119,26 @@ auto-indexed `{}` placeholders only — positional indices (`{0}`, `{1}`)
 and format specs (`{:>5}`) on the custom-formatter arg are rejected at
 compile time. Calls with all-primitive args are unaffected.
 
+### Floating-point: FTZ/DAZ depends on the runtime
+
+Printed values reflect whatever the runtime does with subnormals. Some
+toolchain CRTs enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at
+startup — notably `icpx` does whenever any TU is compiled at `-O1` or
+higher — while others (glibc + g++, and most SYCL device runtimes) leave
+subnormals intact. The library does not paper over this: a value like
+`std::numeric_limits<float>::denorm_min()` may print as `1.4013e-45` in
+one environment and `0` in another, matching the local
+`printf`/`std::format`. To get the unflushed result under `icpx`, compile
+with `-fno-fast-math` (or `-fp-model=precise`); the host test suite in
+this repo does exactly that for portability across icpx/gcc/clang.
+
 ### Backend differences
 
 **AdaptiveCpp (ACPP)** supports the full `std::format` spec. The entire output is accumulated into a buffer before printing, so all features work atomically.
+
+**OpenMP target offload** is also supported. `icpx -fiopenmp -fopenmp-targets=spir64` shares the DPC++ specifiers path; `clang++ -fopenmp --offload-arch=sm_XX` shares the ACPP buffer path. Both are auto-detected via `_OPENMP` plus the compiler macro.
+
+> **⚠ clang-OpenMP-CUDA `-O0` is not supported.** A clang codegen bug at `-O0` corrupts variadic-pack arguments inside the format dispatch (visible as `KHX_PRINTLN("{} {}", 1, 2)` printing garbage). Build clang-OpenMP-CUDA targets at `-O1` or higher. `icpx`-OpenMP-SPIR64 and all SYCL backends are unaffected.
 
 **DPC++** uses a single `printf` call with format specifiers. This is atomic but limits which format features are available. Unsupported features produce a compile-time error:
 
@@ -142,6 +159,17 @@ Features only available on ACPP:
 - Alternate hex (`{:#x}` with signed int)
 - Dynamic width/precision (`{:{}}`, `{:.{}}`)
 - Dragonbox shortest-decimal float (default `{}` with floats)
+
+### Spec target: `std::format`, not `fmt::format`
+
+Where the two disagree, this header matches `std::format` / `std::print`
+(C++20 `[format.string.std]` → `[charconv.to.chars]/3.7`): the default `{}`
+on a float picks the **shorter** of fixed vs scientific, ties go to fixed.
+`{fmt}`'s `fmt::format` predates this rule and instead uses a fixed
+`exp_upper = min(16, digits10+1)` cap, so the two libraries print e.g.
+`fmt::format("{}", 1.0e15)` as `1000000000000000` while
+`std::format("{}", 1.0e15)` is `1e+15`. We follow `std::format` — it's the
+only choice that lets `make test-format` diff against a real reference.
 
 ### ACPP buffer limit
 
