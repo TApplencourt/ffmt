@@ -1964,10 +1964,19 @@ inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char et
                spec.fill_or(), spec.align_or(), dyn_w);
 }
 
+// Workaround for clang-OMP-CUDA -O0 codegen bug: bundle two trailing
+// by-value scalar ints into a struct so dispatch_arg / write_arg_rt can
+// receive them via reference. Two trailing by-value ints on a function
+// called from inside the dispatch_pack lambda triggers alloca aliasing
+// at -O0 (V29 standalone reproducer; see implementation_limitation/).
+struct dyn_args { int w; int p; };
+
 // Format one argument with runtime spec — dispatches based on type + etype.
 // No fmt_buf temporaries for bool/char/string; writes directly to out.
 template <typename T>
-inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, int dyn_w, int dyn_p) {
+inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, const dyn_args &dyn) {
+  int dyn_w = dyn.w;
+  int dyn_p = dyn.p;
   using U = std::decay_t<T>;
 
   if constexpr (std::same_as<U, bool>) {
@@ -2021,7 +2030,7 @@ inline void dispatch_pack(int idx, F &&fn, Args &&... args) {
 }
 
 template <typename... Args>
-inline void resolve_int_arg(int idx, int &out, Args... args) {
+inline void resolve_int_arg(int idx, int &out, Args&&... args) {
   dispatch_pack(idx,
     [&out](auto val) {
       if constexpr (std::integral<std::decay_t<decltype(val)>>)
@@ -2047,12 +2056,12 @@ inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... ar
 // Both branches are if-constexpr so the primitive path stays byte-identical.
 template <typename... Args>
 inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
-                         const format_spec &spec, int dyn_w, int dyn_p,
-                         Args... args) {
+                         const format_spec &spec, const dyn_args &dyn,
+                         Args&&... args) {
   dispatch_pack(idx,
     [&]<typename T>(T arg) {
       if constexpr (sycl_printable<std::decay_t<T>>) {
-        if (has_spec) write_arg_rt(out, arg, spec, dyn_w, dyn_p);
+        if (has_spec) write_arg_rt(out, arg, spec, dyn);
         else write_arg_default(out, arg);
       } else {
         // has_formatter<T> — specs/dynamic-width on custom args are not
@@ -2071,16 +2080,16 @@ inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
 // Top-level walker. Reuses the pre-parsed phs[] for the outer format string
 // (so spec handling for primitives is unchanged) and falls through to
 // dispatch_arg for both primitive and formatter args.
-template <sycl_formattable... Args>
-inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, Args... args) {
+template <sycl_formattable... Args, typename... A2>
+inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
   int pos = 0;
   for (int i = 0; i < ps.ph_count; i++) {
     const auto &e = ps.phs[i];
     write_literal_segment(out, ps.str, pos, e.open);
-    int dyn_w = e.spec.width, dyn_p = e.spec.precision;
-    if (e.spec.width_arg >= 0) resolve_int_arg(e.spec.width_arg, dyn_w, args...);
-    if (e.spec.prec_arg >= 0)  resolve_int_arg(e.spec.prec_arg,  dyn_p, args...);
-    dispatch_arg(out, e.arg_idx, e.has_spec, e.spec, dyn_w, dyn_p, args...);
+    dyn_args dyn{e.spec.width, e.spec.precision};
+    if (e.spec.width_arg >= 0) resolve_int_arg(e.spec.width_arg, dyn.w, args...);
+    if (e.spec.prec_arg >= 0)  resolve_int_arg(e.spec.prec_arg,  dyn.p, args...);
+    dispatch_arg(out, e.arg_idx, e.has_spec, e.spec, dyn, args...);
     pos = e.close + 1;
   }
   write_literal_segment(out, ps.str, pos, ps.len);
@@ -2099,7 +2108,8 @@ inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... ar
     if (!info.found) break;
     write_literal_segment(out, fmt, pos, static_cast<int>(info.open));
     int idx = (info.index >= 0) ? info.index : auto_idx++;
-    dispatch_arg(out, idx, /*has_spec*/ false, empty, /*dyn_w*/ 0, /*dyn_p*/ -1, args...);
+    dyn_args dyn{0, -1};
+    dispatch_arg(out, idx, /*has_spec*/ false, empty, dyn, args...);
     pos = static_cast<int>(info.close) + 1;
   }
   write_literal_segment(out, fmt, pos, fmt_len);
@@ -2377,14 +2387,14 @@ inline void println(Args... args) {
 // primitive path stays byte-identical, formatter args recurse into the
 // inner walker on the formatter's sub-format-string.
 template <sycl_formattable... Args>
-inline void print(print_detail::print_string<std::type_identity_t<Args>...> ps, Args... args) {
+inline void print(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   print_detail::fmt_buf out;
   print_detail::buffer_path::format_rt(out, ps, args...);
   print_detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
 }
 
 template <sycl_formattable... Args>
-inline void println(print_detail::print_string<std::type_identity_t<Args>...> ps, Args... args) {
+inline void println(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   print_detail::fmt_buf out;
   print_detail::buffer_path::format_rt(out, ps, args...);
   out.push('\n');

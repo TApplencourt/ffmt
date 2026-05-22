@@ -7,7 +7,7 @@
 
 ## Quick example
 
-> Source: [`example_readme1.cpp`](example_readme1.cpp)
+> Source: [`example_sycl_readme1.cpp`](example_sycl_readme1.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -35,7 +35,7 @@ and how to add your own.
 
 ## Advanced example
 
-> Source: [`example_readme2.cpp`](example_readme2.cpp)
+> Source: [`example_sycl_readme2.cpp`](example_sycl_readme2.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -135,6 +135,10 @@ this repo does exactly that for portability across icpx/gcc/clang.
 ### Backend differences
 
 **AdaptiveCpp (ACPP)** supports the full `std::format` spec. The entire output is accumulated into a buffer before printing, so all features work atomically.
+
+**OpenMP target offload** is also supported. `icpx -fiopenmp -fopenmp-targets=spir64` shares the DPC++ specifiers path; `clang++ -fopenmp --offload-arch=sm_XX` shares the ACPP buffer path. Both are auto-detected via `_OPENMP` plus the compiler macro.
+
+> **⚠ clang-OpenMP-CUDA `-O0` is not supported.** A clang codegen bug at `-O0` corrupts variadic-pack arguments inside the format dispatch (visible as `KHX_PRINTLN("{} {}", 1, 2)` printing garbage). Build clang-OpenMP-CUDA targets at `-O1` or higher. `icpx`-OpenMP-SPIR64 and all SYCL backends are unaffected.
 
 **DPC++** uses a single `printf` call with format specifiers. This is atomic but limits which format features are available. Unsupported features produce a compile-time error:
 

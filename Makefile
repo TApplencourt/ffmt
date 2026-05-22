@@ -20,6 +20,22 @@ ifdef USE_ACPP
   CXX             := acpp
   SYCLFLAGS       := --acpp-targets=generic
   OPT_LEVELS      := O0 O2
+else ifdef USE_OMP_CLANG
+  # Mainline LLVM clang offloading to NVIDIA via NVPTX. The header's
+  # __clang__ && _OPENMP block auto-installs the buffer-path emit hook
+  # (printf("%s", out.data)) — no extra defines needed.
+  CXX             ?= clang++
+  OFFLOAD_ARCH    ?= sm_80
+  SYCLFLAGS       := -fopenmp --offload-arch=$(OFFLOAD_ARCH)
+  OPT_LEVELS      := O0 O2
+else ifdef USE_OMP_ICPX
+  # icpx OpenMP-target on SPIR64. Shares the SPIR backend with icpx-SYCL,
+  # so this hits the specifiers path; the header's __INTEL_LLVM_COMPILER
+  # && _OPENMP block auto-installs the omp_printf → __spirv_ocl_printf
+  # emit hook.
+  CXX             ?= icpx
+  SYCLFLAGS       := -fiopenmp -fopenmp-targets=spir64
+  OPT_LEVELS      := O0 O2
 else
   # `?=` so an env-supplied CXX (e.g. CXX=g++ from CI) wins. With `:=` the
   # env was silently overridden and CI tried to call icpx unconditionally.
@@ -60,9 +76,17 @@ COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
 .PHONY: all build test test-format test-fuzz test-fuzz-pct test-ffast \
-        readme-examples test-host coverage clean
+        test-omp readme-examples test-host coverage clean
 
+# USE_OMP_CLANG / USE_OMP_ICPX share the SYCL header but not the SYCL
+# examples (those `#include <sycl/sycl.hpp>`). Default to the OMP test rig
+# only — building TEST_BINS / FUZZ_BINS / readme-examples would try to
+# compile SYCL sources with OMP-only flags and fail.
+ifneq (,$(or $(USE_OMP_CLANG),$(USE_OMP_ICPX)))
+all: test-omp
+else
 all: test
+endif
 
 # ── Build directory ─────────────────────────────────────────
 
@@ -109,15 +133,16 @@ $(foreach i,$(shell seq 2 $(words $(ALL_FUZZ))),\
   $(eval $(word $(i),$(ALL_FUZZ)): | $(word $(i),$(PREV_FUZZ))))
 endif
 
-# README examples
-build/example_readme%: example_readme%.cpp sycl_khx_print.hpp | build/
+# README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
+# under USE_OMP_CLANG / USE_OMP_ICPX where SYCLFLAGS is OMP-only).
+build/example_sycl_readme%: example_sycl_readme%.cpp sycl_khx_print.hpp | build/
 	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) $< -o $@"
-	@TIMEFORMAT="  compile example_readme$*: %Rs"; time \
+	@TIMEFORMAT="  compile example_sycl_readme$*: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) $< -o $@
 
-readme-examples: build/example_readme1 build/example_readme2
+readme-examples: build/example_sycl_readme1 build/example_sycl_readme2
 	@t0=$$(date +%s%N); \
-	./build/example_readme1 >/dev/null && ./build/example_readme2 >/dev/null; rc=$$?; \
+	./build/example_sycl_readme1 >/dev/null && ./build/example_sycl_readme2 >/dev/null; rc=$$?; \
 	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "readme-examples: PASS ($${ms}ms)"; \
 	else echo "readme-examples: FAIL ($${ms}ms)"; false; fi
@@ -178,6 +203,37 @@ test-ffast: $(FUZZ_FM)
 	  else echo "fuzz -ffast-math -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
 	done; \
 	exit $$fail
+
+# ── OMP test rig (opt-in: USE_OMP_CLANG=1 or USE_OMP_ICPX=1) ──────
+# Builds test_main_omp + per-test sources into one binary, then runs
+# it. Single-binary single-rule (vs the per-opt-level loop of test-format)
+# because the OMP smoke harness just needs to prove the header still
+# matches std::format on a real device — not multiply GPU launches.
+#
+# Buffer path (clang-OMP-CUDA) compiles the buffer-only tests too;
+# specifiers path (icpx-OMP-SPIR64) skips them because they'd hit
+# static_asserts. Both lists deliberately omit fuzz.cpp for now.
+ifdef USE_OMP_CLANG
+  TEST_NAMES_OMP := integers floats strings layout misc formatter buffer_path
+endif
+ifdef USE_OMP_ICPX
+  TEST_NAMES_OMP := integers floats strings layout misc formatter
+endif
+
+build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) sycl_khx_print.hpp \
+                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/
+	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
+	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
+	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -DTEST_NO_MAIN -o $@ \
+	  $(TEST_DIR)/test_main_omp.cpp \
+	  $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp)
+
+test-omp: build/test_main_omp
+	@t0=$$(date +%s%N); \
+	./build/test_main_omp; rc=$$?; \
+	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	if [ $$rc -eq 0 ]; then echo "test_main_omp: PASS ($${ms}ms)"; \
+	else echo "test_main_omp: FAIL ($${ms}ms)"; false; fi
 
 # ── Host tests + coverage (host-only, no SYCL device, no OpenMP) ──
 # Both targets build test_main_host.cpp + per-test .o files twice — once
