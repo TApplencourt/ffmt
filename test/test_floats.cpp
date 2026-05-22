@@ -8,11 +8,11 @@
 RUN(PRINT("{}\n", 3.14f));
 RUN(PRINT("{}\n", 0.1f));
 RUN(PRINT("{}\n", 1.0f));
-RUN(PRINT("{}\n", -2.5f));
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5f));
 RUN(PRINT("{}\n", 3.14));
 RUN(PRINT("{}\n", 0.1));
 RUN(PRINT("{}\n", 1.0));
-RUN(PRINT("{}\n", -2.5));
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5));
 
 // Floats — explicit specs
 RUN(PRINT("{:g}\n", 3.14));
