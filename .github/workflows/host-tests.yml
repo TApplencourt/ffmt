@@ -59,22 +59,30 @@ jobs:
         run: |
           git worktree add ../base ${{ steps.base.outputs.ref }}
           # Run `make coverage` (exists in every revision since coverage was
-          # added) just to produce the .profdata + cov_* objects, then export
+          # added) just to produce the .profdata + cov_* binaries, then export
           # JSON ourselves. Inlining this means CI doesn't break on revs that
           # predate `coverage-json`.
-          make -C ../base -j$(nproc) coverage
-          PROFDATA=$($CXX -print-prog-name=llvm-profdata)
+          # `CXX=$CXX` on the command line is required: older revs used
+          # `CXX := icpx`, which the env-supplied `CXX` doesn't override —
+          # command-line assignments do.
+          make -C ../base CXX=$CXX -j$(nproc) coverage
           COV=$($CXX -print-prog-name=llvm-cov)
-          "$COV" export ../base/build/cov_specifiers -object ../base/build/cov_buffer \
+          # Coverage binary names have changed across revs (cov_dpc_all/
+          # cov_acpp_all → cov_specifiers/cov_buffer). Glob and let the
+          # workflow be name-agnostic.
+          mapfile -t BINS < <(find ../base/build -maxdepth 1 -type f -executable -name 'cov_*')
+          OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
+          "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
             -instr-profile=../base/build/coverage.profdata \
             -sources ../base/sycl_khx_print.hpp -summary-only --format=text \
             2>/dev/null > base.json
       - name: Coverage on this branch
         run: |
           make -j$(nproc) coverage
-          PROFDATA=$($CXX -print-prog-name=llvm-profdata)
           COV=$($CXX -print-prog-name=llvm-cov)
-          "$COV" export build/cov_specifiers -object build/cov_buffer \
+          mapfile -t BINS < <(find build -maxdepth 1 -type f -executable -name 'cov_*')
+          OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
+          "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
             -instr-profile=build/coverage.profdata \
             -sources sycl_khx_print.hpp -summary-only --format=text \
             2>/dev/null > head.json
