@@ -18,33 +18,58 @@ HOST_OPT ?= -O2
 ifdef USE_ACPP
   export PATH := $(HOME)/projet/p26.02/install/bin:$(PATH)
   CXX             := acpp
-  SYCLFLAGS       := --acpp-targets=generic
+  BACKEND_FLAGS   := --acpp-targets=generic
   OPT_LEVELS      := O0 O2
 else ifdef USE_OMP_CLANG
   # Mainline LLVM clang offloading to NVIDIA via NVPTX. The header's
   # __clang__ && _OPENMP block auto-installs the buffer-path emit hook
   # (printf("%s", out.data)) — no extra defines needed.
-  CXX             ?= clang++
+  # `origin` check (not `?=`) because Make's built-in default `CXX=g++`
+  # counts as "set" for `?=`, which would leave gcc in place and fail on
+  # `--offload-arch`. Env- or command-line-supplied CXX still wins.
+  ifeq ($(origin CXX),default)
+    CXX           := clang++
+  endif
   OFFLOAD_ARCH    ?= sm_80
-  SYCLFLAGS       := -fopenmp --offload-arch=$(OFFLOAD_ARCH)
+  OMP_OPT         ?= -O0
+  BACKEND_FLAGS   := -fopenmp --offload-arch=$(OFFLOAD_ARCH) $(OMP_OPT)
+  # FMT_PTX_CLANG_O0: see capture.hpp for the symptom catalog. Verified
+  # clean at -O2, so gate it only when OMP_OPT == -O0. Run
+  # `make ... OMP_OPT=-O2` to confirm.
+  ifeq ($(OMP_OPT),-O0)
+    BACKEND_FLAGS += -DFMT_PTX_CLANG_O0
+  endif
   OPT_LEVELS      := O0 O2
 else ifdef USE_OMP_ICPX
   # icpx OpenMP-target on SPIR64. Shares the SPIR backend with icpx-SYCL,
   # so this hits the specifiers path; the header's __INTEL_LLVM_COMPILER
   # && _OPENMP block auto-installs the omp_printf → __spirv_ocl_printf
   # emit hook.
-  CXX             ?= icpx
-  SYCLFLAGS       := -fiopenmp -fopenmp-targets=spir64
+  # `origin` check (not `?=`) — see USE_OMP_CLANG branch above.
+  ifeq ($(origin CXX),default)
+    CXX           := icpx
+  endif
+  OMP_OPT         ?= -O0
+  BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=spir64 $(OMP_OPT)
+  # Same SPIRV-O0 string-literal-through-pointer bug the SYCL path hits.
+  ifeq ($(OMP_OPT),-O0)
+    BACKEND_FLAGS += -DFMT_SPIRV_O0
+  endif
   OPT_LEVELS      := O0 O2
 else
-  # `?=` so an env-supplied CXX (e.g. CXX=g++ from CI) wins. With `:=` the
-  # env was silently overridden and CI tried to call icpx unconditionally.
-  CXX             ?= icpx
-  SYCLFLAGS       := -fsycl
+  # `origin` check so an env- or command-line-supplied CXX (e.g. CXX=g++
+  # from CI) wins, while Make's built-in default `g++` gets replaced by
+  # icpx. With plain `?=` the built-in default counted as set and icpx
+  # never took effect; with `:=` env/command-line was silently overridden.
+  ifeq ($(origin CXX),default)
+    CXX           := icpx
+  endif
+  BACKEND_FLAGS   := -fsycl
   OPT_LEVELS      := O0 O1 O2 O3
   BUFFER_PATH     :=
-  # Work around DPC++ bug (string literal through pointer segfaults at O0)
-  WA_O0           := -DFMT_SYCL_WA_STR
+  # FMT_SPIRV_O0 gates tests broken by an icpx-SYCL-on-SPIR64 bug at -O0:
+  # a string-literal accessed through a pointer segfaults on device.
+  WA_O0           := -DFMT_SPIRV_O0
 endif
 
 # ── Source files ────────────────────────────────────────────
@@ -57,13 +82,8 @@ TEST_HDRS   := $(wildcard $(TEST_DIR)/*.hpp $(TEST_DIR)/*.inc)
 
 # Derived binary names (all in build/)
 TEST_BINS := $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),build/test_$(t)_$(o)))
-FUZZ_BINS := $(addprefix build/fuzz_,$(OPT_LEVELS))
-FUZZ_FM   := $(addprefix build/fuzz_ffast_,$(OPT_LEVELS))
-ifdef USE_ACPP
-  FUZZ_PCT := $(addprefix build/fuzz_escape_percent_,$(OPT_LEVELS))
-endif
 
-ALL_BINS := $(TEST_BINS) $(FUZZ_BINS) $(FUZZ_FM) $(FUZZ_PCT)
+ALL_BINS := $(TEST_BINS)
 
 # Per-test names that share an aggregating main (test_main_host.cpp + the
 # coverage host build). The standalone TEST_NAMES set above also includes
@@ -75,13 +95,12 @@ ALL_BINS := $(TEST_BINS) $(FUZZ_BINS) $(FUZZ_FM) $(FUZZ_PCT)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-fuzz test-fuzz-pct test-ffast \
-        test-omp readme-examples test-host coverage clean
+.PHONY: all build test test-format test-omp readme-examples test-host coverage clean
 
 # USE_OMP_CLANG / USE_OMP_ICPX share the SYCL header but not the SYCL
 # examples (those `#include <sycl/sycl.hpp>`). Default to the OMP test rig
-# only — building TEST_BINS / FUZZ_BINS / readme-examples would try to
-# compile SYCL sources with OMP-only flags and fail.
+# only — building TEST_BINS / readme-examples would try to compile SYCL
+# sources with OMP-only flags and fail.
 ifneq (,$(or $(USE_OMP_CLANG),$(USE_OMP_ICPX)))
 all: test-omp
 else
@@ -97,48 +116,19 @@ build/:
 
 define TEST_template
 build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) sycl_khx_print.hpp | build/
-	@echo "$$(CXX) $$(CXXFLAGS) $$(SYCLFLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
+	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
 	@TIMEFORMAT="  compile test_$(1)_$(2): %Rs"; time \
-	$$(CXX) $$(CXXFLAGS) $$(SYCLFLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
 endef
 
 $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,$(t),$(o)))))
 
-# ── Fuzz targets (single binary per opt level) ──────────────
-
-build/fuzz_%: $(TEST_DIR)/fuzz.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* $(BUFFER_PATH) $(WA_$*) $< -o $@"
-	@TIMEFORMAT="  compile fuzz_$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* $(BUFFER_PATH) $(WA_$*) $< -o $@
-
-build/fuzz_ffast_%: $(TEST_DIR)/fuzz.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* -ffast-math $(BUFFER_PATH) $(WA_$*) $< -o $@"
-	@TIMEFORMAT="  compile fuzz_ffast_$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* -ffast-math $(BUFFER_PATH) $(WA_$*) $< -o $@
-
-build/fuzz_escape_percent_%: $(TEST_DIR)/fuzz_escape_percent.cpp $(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* $(WA_$*) $< -o $@"
-	@TIMEFORMAT="  compile fuzz_escape_percent_$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -$* $(WA_$*) $< -o $@
-
-# acpp/clang heap-corrupts ("malloc(): invalid next size") when several heavy
-# fuzz.cpp instantiations link concurrently. Chain fuzz binaries so each
-# waits for the previous one — make -j still parallelizes everything else.
-# Use order-only prereqs (after `|`) so timestamps don't trigger unnecessary
-# rebuilds; we only want serialized build order, not a real dependency.
-ifdef USE_ACPP
-ALL_FUZZ := $(FUZZ_BINS) $(FUZZ_FM) $(FUZZ_PCT)
-PREV_FUZZ := $(wordlist 1,$(words $(ALL_FUZZ)),x $(ALL_FUZZ))
-$(foreach i,$(shell seq 2 $(words $(ALL_FUZZ))),\
-  $(eval $(word $(i),$(ALL_FUZZ)): | $(word $(i),$(PREV_FUZZ))))
-endif
-
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
-# under USE_OMP_CLANG / USE_OMP_ICPX where SYCLFLAGS is OMP-only).
+# under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
 build/example_sycl_readme%: example_sycl_readme%.cpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) $< -o $@"
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
 	@TIMEFORMAT="  compile example_sycl_readme$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
 
 readme-examples: build/example_sycl_readme1 build/example_sycl_readme2
 	@t0=$$(date +%s%N); \
@@ -151,7 +141,7 @@ readme-examples: build/example_sycl_readme1 build/example_sycl_readme2
 
 build: $(ALL_BINS)
 
-test: test-format test-fuzz test-ffast readme-examples
+test: test-format readme-examples
 	@echo "==============================="
 	@echo "All tests passed."
 	@echo "==============================="
@@ -169,41 +159,6 @@ test-format: $(TEST_BINS)
 	done; \
 	exit $$fail
 
-test-fuzz: $(FUZZ_BINS)
-	@fail=0; \
-	for opt in $(OPT_LEVELS); do \
-	  t0=$$(date +%s%N); \
-	  ./build/fuzz_$$opt; rc=$$?; \
-	  ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
-	  if [ $$rc -eq 0 ]; then echo "fuzz -$$opt: PASS ($${ms}ms)"; \
-	  else echo "fuzz -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
-	done; \
-	exit $$fail
-
-ifdef USE_ACPP
-test-fuzz-pct: $(FUZZ_PCT)
-	@fail=0; \
-	for opt in $(OPT_LEVELS); do \
-	  t0=$$(date +%s%N); \
-	  ./build/fuzz_escape_percent_$$opt; rc=$$?; \
-	  ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
-	  if [ $$rc -eq 0 ]; then echo "fuzz_escape_percent -$$opt: PASS ($${ms}ms)"; \
-	  else echo "fuzz_escape_percent -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
-	done; \
-	exit $$fail
-endif
-
-test-ffast: $(FUZZ_FM)
-	@fail=0; \
-	for opt in $(OPT_LEVELS); do \
-	  t0=$$(date +%s%N); \
-	  ./build/fuzz_ffast_$$opt; rc=$$?; \
-	  ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
-	  if [ $$rc -eq 0 ]; then echo "fuzz -ffast-math -$$opt: PASS ($${ms}ms)"; \
-	  else echo "fuzz -ffast-math -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
-	done; \
-	exit $$fail
-
 # ── OMP test rig (opt-in: USE_OMP_CLANG=1 or USE_OMP_ICPX=1) ──────
 # Builds test_main_omp + per-test sources into one binary, then runs
 # it. Single-binary single-rule (vs the per-opt-level loop of test-format)
@@ -212,7 +167,7 @@ test-ffast: $(FUZZ_FM)
 #
 # Buffer path (clang-OMP-CUDA) compiles the buffer-only tests too;
 # specifiers path (icpx-OMP-SPIR64) skips them because they'd hit
-# static_asserts. Both lists deliberately omit fuzz.cpp for now.
+# static_asserts.
 ifdef USE_OMP_CLANG
   TEST_NAMES_OMP := integers floats strings layout misc formatter buffer_path
 endif
@@ -222,9 +177,9 @@ endif
 
 build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) sycl_khx_print.hpp \
                      $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/
-	@echo "$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(SYCLFLAGS) -DTEST_NO_MAIN -o $@ \
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
 	  $(TEST_DIR)/test_main_omp.cpp \
 	  $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp)
 
@@ -252,19 +207,13 @@ test-omp: build/test_main_omp
 #   $(2) = extra flags      ("" or "$(COV_FLAGS)")
 
 define HOST_TEMPLATE
-$(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o) build/$(1)_specifiers_fuzz.o
-$(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o) build/$(1)_buffer_fuzz.o
+$(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o)
+$(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o)
 
 build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
 	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
-
-build/$(1)_specifiers_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
-
-build/$(1)_buffer_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
 	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/

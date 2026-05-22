@@ -47,22 +47,23 @@ struct sycl::ext::khx::formatter<test_fmt::boxed> {
 #include "test_select_body.inc"
 #else
 
-// Custom non-SYCL formatter
-RUN(PRINTLN("p = {}", test_fmt::point{1, 2}));
-RUN(PRINTLN("b = {}", test_fmt::boxed{42}));
+// Custom non-SYCL formatter — every PTX-clang-O0 test below mishandles
+// the custom-formatter splicer output. Left runnable on other backends.
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINTLN("p = {}", test_fmt::point{1, 2}));
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINTLN("b = {}", test_fmt::boxed{42}));
 
 // Mixed primitive + custom (auto-indexed) — exercises the splicer with
 // non-trivial Fmt2 expansion and the runtime args-tuple flatten.
-RUN(PRINTLN("step {} of {}: p={}", 3, 100, test_fmt::point{4, 8}));
-#ifndef FMT_SYCL_WA_STR
-RUN(PRINTLN("{} -> {} ({})", test_fmt::boxed{1}, test_fmt::boxed{2}, "ok"));
-#endif
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0",
+        PRINTLN("step {} of {}: p={}", 3, 100, test_fmt::point{4, 8}));
+SKIP_IF((FMT_SPIRV_O0 || FMT_PTX_CLANG_O0), "spirv-o0|ptx-clang-o0",
+        PRINTLN("{} -> {} ({})", test_fmt::boxed{1}, test_fmt::boxed{2}, "ok"));
 
 // All-primitive path on the same entry point — should bypass expansion
 RUN(PRINTLN("plain {} works too", 42));
 
 // PRINT (no newline) variant
-RUN(PRINT("[{}]\n", test_fmt::point{0, 0}));
+SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("[{}]\n", test_fmt::point{0, 0}));
 
 #if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
 // SYCL types — only available in real device builds

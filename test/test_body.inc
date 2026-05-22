@@ -24,7 +24,12 @@ bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
 #endif
 #define RUN(...) do { printf("Test %d\n", ++_test_id); \
   for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } } while (0)
+#define SKIP_IF(gate, reason, ...) do {                                       \
+  if (gate) printf("Test %d\n# skipped: %s\n", ++_test_id, reason);           \
+  else RUN(__VA_ARGS__);                                                      \
+} while (0)
 #include TEST_INC
+#undef SKIP_IF
 #undef RUN
 #undef PRINTLN
 #undef PRINT
@@ -38,7 +43,12 @@ bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
 #define PRINTLN(fmt_str, ...) KHX_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
 #define RUN(...) do { printf("Test %d\n", ++_test_id); \
   q.parallel_for(N, [=](::sycl::id<1>) { __VA_ARGS__; }).wait(); } while (0)
+#define SKIP_IF(gate, reason, ...) do {                                       \
+  if (gate) printf("Test %d\n# skipped: %s\n", ++_test_id, reason);           \
+  else RUN(__VA_ARGS__);                                                      \
+} while (0)
 #include TEST_INC
+#undef SKIP_IF
 #undef RUN
 #undef PRINTLN
 #undef PRINT
