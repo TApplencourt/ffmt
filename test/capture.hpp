@@ -41,7 +41,11 @@ static std::string capture_stdout(auto&& fn) {
   auto size = lseek(mem_fd, 0, SEEK_END);
   lseek(mem_fd, 0, SEEK_SET);
   std::string result(size, '\0');
-  ::read(mem_fd, result.data(), size);
+  for (ssize_t off = 0; off < size; ) {
+    ssize_t n = ::read(mem_fd, result.data() + off, size - off);
+    if (n <= 0) break;
+    off += n;
+  }
   close(mem_fd);
   return result;
 }
