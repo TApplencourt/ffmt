@@ -16,7 +16,9 @@ ifdef USE_ACPP
   SYCLFLAGS       := --acpp-targets=generic
   OPT_LEVELS      := O0 O2
 else
-  CXX             := icpx
+  # `?=` so an env-supplied CXX (e.g. CXX=g++ from CI) wins. With `:=` the
+  # env was silently overridden and CI tried to call icpx unconditionally.
+  CXX             ?= icpx
   SYCLFLAGS       := -fsycl
   OPT_LEVELS      := O0 O1 O2 O3
   BUFFER_PATH     :=
