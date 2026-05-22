@@ -7,14 +7,16 @@ on:
 
 jobs:
   matrix:
-    name: ${{ matrix.cxx }}
+    name: ${{ matrix.cxx }} ${{ matrix.opt }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         cxx: [g++, clang++]
+        opt: [-O0, -O2]
     env:
       CXX: ${{ matrix.cxx }}
+      HOST_OPT: ${{ matrix.opt }}
       # `-fno-sanitize=bool`: libstdc++'s std::basic_format_arg uses an
       # _Arg_value union with a `bool _M_bool` member (libstdc++-13
       # bits/format.h around line 2737/2780). `_S_get<bool>` returns a

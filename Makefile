@@ -10,6 +10,11 @@ CXXFLAGS := -std=c++20 -Wall -Werror -fno-fast-math
 # flags above (e.g. EXTRA_CXXFLAGS="-fsanitize=address,undefined").
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 
+# Opt level for host build (test-host + coverage). Overridable from CI
+# so the matrix can exercise -O0 / -O2 (or -O3, etc.). Don't put this
+# in CXXFLAGS — the SYCL build has its own per-test opt loop.
+HOST_OPT ?= -O2
+
 ifdef USE_ACPP
   export PATH := $(HOME)/projet/p26.02/install/bin:$(PATH)
   CXX             := acpp
@@ -195,22 +200,22 @@ $(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o
 $(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o) build/$(1)_buffer_fuzz.o
 
 build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_buffer_fuzz.o: $$(TEST_DIR)/fuzz.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -O2 $(2) -c $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
 	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
