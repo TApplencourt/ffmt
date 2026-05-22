@@ -63,9 +63,26 @@ jobs:
       - name: Coverage on base
         run: |
           git worktree add ../base ${{ steps.base.outputs.ref }}
-          make -C ../base -j$(nproc) coverage-json > base.json
+          # Run `make coverage` (exists in every revision since coverage was
+          # added) just to produce the .profdata + cov_* objects, then export
+          # JSON ourselves. Inlining this means CI doesn't break on revs that
+          # predate `coverage-json`.
+          make -C ../base -j$(nproc) coverage
+          PROFDATA=$($CXX -print-prog-name=llvm-profdata)
+          COV=$($CXX -print-prog-name=llvm-cov)
+          "$COV" export ../base/build/cov_specifiers -object ../base/build/cov_buffer \
+            -instr-profile=../base/build/coverage.profdata \
+            -sources ../base/sycl_khx_print.hpp -summary-only --format=text \
+            2>/dev/null > base.json
       - name: Coverage on this branch
-        run: make -j$(nproc) coverage-json > head.json
+        run: |
+          make -j$(nproc) coverage
+          PROFDATA=$($CXX -print-prog-name=llvm-profdata)
+          COV=$($CXX -print-prog-name=llvm-cov)
+          "$COV" export build/cov_specifiers -object build/cov_buffer \
+            -instr-profile=build/coverage.profdata \
+            -sources sycl_khx_print.hpp -summary-only --format=text \
+            2>/dev/null > head.json
       - name: Compare
         run: |
           pct() { jq -r '.data[0].files[]
