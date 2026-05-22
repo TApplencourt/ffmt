@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <limits>
@@ -41,11 +42,8 @@ static std::string capture_stdout(auto&& fn) {
   auto size = lseek(mem_fd, 0, SEEK_END);
   lseek(mem_fd, 0, SEEK_SET);
   std::string result(size, '\0');
-  for (ssize_t off = 0; off < size; ) {
-    ssize_t n = ::read(mem_fd, result.data() + off, size - off);
-    if (n <= 0) break;
-    off += n;
-  }
+  ssize_t n = ::read(mem_fd, result.data(), size);
+  assert(n == size);  // memfd is regular-file: full read or EOF, no shorts
   close(mem_fd);
   return result;
 }
