@@ -3,11 +3,34 @@
 - `std::print`-like formatting for SYCL device kernels.
 - Required C++20
 
-- Tested with DPC++ and AdaptiveCpp (ACPP, generic/SSCP backend)
+This project would not exist without [{fmt}](https://github.com/fmtlib/fmt)
+by Victor Zverovich and [Dragonbox](https://github.com/jk-jeon/dragonbox)
+by Junekey Jeon. The float formatting paths (default `{}`, `{:g}`, `{:e}`,
+`{:f}`, hex `{:a}`) are a direct port of {fmt}'s Dragonbox integration;
+the spec parser and many formatting decisions follow {fmt}'s precedent.
+Where this library diverges, it does so to match `std::format` rather than
+`fmt::format` (see [Spec target](#spec-target-stdformat-not-fmtformat)
+below).
+
+## Supported backends
+
+| Backend                  | Compiler                            | Status | Notes |
+|--------------------------|-------------------------------------|--------|-------|
+| SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug skips a handful of `%s` tests — auto-gated via `FMT_SPIRV_O0`. |
+| SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. Full `std::format` spec. |
+| OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs are auto-gated via `FMT_PTX_CLANG_O0`. Build with `OMP_OPT=-O2` for full coverage. |
+| CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
+| CUDA                     | `nvcc`                              | ❌ | Fails: `libnvvm` can't emit the `print_string` consteval ctor for device code. |
+| CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
+
+Auto-detection is purely preprocessor — `#include "sycl_khx_print.hpp"` and the right emit hook installs itself based on the active compiler/backend macros.
 
 ## Quick example
 
-> Source: [`example_sycl_readme1.cpp`](example_sycl_readme1.cpp)
+### SYCL
+
+> Source: [`examples/readme1_sycl.cpp`](examples/readme1_sycl.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -16,17 +39,49 @@
 int main() {
   sycl::queue q;
   q.parallel_for(4, [=](sycl::id<1> i) {
-    KHX_PRINTLNF("work-item {} says {}", i, "hello");
+    KHX_PRINTLN("work-item {} says {}", i, "hello");
   }).wait();
 }
 ```
 
-One possible ordering of the output:
-```bash
-work-item (0) says hello
-work-item (2) says hello
-work-item (1) says hello
-work-item (3) says hello
+### OpenMP target offload
+
+> Source: [`examples/readme1_omp.cpp`](examples/readme1_omp.cpp)
+
+```cpp
+#include "sycl_khx_print.hpp"
+
+int main() {
+  #pragma omp target teams distribute parallel for num_teams(1) thread_limit(4)
+  for (int i = 0; i < 4; i++) {
+    KHX_PRINTLN("work-item {} says {}", i, "hello");
+  }
+}
+```
+
+### CUDA (clang)
+
+> Source: [`examples/readme1_cuda.cu`](examples/readme1_cuda.cu)
+
+```cpp
+#include "sycl_khx_print.hpp"
+
+__global__ void hello() {
+  KHX_PRINTLN("work-item {} says {}", threadIdx.x, "hello");
+}
+
+int main() {
+  hello<<<1, 4>>>();
+  cudaDeviceSynchronize();
+}
+```
+
+One possible ordering of the output (same for all three):
+```
+work-item 0 says hello
+work-item 2 says hello
+work-item 1 says hello
+work-item 3 says hello
 ```
 
 `sycl::id` is printed by the built-in formatter (no cast needed). See
@@ -35,7 +90,7 @@ and how to add your own.
 
 ## Advanced example
 
-> Source: [`example_sycl_readme2.cpp`](example_sycl_readme2.cpp)
+> Source: [`examples/readme2_sycl.cpp`](examples/readme2_sycl.cpp)
 
 ```cpp
 #include "sycl_khx_print.hpp"
@@ -134,13 +189,16 @@ this repo does exactly that for portability across icpx/gcc/clang.
 
 ### Backend differences
 
-**AdaptiveCpp (ACPP)** supports the full `std::format` spec. The entire output is accumulated into a buffer before printing, so all features work atomically.
+Two emit paths share the same front-end:
 
-**OpenMP target offload** is also supported. `icpx -fiopenmp -fopenmp-targets=spir64` shares the DPC++ specifiers path; `clang++ -fopenmp --offload-arch=sm_XX` shares the ACPP buffer path. Both are auto-detected via `_OPENMP` plus the compiler macro.
+- **Buffer path** (ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
+  output into a fixed-size buffer, then emits it with a single
+  `printf("%s", buf)`. Supports the full `std::format` spec.
+- **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format
+  string into a `printf` format and lets the device runtime format
+  args directly. Atomic but limited to printf-compatible specs.
 
-> **⚠ clang-OpenMP-CUDA `-O0` is not supported.** A clang codegen bug at `-O0` corrupts variadic-pack arguments inside the format dispatch (visible as `KHX_PRINTLN("{} {}", 1, 2)` printing garbage). Build clang-OpenMP-CUDA targets at `-O1` or higher. `icpx`-OpenMP-SPIR64 and all SYCL backends are unaffected.
-
-**DPC++** uses a single `printf` call with format specifiers. This is atomic but limits which format features are available. Unsupported features produce a compile-time error:
+DPC++ rejects unsupported features at compile time:
 
 ```
 error: static assertion failed:
@@ -150,7 +208,7 @@ error: static assertion failed:
   These features are only available on ACPP.
 ```
 
-Features only available on ACPP:
+Features only available on the buffer path:
 - Binary format (`{:b}`, `{:B}`)
 - Hex float (`{:a}`, `{:A}`)
 - Center alignment (`{:^}`)
@@ -171,9 +229,10 @@ on a float picks the **shorter** of fixed vs scientific, ties go to fixed.
 `std::format("{}", 1.0e15)` is `1e+15`. We follow `std::format` — it's the
 only choice that lets `make test-format` diff against a real reference.
 
-### ACPP buffer limit
+### Buffer-path size limit
 
-The output buffer defaults to 128 characters. Output longer than that per `KHX_PRINT` call is silently truncated. Override with:
+The buffer-path output buffer defaults to 128 characters. Output longer
+than that per `KHX_PRINT` call is silently truncated. Override with:
 
 ```cpp
 #define KHX_SYCL_PRINT_BUFFER_SIZE 512
@@ -188,20 +247,27 @@ icpx -fsycl -std=c++20 my_kernel.cpp -o my_kernel
 
 # AdaptiveCpp (generic/SSCP backend)
 acpp --acpp-targets=generic -std=c++20 my_kernel.cpp -o my_kernel
+
+# OpenMP target offload (clang → NVPTX)
+clang++ -fopenmp --offload-arch=sm_80 -std=c++20 my_kernel.cpp -o my_kernel
+
+# CUDA (clang)
+clang++ -x cuda --cuda-gpu-arch=sm_80 -std=c++20 my_kernel.cu -lcudart -o my_kernel
 ```
 
 ## Tests
 
 ```bash
-make test              # Run all tests (format + fuzz + ffast-math)
-```
-Or individually:
-```bash
-make test-format       # Format correctness (diff against std::format)
-make test-fuzz         # Fuzz with random values
-make test-ffast        # Fuzz with -ffast-math
+make test                                  # SYCL backend (default: icpx)
+make test USE_ACPP=1                       # AdaptiveCpp backend
+CXX=clang++ make test-omp USE_OMP_CLANG=1  # clang-OMP-CUDA, -O0 default
+CXX=clang++ make test-omp USE_OMP_CLANG=1 OMP_OPT=-O2  # full coverage
+make test-omp USE_OMP_ICPX=1               # icpx-OMP-SPIR64
+make test-host                             # host-only (libc printf, no device)
+make coverage                              # llvm-cov report
 ```
 
-For ACPP builds (`make ... USE_ACPP=1`):
-- `test_buffer_path` tests ACPP-only features (binary, hex float, center align, custom fill, etc.) and is only compiled with `USE_ACPP=1`.
-- `test_escape_percent` and `fuzz_escape_percent` test `%` in formatted output. These are expected to fail on CPU because `%` → `%%` escaping is applied to work around CUDA's `vprintf` interpreting `%` as format specifiers. They should pass on GPU.
+Output is TAP-style: each test gets one line of `ok N - file`,
+`not ok N - file`, or `skipped N - file # reason`. Skip reasons identify
+a known compiler bug — see the catalog at the top of
+[`test/capture.hpp`](test/capture.hpp).

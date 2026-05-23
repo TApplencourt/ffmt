@@ -125,14 +125,14 @@ $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,
 
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
 # under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
-build/example_sycl_readme%: example_sycl_readme%.cpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
-	@TIMEFORMAT="  compile example_sycl_readme$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
+build/readme%_sycl: examples/readme%_sycl.cpp sycl_khx_print.hpp | build/
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@"
+	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@
 
-readme-examples: build/example_sycl_readme1 build/example_sycl_readme2
+readme-examples: build/readme1_sycl build/readme2_sycl
 	@t0=$$(date +%s%N); \
-	./build/example_sycl_readme1 >/dev/null && ./build/example_sycl_readme2 >/dev/null; rc=$$?; \
+	./build/readme1_sycl >/dev/null && ./build/readme2_sycl >/dev/null; rc=$$?; \
 	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "readme-examples: PASS ($${ms}ms)"; \
 	else echo "readme-examples: FAIL ($${ms}ms)"; false; fi
