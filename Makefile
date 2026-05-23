@@ -40,6 +40,19 @@ else ifdef USE_OMP_CLANG
     BACKEND_FLAGS += -DFMT_PTX_CLANG_O0
   endif
   OPT_LEVELS      := O0 O2
+else ifdef USE_CUDA_CLANG
+  # clang in CUDA mode targeting NVIDIA. `-x cuda` treats the input as CUDA
+  # regardless of extension so we can share .cpp test sources with the SYCL
+  # rig. The header's __CUDACC__ branch installs the same buffer-path emit
+  # hook as clang-OMP-CUDA. cudart is needed to link the runtime stubs.
+  ifeq ($(origin CXX),default)
+    CXX           := clang++
+  endif
+  CUDA_ARCH       ?= sm_80
+  CUDA_PATH       ?= /usr/local/cuda
+  BACKEND_FLAGS   := -x cuda --cuda-gpu-arch=$(CUDA_ARCH) \
+                     -L$(CUDA_PATH)/lib64 -lcudart
+  OPT_LEVELS      := O0 O2
 else ifdef USE_OMP_ICPX
   # icpx OpenMP-target on SPIR64. Shares the SPIR backend with icpx-SYCL,
   # so this hits the specifiers path; the header's __INTEL_LLVM_COMPILER
@@ -95,14 +108,16 @@ ALL_BINS := $(TEST_BINS)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-omp readme-examples test-host coverage clean
+.PHONY: all build test test-format test-omp test-cuda readme-examples test-host coverage clean
 
-# USE_OMP_CLANG / USE_OMP_ICPX share the SYCL header but not the SYCL
-# examples (those `#include <sycl/sycl.hpp>`). Default to the OMP test rig
-# only — building TEST_BINS / readme-examples would try to compile SYCL
-# sources with OMP-only flags and fail.
+# USE_OMP_CLANG / USE_OMP_ICPX / USE_CUDA_CLANG share the SYCL header but
+# not the SYCL examples (those `#include <sycl/sycl.hpp>`). Default to the
+# matching test rig — building TEST_BINS / readme-examples would try to
+# compile SYCL sources with non-SYCL backend flags and fail.
 ifneq (,$(or $(USE_OMP_CLANG),$(USE_OMP_ICPX)))
 all: test-omp
+else ifdef USE_CUDA_CLANG
+all: test-cuda
 else
 all: test
 endif
@@ -125,14 +140,14 @@ $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,
 
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
 # under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
-build/example_sycl_readme%: example_sycl_readme%.cpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
-	@TIMEFORMAT="  compile example_sycl_readme$*: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
+build/readme%_sycl: examples/readme%_sycl.cpp sycl_khx_print.hpp | build/
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@"
+	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@
 
-readme-examples: build/example_sycl_readme1 build/example_sycl_readme2
+readme-examples: build/readme1_sycl build/readme2_sycl
 	@t0=$$(date +%s%N); \
-	./build/example_sycl_readme1 >/dev/null && ./build/example_sycl_readme2 >/dev/null; rc=$$?; \
+	./build/readme1_sycl >/dev/null && ./build/readme2_sycl >/dev/null; rc=$$?; \
 	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "readme-examples: PASS ($${ms}ms)"; \
 	else echo "readme-examples: FAIL ($${ms}ms)"; false; fi
@@ -189,6 +204,28 @@ test-omp: build/test_main_omp
 	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "test_main_omp: PASS ($${ms}ms)"; \
 	else echo "test_main_omp: FAIL ($${ms}ms)"; false; fi
+
+# ── CUDA test rig (opt-in: USE_CUDA_CLANG=1) ──────────────────────
+# Same shape and same aggregating main as test-omp; BACKEND_FLAGS already
+# carries `-x cuda` so the .cpp sources get CUDA-treated. clang-CUDA hits
+# the buffer path (same as clang-OMP-CUDA / ACPP), so the buffer-only
+# test set is included.
+TEST_NAMES_CUDA := integers floats strings layout misc formatter buffer_path
+
+build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) sycl_khx_print.hpp \
+                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) | build/
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
+	@TIMEFORMAT="  compile test_main_cuda: %Rs"; time \
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
+	  $(TEST_DIR)/test_main_omp.cpp \
+	  $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp)
+
+test-cuda: build/test_main_cuda
+	@t0=$$(date +%s%N); \
+	./build/test_main_cuda; rc=$$?; \
+	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	if [ $$rc -eq 0 ]; then echo "test_main_cuda: PASS ($${ms}ms)"; \
+	else echo "test_main_cuda: FAIL ($${ms}ms)"; false; fi
 
 # ── Host tests + coverage (host-only, no SYCL device, no OpenMP) ──
 # Both targets build test_main_host.cpp + per-test .o files twice — once

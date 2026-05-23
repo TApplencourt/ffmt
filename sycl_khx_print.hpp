@@ -36,9 +36,27 @@
   #elif defined(__clang__) && defined(_OPENMP) \
         && !defined(__INTEL_LLVM_COMPILER) && !defined(SYCL_LANGUAGE_VERSION)
     #define FMT_SYCL_BUFFER_PATH 1
+  // clang-CUDA (`clang++ -x cuda`). Same NVPTX device printf as the
+  // clang-OMP-CUDA path. nvcc / nvc++ also define __CUDACC__ but their
+  // device IR emit fails inside the print_string consteval ctor —
+  // unsupported in practice, see README support table.
+  #elif defined(__CUDACC__)
+    #define FMT_SYCL_BUFFER_PATH 1
   #else
     #define FMT_SYCL_BUFFER_PATH 0
   #endif
+#endif
+
+// FMT_HD: function attribute that makes a declaration callable from both
+// host and device code under clang-CUDA. CUDA has no namespace/region-
+// level "everything below is device code" pragma (unlike OpenMP's
+// `#pragma omp declare target`), so we tag every transitively-reachable
+// function from the public entry points. Expands to nothing for non-CUDA
+// builds so the same header compiles unchanged for SYCL/OpenMP/host.
+#if defined(__CUDACC__)
+  #define FMT_HD __host__ __device__
+#else
+  #define FMT_HD
 #endif
 
 // ── SYCL headers ─────────────────────────────────────────────────────────
@@ -104,17 +122,18 @@
     ::sycl::ext::khx::print_detail::omp_printf(__VA_ARGS__)
 #endif
 
-// ── clang OpenMP-target (CUDA/NVPTX) auto-install ───────────────────────
-// When the TU is built with `clang -fopenmp --offload-arch=sm_XX` (mainline
-// LLVM clang offloading to NVIDIA), the buffer path's emit is plain
-// ::printf. Unlike icpx-SPIR64, NVPTX's printf accepts any pointer-to-char
-// as the format string (verified empirically — runtime buffers, static
-// constexpr arrays, all fine). Gated on __clang__ && _OPENMP &&
-// !__INTEL_LLVM_COMPILER (icpx defines __clang__ too, but routes through
-// the SPIR64 path above) and not SYCL or ACPP.
-#if defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER) \
-    && !defined(SYCL_LANGUAGE_VERSION) && !FMT_SYCL_COMPILER_ACPP \
-    && !defined(FMT_SYCL_EMIT_BUFFER)
+// ── NVPTX auto-install: clang-OMP-CUDA, clang-CUDA ──────────────────────
+// When the TU targets NVIDIA via either `clang -fopenmp --offload-arch`
+// or `clang++ -x cuda`, the buffer path's emit is plain ::printf. Unlike
+// icpx-SPIR64, NVPTX's printf accepts any pointer-to-char as the format
+// string (verified empirically — runtime buffers, static constexpr arrays,
+// all fine). The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx
+// defines __clang__ too, but routes through the SPIR64 path above).
+// SYCL / ACPP / a user-defined hook all win over this.
+#if !defined(FMT_SYCL_EMIT_BUFFER) && !defined(SYCL_LANGUAGE_VERSION) \
+    && !FMT_SYCL_COMPILER_ACPP \
+    && ( (defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER)) \
+         || defined(__CUDACC__) )
   // printf("%s", buf) — literal format, buffer as %s arg. % chars in the
   // buffer pass through verbatim (printf doesn't re-interpret %s args).
   #define FMT_SYCL_EMIT_BUFFER(out, escape_pct) \
@@ -244,7 +263,7 @@ struct uint128 {
   }
 };
 
-inline auto umul128(uint64_t x, uint64_t y) noexcept -> uint128 {
+FMT_HD inline auto umul128(uint64_t x, uint64_t y) noexcept -> uint128 {
   const uint64_t mask = 0xFFFFFFFFu;
   uint64_t a = x >> 32, b = x & mask;
   uint64_t c = y >> 32, d = y & mask;
@@ -253,43 +272,43 @@ inline auto umul128(uint64_t x, uint64_t y) noexcept -> uint128 {
   return {ac + (mid >> 32) + (ad >> 32) + (bc >> 32), (mid << 32) + (bd & mask)};
 }
 
-inline auto umul128_upper64(uint64_t x, uint64_t y) noexcept -> uint64_t {
+FMT_HD inline auto umul128_upper64(uint64_t x, uint64_t y) noexcept -> uint64_t {
   return umul128(x, y).high();
 }
 
-inline auto umul192_upper128(uint64_t x, uint128 y) noexcept -> uint128 {
+FMT_HD inline auto umul192_upper128(uint64_t x, uint128 y) noexcept -> uint128 {
   uint128 r = umul128(x, y.high());
   r += umul128_upper64(x, y.low());
   return r;
 }
 
-inline auto umul192_lower128(uint64_t x, uint128 y) noexcept -> uint128 {
+FMT_HD inline auto umul192_lower128(uint64_t x, uint128 y) noexcept -> uint128 {
   uint64_t high = x * y.high();
   uint128 high_low = umul128(x, y.low());
   return {high + high_low.high(), high_low.low()};
 }
 
-inline auto umul96_upper64(uint32_t x, uint64_t y) noexcept -> uint64_t {
+FMT_HD inline auto umul96_upper64(uint32_t x, uint64_t y) noexcept -> uint64_t {
   return umul128_upper64(static_cast<uint64_t>(x) << 32, y);
 }
 
-inline auto umul96_lower64(uint32_t x, uint64_t y) noexcept -> uint64_t { return x * y; }
+FMT_HD inline auto umul96_lower64(uint32_t x, uint64_t y) noexcept -> uint64_t { return x * y; }
 
-inline auto rotr(uint32_t n, uint32_t r) noexcept -> uint32_t {
+FMT_HD inline auto rotr(uint32_t n, uint32_t r) noexcept -> uint32_t {
   r &= 31;
   return (n >> r) | (n << (32 - r));
 }
 
-inline auto rotr(uint64_t n, uint32_t r) noexcept -> uint64_t {
+FMT_HD inline auto rotr(uint64_t n, uint32_t r) noexcept -> uint64_t {
   r &= 63;
   return (n >> r) | (n << (64 - r));
 }
 
-inline auto floor_log10_pow2(int e) noexcept -> int { return (e * 315653) >> 20; }
+FMT_HD inline auto floor_log10_pow2(int e) noexcept -> int { return (e * 315653) >> 20; }
 
-inline auto floor_log2_pow10(int e) noexcept -> int { return (e * 1741647) >> 19; }
+FMT_HD inline auto floor_log2_pow10(int e) noexcept -> int { return (e * 1741647) >> 19; }
 
-inline auto floor_log10_pow2_minus_log10_4_over_3(int e) noexcept -> int {
+FMT_HD inline auto floor_log10_pow2_minus_log10_4_over_3(int e) noexcept -> int {
   return (e * 631305 - 261663) >> 21;
 }
 
@@ -345,7 +364,7 @@ struct div_info {
 };
 static constexpr div_info div_infos[] = {{10, 16}, {100, 16}};
 
-template <int N> auto check_divisibility_and_divide_by_pow10(uint32_t &n) noexcept -> bool {
+template <int N> FMT_HD auto check_divisibility_and_divide_by_pow10(uint32_t &n) noexcept -> bool {
   constexpr auto info = div_infos[N - 1];
   constexpr uint32_t magic = (1u << info.shift) / info.divisor + 1;
   n *= magic;
@@ -355,17 +374,17 @@ template <int N> auto check_divisibility_and_divide_by_pow10(uint32_t &n) noexce
   return result;
 }
 
-inline auto divide_by_10_to_kappa_plus_1(uint32_t n) noexcept -> uint32_t {
+FMT_HD inline auto divide_by_10_to_kappa_plus_1(uint32_t n) noexcept -> uint32_t {
   return static_cast<uint32_t>((static_cast<uint64_t>(n) * 1374389535) >> 37);
 }
 
-inline auto divide_by_10_to_kappa_plus_1(uint64_t n) noexcept -> uint64_t {
+FMT_HD inline auto divide_by_10_to_kappa_plus_1(uint64_t n) noexcept -> uint64_t {
   return umul128_upper64(n, 2361183241434822607ull) >> 7;
 }
 
 template <typename T> struct cache_accessor;
 
-inline constexpr uint64_t float_pow10_table[] = {
+static constexpr uint64_t float_pow10_table[] = {
     0x81ceb32c4b43fcf5, 0xa2425ff75e14fc32, 0xcad2f7f5359a3b3f, 0xfd87b5f28300ca0e,
     0x9e74d1b791e07e49, 0xc612062576589ddb, 0xf79687aed3eec552, 0x9abe14cd44753b53,
     0xc16d9a0095928a28, 0xf1c90080baf72cb2, 0x971da05074da7bef, 0xbce5086492111aeb,
@@ -387,7 +406,7 @@ inline constexpr uint64_t float_pow10_table[] = {
     0x92efd1b8d0cf37bf, 0xb7abc627050305ae, 0xe596b7b0c643c71a, 0x8f7e32ce7bea5c70,
     0xb35dbf821ae4f38c, 0xe0352f62a19e306f};
 
-inline constexpr uint128 double_pow10_significands[] = {
+static constexpr uint128 double_pow10_significands[] = {
     {0xff77b1fcbebcdc4f, 0x25e8e89c13bb0f7b}, {0xce5d73ff402d98e3, 0xfb0a3d212dc81290},
     {0xa6b34ad8c9dfc06f, 0xf42faa48c0ea481f}, {0x86a8d39ef77164bc, 0xae5dff9c02033198},
     {0xd98ddaee19068c76, 0x3badd624dd9b0958}, {0xafbd2350644eeacf, 0xe5d1929ef90898fb},
@@ -402,7 +421,7 @@ inline constexpr uint128 double_pow10_significands[] = {
     {0x95527a5202df0ccb, 0x0f37801e0c43ebc9}, {0xf13e34aabb430a15, 0x647726b9e7c68ff0},
 };
 
-inline constexpr uint64_t double_powers_of_5_64[] = {
+static constexpr uint64_t double_powers_of_5_64[] = {
     0x0000000000000001, 0x0000000000000005, 0x0000000000000019, 0x000000000000007d,
     0x0000000000000271, 0x0000000000000c35, 0x0000000000003d09, 0x000000000001312d,
     0x000000000005f5e1, 0x00000000001dcd65, 0x00000000009502f9, 0x0000000002e90edd,
@@ -415,7 +434,7 @@ template <> struct cache_accessor<float> {
   using carrier_uint = uint32_t;
   using cache_entry_type = uint64_t;
 
-  static auto get_cached_power(int k) noexcept -> uint64_t {
+  static FMT_HD auto get_cached_power(int k) noexcept -> uint64_t {
     return float_pow10_table[k - float_info<float>::min_k];
   }
 
@@ -428,35 +447,35 @@ template <> struct cache_accessor<float> {
     bool is_integer;
   };
 
-  static auto compute_mul(carrier_uint u,
+  static FMT_HD auto compute_mul(carrier_uint u,
                           const cache_entry_type &cache) noexcept -> compute_mul_result {
     auto r = umul96_upper64(u, cache);
     return {static_cast<carrier_uint>(r >> 32), static_cast<carrier_uint>(r) == 0};
   }
 
-  static auto compute_delta(const cache_entry_type &cache, int beta) noexcept -> uint32_t {
+  static FMT_HD auto compute_delta(const cache_entry_type &cache, int beta) noexcept -> uint32_t {
     return static_cast<uint32_t>(cache >> (64 - 1 - beta));
   }
 
-  static auto compute_mul_parity(carrier_uint two_f, const cache_entry_type &cache,
+  static FMT_HD auto compute_mul_parity(carrier_uint two_f, const cache_entry_type &cache,
                                  int beta) noexcept -> compute_mul_parity_result {
     auto r = umul96_lower64(two_f, cache);
     return {((r >> (64 - beta)) & 1) != 0, static_cast<uint32_t>(r >> (32 - beta)) == 0};
   }
 
-  static auto compute_left_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_left_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
                                                               int beta) noexcept -> carrier_uint {
     return static_cast<carrier_uint>((cache - (cache >> (num_significand_bits<float>() + 2))) >>
                                      (64 - num_significand_bits<float>() - 1 - beta));
   }
 
-  static auto compute_right_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_right_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
                                                                int beta) noexcept -> carrier_uint {
     return static_cast<carrier_uint>((cache + (cache >> (num_significand_bits<float>() + 1))) >>
                                      (64 - num_significand_bits<float>() - 1 - beta));
   }
 
-  static auto compute_round_up_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_round_up_for_shorter_interval_case(const cache_entry_type &cache,
                                                          int beta) noexcept -> carrier_uint {
     return (static_cast<carrier_uint>(cache >> (64 - num_significand_bits<float>() - 2 - beta)) +
             1) /
@@ -468,7 +487,7 @@ template <> struct cache_accessor<double> {
   using carrier_uint = uint64_t;
   using cache_entry_type = uint128;
 
-  static auto get_cached_power(int k) noexcept -> uint128 {
+  static FMT_HD auto get_cached_power(int k) noexcept -> uint128 {
     constexpr int compression_ratio = 27;
 
     int cache_index = (k - float_info<double>::min_k) / compression_ratio;
@@ -504,42 +523,42 @@ template <> struct cache_accessor<double> {
     bool is_integer;
   };
 
-  static auto compute_mul(carrier_uint u,
+  static FMT_HD auto compute_mul(carrier_uint u,
                           const cache_entry_type &cache) noexcept -> compute_mul_result {
     auto r = umul192_upper128(u, cache);
     return {r.high(), r.low() == 0};
   }
 
-  static auto compute_delta(const cache_entry_type &cache, int beta) noexcept -> uint32_t {
+  static FMT_HD auto compute_delta(const cache_entry_type &cache, int beta) noexcept -> uint32_t {
     return static_cast<uint32_t>(cache.high() >> (64 - 1 - beta));
   }
 
-  static auto compute_mul_parity(carrier_uint two_f, const cache_entry_type &cache,
+  static FMT_HD auto compute_mul_parity(carrier_uint two_f, const cache_entry_type &cache,
                                  int beta) noexcept -> compute_mul_parity_result {
     auto r = umul192_lower128(two_f, cache);
     return {((r.high() >> (64 - beta)) & 1) != 0,
             ((r.high() << beta) | (r.low() >> (64 - beta))) == 0};
   }
 
-  static auto compute_left_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_left_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
                                                               int beta) noexcept -> carrier_uint {
     return (cache.high() - (cache.high() >> (num_significand_bits<double>() + 2))) >>
            (64 - num_significand_bits<double>() - 1 - beta);
   }
 
-  static auto compute_right_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_right_endpoint_for_shorter_interval_case(const cache_entry_type &cache,
                                                                int beta) noexcept -> carrier_uint {
     return (cache.high() + (cache.high() >> (num_significand_bits<double>() + 1))) >>
            (64 - num_significand_bits<double>() - 1 - beta);
   }
 
-  static auto compute_round_up_for_shorter_interval_case(const cache_entry_type &cache,
+  static FMT_HD auto compute_round_up_for_shorter_interval_case(const cache_entry_type &cache,
                                                          int beta) noexcept -> carrier_uint {
     return ((cache.high() >> (64 - num_significand_bits<double>() - 2 - beta)) + 1) / 2;
   }
 };
 
-inline auto remove_trailing_zeros(uint32_t &n, int s = 0) noexcept -> int {
+FMT_HD inline auto remove_trailing_zeros(uint32_t &n, int s = 0) noexcept -> int {
   constexpr uint32_t mod_inv_5 = 0xcccccccd;
   constexpr uint32_t mod_inv_25 = 0xc28f5c29;
   while (true) {
@@ -557,7 +576,7 @@ inline auto remove_trailing_zeros(uint32_t &n, int s = 0) noexcept -> int {
   return s;
 }
 
-inline auto remove_trailing_zeros(uint64_t &n) noexcept -> int {
+FMT_HD inline auto remove_trailing_zeros(uint64_t &n) noexcept -> int {
   constexpr uint32_t ten8 = 100000000u;
   if ((n % ten8) == 0) {
     auto n32 = static_cast<uint32_t>(n / ten8);
@@ -584,11 +603,11 @@ inline auto remove_trailing_zeros(uint64_t &n) noexcept -> int {
 }
 
 template <typename T>
-auto is_left_endpoint_integer_shorter_interval(int exponent) noexcept -> bool {
+FMT_HD auto is_left_endpoint_integer_shorter_interval(int exponent) noexcept -> bool {
   return exponent >= 2 && exponent <= 3;
 }
 
-template <typename T> inline auto shorter_interval_case(int exponent) noexcept -> decimal_fp<T> {
+template <typename T> FMT_HD inline auto shorter_interval_case(int exponent) noexcept -> decimal_fp<T> {
   decimal_fp<T> ret;
   const int minus_k = floor_log10_pow2_minus_log10_4_over_3(exponent);
   const int beta = exponent + floor_log2_pow10(-minus_k);
@@ -621,7 +640,7 @@ template <typename T> inline auto shorter_interval_case(int exponent) noexcept -
   return ret;
 }
 
-template <typename T> auto to_decimal(T x) noexcept -> decimal_fp<T> {
+template <typename T> FMT_HD auto to_decimal(T x) noexcept -> decimal_fp<T> {
   using carrier_uint = typename float_info<T>::carrier_uint;
   using cache_entry_type = typename cache_accessor<T>::cache_entry_type;
   auto br = __builtin_bit_cast(carrier_uint, x);
@@ -698,7 +717,7 @@ small_divisor:
   return ret;
 }
 
-inline auto count_digits(uint64_t n) -> int {
+FMT_HD inline auto count_digits(uint64_t n) -> int {
   int count = 1;
   while (n >= 10) {
     n /= 10;
@@ -707,7 +726,7 @@ inline auto count_digits(uint64_t n) -> int {
   return count;
 }
 
-inline auto write_digits(char *buf, uint64_t n, int num_digits) -> char * {
+FMT_HD inline auto write_digits(char *buf, uint64_t n, int num_digits) -> char * {
   char *end = buf + num_digits;
   char *p = end;
   while (n >= 10) {
@@ -731,7 +750,7 @@ constexpr auto use_fixed(int exp, int sig_size) -> bool {
   return fixed_len <= sci_len;
 }
 
-template <typename T> inline auto format_shortest(char *buf, T value) -> int {
+template <typename T> FMT_HD inline auto format_shortest(char *buf, T value) -> int {
   if (value == T(0)) {
     buf[0] = '0';
     return 1;
@@ -898,14 +917,14 @@ consteval auto make_literal() {
 }
 
 // Cast an integer to its printf-compatible type (int/long long or unsigned variants)
-template <typename U> inline auto signed_int_cast(U arg) {
+template <typename U> FMT_HD inline auto signed_int_cast(U arg) {
   if constexpr (sizeof(U) <= 4)
     return static_cast<int>(arg);
   else
     return static_cast<long long>(arg);
 }
 
-template <typename U> inline auto unsigned_int_cast(U arg) {
+template <typename U> FMT_HD inline auto unsigned_int_cast(U arg) {
   if constexpr (sizeof(U) <= 4)
     return static_cast<unsigned>(arg);
   else
@@ -1183,7 +1202,10 @@ struct print_string {
   template <size_t N>
   consteval print_string(const char (&s)[N]) : len(static_cast<int>(N - 1)) {
     static_assert(N <= MAX_LEN, "format string too long");
-    std::copy_n(s, N, str);
+    // Open-coded copy: clang-CUDA's host-attribute check walks transitive
+    // callees even from consteval ctors, so std::copy_n's libstdc++
+    // __assign_one trips a "host-only function called from device" error.
+    for (size_t i = 0; i < N; i++) str[i] = s[i];
     int pos = 0, auto_idx = 0;
     constexpr int n_args = static_cast<int>(sizeof...(Args));
     while (true) {
@@ -1236,19 +1258,19 @@ struct static_buf {
   static constexpr int cap = Cap;
   char data[Cap + ExtraPad]{};
   int len = 0;
-  void push(char c) {
+  FMT_HD void push(char c) {
     if (len < Cap)
       data[len++] = c;
   }
-  void push_n(char c, int n) {
+  FMT_HD void push_n(char c, int n) {
     for (int i = 0; i < n && len < Cap; i++)
       data[len++] = c;
   }
-  void push_data(const char *s, int n) {
+  FMT_HD void push_data(const char *s, int n) {
     for (int i = 0; i < n && len < Cap; i++)
       data[len++] = s[i];
   }
-  void push_str(const char *s) {
+  FMT_HD void push_str(const char *s) {
     while (*s)
       push(*s++);
   }
@@ -1261,7 +1283,7 @@ using fmt_buf = static_buf<KHX_SYCL_PRINT_BUFFER_SIZE, 32>;
 // Write an unsigned integer in any base into raw (data, len, cap) right-to-left.
 template <int Base, bool Upper = false, typename U>
   requires (Base == 2 || Base == 8 || Base == 10 || Base == 16)
-inline void write_uint_raw(char *data, int &len, int cap, U val) {
+FMT_HD inline void write_uint_raw(char *data, int &len, int cap, U val) {
   if (val == 0) { if (len < cap) data[len++] = '0'; return; }
   int n = 0;
   for (U t = val; t > 0; t /= U(Base)) n++;
@@ -1276,19 +1298,19 @@ inline void write_uint_raw(char *data, int &len, int cap, U val) {
 }
 
 template <int Base, bool Upper = false, typename U, typename Buf>
-inline void write_uint_direct(Buf &buf, U val) {
+FMT_HD inline void write_uint_direct(Buf &buf, U val) {
   write_uint_raw<Base, Upper>(buf.data, buf.len, static_cast<int>(sizeof(buf.data)), val);
 }
 
 // Hex digit helper
-inline char hex_digit(int d, bool upper) {
+FMT_HD inline char hex_digit(int d, bool upper) {
   if (d < 10)
     return static_cast<char>('0' + d);
   return static_cast<char>((upper ? 'A' : 'a') + d - 10);
 }
 
 // Cast an arg to its printf-compatible type.
-template <char EffType, typename T> inline auto printf_cast(T arg) {
+template <char EffType, typename T> FMT_HD inline auto printf_cast(T arg) {
   using U = std::decay_t<T>;
   if constexpr (std::same_as<U, bool> && EffType == 's')
     return arg ? "true" : "false";
@@ -1543,7 +1565,7 @@ template <fixed_string Fmt, typename... Args> inline void print_combined_dispatc
 
 namespace buffer_path {
 
-template <typename T, typename Buf> inline void write_decimal(Buf &out, T val) {
+template <typename T, typename Buf> FMT_HD inline void write_decimal(Buf &out, T val) {
   using U = std::make_unsigned_t<T>;
   U uval;
   if constexpr (std::signed_integral<T>) {
@@ -1562,7 +1584,7 @@ template <typename T, typename Buf> inline void write_decimal(Buf &out, T val) {
   write_uint_direct<10>(out, uval);
 }
 
-template <typename T> inline void write_arg_default(fmt_buf &out, T arg) {
+template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) {
   using U = std::decay_t<T>;
   if constexpr (std::same_as<U, bool>) {
     out.push_str(arg ? "true" : "false");
@@ -1601,7 +1623,7 @@ template <typename T> inline void write_arg_default(fmt_buf &out, T arg) {
 }
 
 
-inline void apply_padding_data(fmt_buf &out, const char *data, int len,
+FMT_HD inline void apply_padding_data(fmt_buf &out, const char *data, int len,
                                char fill, char align, int width) {
   int pad = width > len ? width - len : 0;
   if (pad == 0) { out.push_data(data, len); }
@@ -1615,7 +1637,7 @@ inline void apply_padding_data(fmt_buf &out, const char *data, int len,
 // Avoids a stack temporary by shifting the already-written content right by
 // `prepend` bytes, then filling the gap. Per-write `p < end` checks let the
 // loops keep running past the buffer cap (matching push_n's silent-truncate).
-inline void pad_in_place(fmt_buf &out, int content_start,
+FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
                          char sign_ch, const char *prefix, int prefix_n, int zfill,
                          char fill, char align, int width) {
   int content_len = out.len - content_start;
@@ -1658,7 +1680,7 @@ constexpr uint64_t ipow10(int n) {
   return s;
 }
 
-inline int find_exponent(double val) {
+FMT_HD inline int find_exponent(double val) {
   int exp = 0;
   if (val >= 10.0) {
     while (val >= 10.0) { val /= 10.0; exp++; }
@@ -1675,7 +1697,7 @@ inline int find_exponent(double val) {
 #ifdef __x86_64__
 __attribute__((target("fma")))
 #endif
-inline uint64_t round_scaled(double val, double scale, double shifted) {
+FMT_HD inline uint64_t round_scaled(double val, double scale, double shifted) {
   auto total = static_cast<uint64_t>(shifted);
   double frac_part = shifted - static_cast<double>(total);
   if (frac_part > 0.5) {
@@ -1693,7 +1715,7 @@ inline uint64_t round_scaled(double val, double scale, double shifted) {
 // Format a non-negative finite double in fixed notation into buf.
 // Handles up to prec=15 safely (uint64_t scale limit ~1e15 for val<1e4).
 template <typename Buf>
-inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
+FMT_HD inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
   double scale = pow10(prec);
   uint64_t total = round_scaled(val, scale, val * scale);
   auto iscale = static_cast<uint64_t>(scale);
@@ -1719,7 +1741,7 @@ inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
 
 // Format a non-negative finite double in scientific notation into buf.
 template <typename Buf>
-inline void fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false) {
+FMT_HD inline void fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false) {
   int exp = 0;
   if (val == 0.0) {
     exp = 0;
@@ -1768,7 +1790,7 @@ inline void fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false
 // Remove trailing zeros (and decimal point) from buf[start..len),
 // stopping at 'e'/'E' if present (scientific notation).
 template <typename Buf>
-inline void trim_trailing_zeros(Buf &buf, int start = 0) {
+FMT_HD inline void trim_trailing_zeros(Buf &buf, int start = 0) {
   int dot_pos = -1;
   int e_pos = buf.len;
   for (int i = start; i < buf.len; i++) {
@@ -1796,7 +1818,7 @@ inline void trim_trailing_zeros(Buf &buf, int start = 0) {
 // Format g/G: shortest of fixed/scientific, remove trailing zeros unless alt.
 // prec = significant digits (default 6, min 1).
 template <typename Buf>
-inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
+FMT_HD inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
   if (prec == 0)
     prec = 1;
   int exp = 0;
@@ -1830,7 +1852,7 @@ inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
 
 // hex_float_to_buf with runtime spec
 template <typename T, typename Buf>
-inline void hex_float_to_buf_rt(Buf &content, T arg, const format_spec &spec, bool upper) {
+FMT_HD inline void hex_float_to_buf_rt(Buf &content, T arg, const format_spec &spec, bool upper) {
   double val = static_cast<double>(arg);
   uint64_t bits = __builtin_bit_cast(uint64_t, val);
   bool negative = (bits >> 63) != 0;
@@ -1873,7 +1895,7 @@ inline void hex_float_to_buf_rt(Buf &content, T arg, const format_spec &spec, bo
 // Digits are written into out at content_start; pad_in_place then shifts them
 // right to make room for sign/prefix/zfill/lpad. Saves the 68 B `dgt[68]`.
 template <typename T>
-inline void write_int_rt(fmt_buf &out, T arg, const format_spec &spec, char etype, int width) {
+FMT_HD inline void write_int_rt(fmt_buf &out, T arg, const format_spec &spec, char etype, int width) {
   using U = std::decay_t<T>;
   using Uns = std::conditional_t<(sizeof(U) <= 4), unsigned, unsigned long long>;
 
@@ -1924,7 +1946,7 @@ inline void write_int_rt(fmt_buf &out, T arg, const format_spec &spec, char etyp
 // write_float with runtime spec and etype — writes digits directly into out,
 // then pad_in_place handles sign/zfill/alignment. No stack temp.
 template <typename T>
-inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char etype,
+FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char etype,
                            int dyn_w, int dyn_p) {
   bool upper = (etype == 'F' || etype == 'E' || etype == 'G' || etype == 'A');
   double val = static_cast<double>(arg);
@@ -1974,7 +1996,7 @@ struct dyn_args { int w; int p; };
 // Format one argument with runtime spec — dispatches based on type + etype.
 // No fmt_buf temporaries for bool/char/string; writes directly to out.
 template <typename T>
-inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, const dyn_args &dyn) {
+FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, const dyn_args &dyn) {
   int dyn_w = dyn.w;
   int dyn_p = dyn.p;
   using U = std::decay_t<T>;
@@ -2024,13 +2046,13 @@ inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, const dyn
 // ============================================================
 // dispatch_pack folds over the args pack directly.
 template <typename F, typename... Args>
-inline void dispatch_pack(int idx, F &&fn, Args &&... args) {
+FMT_HD inline void dispatch_pack(int idx, F &&fn, Args &&... args) {
   int i = 0;
   (((i++ == idx) ? (fn(args), void()) : void()), ...);
 }
 
 template <typename... Args>
-inline void resolve_int_arg(int idx, int &out, Args&&... args) {
+FMT_HD inline void resolve_int_arg(int idx, int &out, Args&&... args) {
   dispatch_pack(idx,
     [&out](auto val) {
       if constexpr (std::integral<std::decay_t<decltype(val)>>)
@@ -2038,7 +2060,7 @@ inline void resolve_int_arg(int idx, int &out, Args&&... args) {
     }, args...);
 }
 
-inline void write_literal_segment(fmt_buf &out, const char *str, int from, int to) {
+FMT_HD inline void write_literal_segment(fmt_buf &out, const char *str, int from, int to) {
   for (int i = from; i < to;) {
     if (i + 1 < to && str[i] == '{' && str[i + 1] == '{') { out.push('{'); i += 2; }
     else if (i + 1 < to && str[i] == '}' && str[i + 1] == '}') { out.push('}'); i += 2; }
@@ -2049,13 +2071,13 @@ inline void write_literal_segment(fmt_buf &out, const char *str, int from, int t
 // Forward decl: the literal-walking format loop is needed by dispatch_arg
 // (for formatter inner sub-strings) but its definition wants dispatch_arg.
 template <sycl_formattable... Args>
-inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
+FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
 
 // Per-arg dispatch. Primitives use the spec-aware writers; formatter args
 // recurse into format_lit_rt on the formatter's inner format string + values.
 // Both branches are if-constexpr so the primitive path stays byte-identical.
 template <typename... Args>
-inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
+FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
                          const format_spec &spec, const dyn_args &dyn,
                          Args&&... args) {
   dispatch_pack(idx,
@@ -2081,7 +2103,7 @@ inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
 // (so spec handling for primitives is unchanged) and falls through to
 // dispatch_arg for both primitive and formatter args.
 template <sycl_formattable... Args, typename... A2>
-inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
+FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
   int pos = 0;
   for (int i = 0; i < ps.ph_count; i++) {
     const auto &e = ps.phs[i];
@@ -2099,7 +2121,7 @@ inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... arg
 // (no compile-time pre-parse), so we re-parse with find_placeholder_rt.
 // No spec/dyn-width support here — Stage 1 forbids them on custom args.
 template <sycl_formattable... Args>
-inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
+FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
   int pos = 0;
   int auto_idx = 0;
   format_spec empty{};
@@ -2119,7 +2141,7 @@ inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... ar
 // printf-family function (CUDA's vprintf interprets %); harmless to skip
 // when emit is a verbatim writer like fputs. Lives outside flush_buf so
 // custom FMT_SYCL_EMIT_BUFFER overrides can opt into it if they need it.
-inline void escape_percent_inplace(fmt_buf &out) {
+FMT_HD inline void escape_percent_inplace(fmt_buf &out) {
   int pct = 0;
   for (int i = 0; i < out.len; i++)
     if (out.data[i] == '%') pct++;
@@ -2137,7 +2159,7 @@ inline void escape_percent_inplace(fmt_buf &out) {
 // The default macro selects the right syscall per backend; users can override
 // to point at OpenMP, an instrumented stream, etc. The `escape_pct` flag is
 // honored by the default ACPP emit (CUDA vprintf), ignored otherwise.
-inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
+FMT_HD inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
   out.data[out.len] = '\0';
   FMT_SYCL_EMIT_BUFFER(out, escape_pct);
 }
@@ -2387,14 +2409,14 @@ inline void println(Args... args) {
 // primitive path stays byte-identical, formatter args recurse into the
 // inner walker on the formatter's sub-format-string.
 template <sycl_formattable... Args>
-inline void print(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
+FMT_HD inline void print(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   print_detail::fmt_buf out;
   print_detail::buffer_path::format_rt(out, ps, args...);
   print_detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
 }
 
 template <sycl_formattable... Args>
-inline void println(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
+FMT_HD inline void println(const print_detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   print_detail::fmt_buf out;
   print_detail::buffer_path::format_rt(out, ps, args...);
   out.push('\n');
