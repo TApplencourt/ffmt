@@ -1,7 +1,7 @@
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 
 __global__ void hello() {
-  KHX_PRINTLN("work-item {} says {}", threadIdx.x, "hello");
+  FFMT_PRINTLN("work-item {} says {}", threadIdx.x, "hello");
 }
 
 int main() {

@@ -23,7 +23,7 @@ RUN(PRINT("{:d}\n", 255));
 RUN(PRINT("{:x}\n", 255u));
 RUN(PRINT("{:X}\n", 255u));
 RUN(PRINT("{:o}\n", 255u));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:#o}\n", 255u));
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:#o}\n", 255u));
 
 // Extremes
 RUN(PRINT("{:d}\n", -2147483647 - 1));

@@ -1,9 +1,9 @@
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 #include <sycl/sycl.hpp>
 
 int main() {
   sycl::queue q;
   q.parallel_for(4, [=](sycl::id<1> i) {
-    KHX_PRINTLN("work-item {} says {}", i, "hello");
+    FFMT_PRINTLN("work-item {} says {}", i, "hello");
   }).wait();
 }

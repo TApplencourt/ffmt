@@ -6,20 +6,20 @@
 // Trampoline so RUN(...) can build an extended device lambda inline and
 // hand it to a single launch. Requires nvcc/clang-CUDA's --extended-lambda.
 template <typename F>
-__global__ void _khx_run_kernel(F f) { f(); }
+__global__ void _ffmt_run_kernel(F f) { f(); }
 
 bool CONCAT(test_, TEST_NAME)() {
   int _test_id = 0;
 
   auto std_out = capture_stdout([&]() {
-#define FMT_STD_PATH
-#if FMT_SYCL_BUFFER_PATH
+#define FFMT_STD_PATH
+#if FFMT_BUFFER_PATH
 #define PRINT(fmt_str, ...)                                                   \
   std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, KHX_SYCL_PRINT_BUFFER_SIZE)
+                   .substr(0, FFMT_BUFFER_SIZE)
 #define PRINTLN(fmt_str, ...)                                                 \
   std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, KHX_SYCL_PRINT_BUFFER_SIZE)                     \
+                   .substr(0, FFMT_BUFFER_SIZE)                     \
             << '\n'
 #else
 #define PRINT(fmt_str, ...) std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)
@@ -36,20 +36,20 @@ bool CONCAT(test_, TEST_NAME)() {
 #undef RUN
 #undef PRINTLN
 #undef PRINT
-#undef FMT_STD_PATH
+#undef FFMT_STD_PATH
   });
 
   _test_id = 0;
 
   auto cuda_out = capture_stdout([&]() {
-#define PRINT(fmt_str, ...) KHX_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
-#define PRINTLN(fmt_str, ...) KHX_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
+#define PRINT(fmt_str, ...) FFMT_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
+#define PRINTLN(fmt_str, ...) FFMT_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
 // One launch per RUN. Single-thread (<<<1,1>>>) with an internal N-loop so
 // per-test ordering matches the host reference, which also does N inline
 // repetitions inside the std capture block above.
 #define RUN(...) do {                                                         \
   printf("Test %d\n", ++_test_id);                                            \
-  _khx_run_kernel<<<1, 1>>>([=] __device__ () {                               \
+  _ffmt_run_kernel<<<1, 1>>>([=] __device__ () {                               \
     for (int _i = 0; _i < N; _i++) { __VA_ARGS__; }                           \
   });                                                                         \
   cudaDeviceSynchronize();                                                    \

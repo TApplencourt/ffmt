@@ -76,7 +76,7 @@ jobs:
           OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
           "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
             -instr-profile=../base/build/coverage.profdata \
-            -sources ../base/sycl_khx_print.hpp -summary-only --format=text \
+            -sources ../base/include/ffmt/base.hpp -summary-only --format=text \
             2>/dev/null > base.json
       - name: Coverage on this branch
         run: |
@@ -86,12 +86,12 @@ jobs:
           OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
           "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
             -instr-profile=build/coverage.profdata \
-            -sources sycl_khx_print.hpp -summary-only --format=text \
+            -sources include/ffmt/base.hpp -summary-only --format=text \
             2>/dev/null > head.json
       - name: Compare
         run: |
           pct() { jq -r '.data[0].files[]
-                        | select(.filename | endswith("sycl_khx_print.hpp"))
+                        | select(.filename | endswith("ffmt/base.hpp"))
                         | .summary.regions.percent' "$1"; }
           base=$(pct base.json)
           head=$(pct head.json)

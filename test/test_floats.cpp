@@ -8,11 +8,11 @@
 RUN(PRINT("{}\n", 3.14f));
 RUN(PRINT("{}\n", 0.1f));
 RUN(PRINT("{}\n", 1.0f));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5f));
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5f));
 RUN(PRINT("{}\n", 3.14));
 RUN(PRINT("{}\n", 0.1));
 RUN(PRINT("{}\n", 1.0));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5));
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5));
 
 // Floats — explicit specs
 RUN(PRINT("{:g}\n", 3.14));
@@ -159,7 +159,7 @@ RUN(PRINT("{}\n", 0.001f));
 //   - small_divisor path → check_divisibility_and_divide_by_pow10
 //     + compute_mul_parity<double> + umul192_lower128
 //     + remove_trailing_zeros<uint64_t> inner loop
-#if FMT_SYCL_BUFFER_PATH
+#if FFMT_BUFFER_PATH
 RUN(PRINT("{}\n", 1.2676506002282294e+30));  // 2^100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 7.888609052210118e-31));   // 2^-100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision

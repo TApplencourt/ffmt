@@ -5,7 +5,7 @@ SHELL    := /bin/bash
 # SYCL device runtime does not — breaking the host-reference diff for
 # values like float denorm_min. Disabling fast-math keeps host and
 # device agreeing across icpx/gcc/clang.
-CXXFLAGS := -std=c++20 -Wall -Werror -fno-fast-math
+CXXFLAGS := -std=c++20 -Wall -Werror -fno-fast-math -Iinclude
 # CI / sanitizer injection: append to CXXFLAGS without disturbing the base
 # flags above (e.g. EXTRA_CXXFLAGS="-fsanitize=address,undefined").
 CXXFLAGS += $(EXTRA_CXXFLAGS)
@@ -33,11 +33,11 @@ else ifdef USE_OMP_CLANG
   OFFLOAD_ARCH    ?= sm_80
   OMP_OPT         ?= -O0
   BACKEND_FLAGS   := -fopenmp --offload-arch=$(OFFLOAD_ARCH) $(OMP_OPT)
-  # FMT_PTX_CLANG_O0: see capture.hpp for the symptom catalog. Verified
+  # FFMT_PTX_CLANG_O0: see capture.hpp for the symptom catalog. Verified
   # clean at -O2, so gate it only when OMP_OPT == -O0. Run
   # `make ... OMP_OPT=-O2` to confirm.
   ifeq ($(OMP_OPT),-O0)
-    BACKEND_FLAGS += -DFMT_PTX_CLANG_O0
+    BACKEND_FLAGS += -DFFMT_PTX_CLANG_O0
   endif
   OPT_LEVELS      := O0 O2
 else ifdef USE_CUDA_CLANG
@@ -66,7 +66,7 @@ else ifdef USE_OMP_ICPX
   BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=spir64 $(OMP_OPT)
   # Same SPIRV-O0 string-literal-through-pointer bug the SYCL path hits.
   ifeq ($(OMP_OPT),-O0)
-    BACKEND_FLAGS += -DFMT_SPIRV_O0
+    BACKEND_FLAGS += -DFFMT_SPIRV_O0
   endif
   OPT_LEVELS      := O0 O2
 else
@@ -80,9 +80,9 @@ else
   BACKEND_FLAGS   := -fsycl
   OPT_LEVELS      := O0 O1 O2 O3
   BUFFER_PATH     :=
-  # FMT_SPIRV_O0 gates tests broken by an icpx-SYCL-on-SPIR64 bug at -O0:
+  # FFMT_SPIRV_O0 gates tests broken by an icpx-SYCL-on-SPIR64 bug at -O0:
   # a string-literal accessed through a pointer segfaults on device.
-  WA_O0           := -DFMT_SPIRV_O0
+  WA_O0           := -DFFMT_SPIRV_O0
 endif
 
 # ── Source files ────────────────────────────────────────────
@@ -102,7 +102,7 @@ ALL_BINS := $(TEST_BINS)
 # coverage host build). The standalone TEST_NAMES set above also includes
 # these but adds escape_percent which is GPU-only.
 #
-# COV_TESTS_COMMON: compiles for both FMT_SYCL_BUFFER_PATH values.
+# COV_TESTS_COMMON: compiles for both FFMT_BUFFER_PATH values.
 # COV_TESTS_BUFFER_ONLY: buffer-path-only specs ({:a}, {:b}, {:^}, ...) —
 #   the specifiers path rejects these at compile time via static_assert.
 COV_TESTS             := integers floats strings layout misc formatter
@@ -130,7 +130,7 @@ build/:
 # ── Test binaries (one binary per test × opt level) ─────────
 
 define TEST_template
-build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) sycl_khx_print.hpp | build/
+build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp | build/
 	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
 	@TIMEFORMAT="  compile test_$(1)_$(2): %Rs"; time \
 	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
@@ -140,10 +140,10 @@ $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,
 
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
 # under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
-build/readme%_sycl: examples/readme%_sycl.cpp sycl_khx_print.hpp | build/
-	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@"
+build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp | build/
+	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
 	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
-	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -I. $< -o $@
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
 
 readme-examples: build/readme1_sycl build/readme2_sycl
 	@t0=$$(date +%s%N); \
@@ -190,7 +190,7 @@ ifdef USE_OMP_ICPX
   TEST_NAMES_OMP := integers floats strings layout misc formatter
 endif
 
-build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) sycl_khx_print.hpp \
+build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
                      $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
@@ -212,7 +212,7 @@ test-omp: build/test_main_omp
 # test set is included.
 TEST_NAMES_CUDA := integers floats strings layout misc formatter buffer_path
 
-build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) sycl_khx_print.hpp \
+build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
                       $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) | build/
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_cuda: %Rs"; time \
@@ -229,7 +229,7 @@ test-cuda: build/test_main_cuda
 
 # ── Host tests + coverage (host-only, no SYCL device, no OpenMP) ──
 # Both targets build test_main_host.cpp + per-test .o files twice — once
-# with FMT_SYCL_BUFFER_PATH=0 (specifiers path) and once with =1 (buffer
+# with FFMT_BUFFER_PATH=0 (specifiers path) and once with =1 (buffer
 # path). Emit on both sides is ::printf via libc, so the std vs sycl
 # diff inside each test_X() is meaningful.
 #
@@ -247,17 +247,17 @@ define HOST_TEMPLATE
 $(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o)
 $(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o)
 
-build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
+build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
+build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=0 $(HOST_OPT) $(2) -c $$< -o $$@
+build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp sycl_khx_print.hpp | build/
-	$$(CXX) $$(CXXFLAGS) -DFMT_SYCL_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
+build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
 	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
@@ -302,14 +302,14 @@ COV_OBJS := $(firstword $(COV_ALL)) \
             $(addprefix -object ,$(wordlist 2,$(words $(COV_ALL)),$(COV_ALL)))
 
 coverage: build/coverage.profdata
-	@$(LLVM_COV) report $(COV_OBJS) -instr-profile=$< -sources sycl_khx_print.hpp
+	@$(LLVM_COV) report $(COV_OBJS) -instr-profile=$< -sources include/ffmt/base.hpp
 
 # Machine-readable summary for CI non-regression check. The stderr redirect
 # silences llvm-cov's "N functions have mismatched data" warning that would
 # otherwise land on the same stream and break naive `> coverage.json` capture.
 coverage-json: build/coverage.profdata
 	@$(LLVM_COV) export $(COV_OBJS) -instr-profile=$< \
-	  -sources sycl_khx_print.hpp -summary-only --format=text 2>/dev/null
+	  -sources include/ffmt/base.hpp -summary-only --format=text 2>/dev/null
 
 clean:
 	rm -rf build/
