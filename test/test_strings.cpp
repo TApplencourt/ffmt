@@ -38,10 +38,11 @@ RUN(PRINT("{:>10c}\n", 'C'));
 
 // String %s tests — same gate.
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", "hello world"));
-// OMP target: skip — host-side `const char*` isn't accessible on device and
-// would need `map(to: env[:len])` or a malloc_shared-equivalent. Not worth
-// the carve-out for what's a runtime-transfer test, not a formatter test.
-#ifndef _OPENMP
+// OMP target / CUDA: skip — host-side `const char*` isn't accessible
+// on device and would need `map(to: env[:len])` or a malloc_shared /
+// cudaMemcpy equivalent. Not worth the carve-out for what's a runtime-
+// transfer test, not a formatter test.
+#if !defined(_OPENMP) && !defined(__CUDACC__)
 {
   const char *env = "cpu-char-* copied";
 #if defined(FMT_STD_PATH) || !(defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP)

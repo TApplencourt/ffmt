@@ -36,8 +36,10 @@
   #elif defined(__clang__) && defined(_OPENMP) \
         && !defined(__INTEL_LLVM_COMPILER) && !defined(SYCL_LANGUAGE_VERSION)
     #define FMT_SYCL_BUFFER_PATH 1
-  // Pure CUDA C++ (nvcc / nvc++ -cuda). Same NVPTX device printf as the
-  // clang-OMP-CUDA path, so buffer path with the same emit hook.
+  // clang-CUDA (`clang++ -x cuda`). Same NVPTX device printf as the
+  // clang-OMP-CUDA path. nvcc / nvc++ also define __CUDACC__ but their
+  // device IR emit fails inside the print_string consteval ctor —
+  // unsupported in practice, see README support table.
   #elif defined(__CUDACC__)
     #define FMT_SYCL_BUFFER_PATH 1
   #else
@@ -46,26 +48,15 @@
 #endif
 
 // FMT_HD: function attribute that makes a declaration callable from both
-// host and device code under nvcc. CUDA has no namespace/region-level
-// "everything below is device code" pragma (unlike OpenMP's
+// host and device code under clang-CUDA. CUDA has no namespace/region-
+// level "everything below is device code" pragma (unlike OpenMP's
 // `#pragma omp declare target`), so we tag every transitively-reachable
 // function from the public entry points. Expands to nothing for non-CUDA
 // builds so the same header compiles unchanged for SYCL/OpenMP/host.
-//
-// Companion compile flag for nvcc: --expt-relaxed-constexpr makes every
-// constexpr function implicitly __host__ __device__, which covers the
-// large constexpr-heavy parse/literal-emit pieces without per-decl tags.
 #if defined(__CUDACC__)
   #define FMT_HD __host__ __device__
-  // nvcc won't instantiate namespace-scope inline-constexpr arrays for the
-  // device side — even when every reader is __host__ __device__ — so the
-  // dragonbox lookup tables need an explicit __device__ to make them
-  // device-addressable. Pair it with `static constexpr` (internal linkage)
-  // so the host side keeps a normal compile-time copy.
-  #define FMT_DEV_CONST __device__
 #else
   #define FMT_HD
-  #define FMT_DEV_CONST
 #endif
 
 // ── SYCL headers ─────────────────────────────────────────────────────────
@@ -131,18 +122,14 @@
     ::sycl::ext::khx::print_detail::omp_printf(__VA_ARGS__)
 #endif
 
-// ── NVPTX auto-install: clang-OMP-CUDA, pure CUDA (nvcc/nvc++) ──────────
-// When the TU targets NVIDIA via either:
-//   * `clang -fopenmp --offload-arch=sm_XX` (mainline LLVM OMP offload), or
-//   * `nvcc` / `nvc++ -cuda` (pure CUDA C++),
-// the buffer path's emit is plain ::printf. Unlike icpx-SPIR64, NVPTX's
-// printf accepts any pointer-to-char as the format string (verified
-// empirically — runtime buffers, static constexpr arrays, all fine).
-//
-// The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx defines __clang__
-// too, but routes through the SPIR64 path above). The pure-CUDA gate fires
-// off __CUDACC__ which both nvcc and nvc++ -cuda define during device
-// compilation. SYCL / ACPP / a user-defined hook all win over this.
+// ── NVPTX auto-install: clang-OMP-CUDA, clang-CUDA ──────────────────────
+// When the TU targets NVIDIA via either `clang -fopenmp --offload-arch`
+// or `clang++ -x cuda`, the buffer path's emit is plain ::printf. Unlike
+// icpx-SPIR64, NVPTX's printf accepts any pointer-to-char as the format
+// string (verified empirically — runtime buffers, static constexpr arrays,
+// all fine). The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx
+// defines __clang__ too, but routes through the SPIR64 path above).
+// SYCL / ACPP / a user-defined hook all win over this.
 #if !defined(FMT_SYCL_EMIT_BUFFER) && !defined(SYCL_LANGUAGE_VERSION) \
     && !FMT_SYCL_COMPILER_ACPP \
     && ( (defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER)) \
@@ -397,7 +384,7 @@ FMT_HD inline auto divide_by_10_to_kappa_plus_1(uint64_t n) noexcept -> uint64_t
 
 template <typename T> struct cache_accessor;
 
-FMT_DEV_CONST static constexpr uint64_t float_pow10_table[] = {
+static constexpr uint64_t float_pow10_table[] = {
     0x81ceb32c4b43fcf5, 0xa2425ff75e14fc32, 0xcad2f7f5359a3b3f, 0xfd87b5f28300ca0e,
     0x9e74d1b791e07e49, 0xc612062576589ddb, 0xf79687aed3eec552, 0x9abe14cd44753b53,
     0xc16d9a0095928a28, 0xf1c90080baf72cb2, 0x971da05074da7bef, 0xbce5086492111aeb,
@@ -419,7 +406,7 @@ FMT_DEV_CONST static constexpr uint64_t float_pow10_table[] = {
     0x92efd1b8d0cf37bf, 0xb7abc627050305ae, 0xe596b7b0c643c71a, 0x8f7e32ce7bea5c70,
     0xb35dbf821ae4f38c, 0xe0352f62a19e306f};
 
-FMT_DEV_CONST static constexpr uint128 double_pow10_significands[] = {
+static constexpr uint128 double_pow10_significands[] = {
     {0xff77b1fcbebcdc4f, 0x25e8e89c13bb0f7b}, {0xce5d73ff402d98e3, 0xfb0a3d212dc81290},
     {0xa6b34ad8c9dfc06f, 0xf42faa48c0ea481f}, {0x86a8d39ef77164bc, 0xae5dff9c02033198},
     {0xd98ddaee19068c76, 0x3badd624dd9b0958}, {0xafbd2350644eeacf, 0xe5d1929ef90898fb},
@@ -434,7 +421,7 @@ FMT_DEV_CONST static constexpr uint128 double_pow10_significands[] = {
     {0x95527a5202df0ccb, 0x0f37801e0c43ebc9}, {0xf13e34aabb430a15, 0x647726b9e7c68ff0},
 };
 
-FMT_DEV_CONST static constexpr uint64_t double_powers_of_5_64[] = {
+static constexpr uint64_t double_powers_of_5_64[] = {
     0x0000000000000001, 0x0000000000000005, 0x0000000000000019, 0x000000000000007d,
     0x0000000000000271, 0x0000000000000c35, 0x0000000000003d09, 0x000000000001312d,
     0x000000000005f5e1, 0x00000000001dcd65, 0x00000000009502f9, 0x0000000002e90edd,
