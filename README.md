@@ -16,15 +16,15 @@ below).
 
 | Backend                  | Compiler                            | Status | Notes |
 |--------------------------|-------------------------------------|--------|-------|
-| SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug skips a handful of `%s` tests — auto-gated via `FMT_SPIRV_O0`. |
+| SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug skips a handful of `%s` tests — auto-gated via `FFMT_SPIRV_O0`. |
 | SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. Full `std::format` spec. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
-| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs are auto-gated via `FMT_PTX_CLANG_O0`. Build with `OMP_OPT=-O2` for full coverage. |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs are auto-gated via `FFMT_PTX_CLANG_O0`. Build with `OMP_OPT=-O2` for full coverage. |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
 | CUDA                     | `nvcc`                              | ❌ | Fails: `libnvvm` can't emit the `print_string` consteval ctor for device code. |
 | CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
 
-Auto-detection is purely preprocessor — `#include "sycl_khx_print.hpp"` and the right emit hook installs itself based on the active compiler/backend macros.
+Auto-detection is purely preprocessor — `#include <ffmt/base.hpp>` and the right emit hook installs itself based on the active compiler/backend macros.
 
 ## Quick example
 
@@ -33,13 +33,13 @@ Auto-detection is purely preprocessor — `#include "sycl_khx_print.hpp"` and th
 > Source: [`examples/readme1_sycl.cpp`](examples/readme1_sycl.cpp)
 
 ```cpp
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 #include <sycl/sycl.hpp>
 
 int main() {
   sycl::queue q;
   q.parallel_for(4, [=](sycl::id<1> i) {
-    KHX_PRINTLN("work-item {} says {}", i, "hello");
+    FFMT_PRINTLN("work-item {} says {}", i, "hello");
   }).wait();
 }
 ```
@@ -49,12 +49,12 @@ int main() {
 > Source: [`examples/readme1_omp.cpp`](examples/readme1_omp.cpp)
 
 ```cpp
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 
 int main() {
   #pragma omp target teams distribute parallel for num_teams(1) thread_limit(4)
   for (int i = 0; i < 4; i++) {
-    KHX_PRINTLN("work-item {} says {}", i, "hello");
+    FFMT_PRINTLN("work-item {} says {}", i, "hello");
   }
 }
 ```
@@ -64,10 +64,10 @@ int main() {
 > Source: [`examples/readme1_cuda.cu`](examples/readme1_cuda.cu)
 
 ```cpp
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 
 __global__ void hello() {
-  KHX_PRINTLN("work-item {} says {}", threadIdx.x, "hello");
+  FFMT_PRINTLN("work-item {} says {}", threadIdx.x, "hello");
 }
 
 int main() {
@@ -93,7 +93,7 @@ and how to add your own.
 > Source: [`examples/readme2_sycl.cpp`](examples/readme2_sycl.cpp)
 
 ```cpp
-#include "sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 #include <sycl/sycl.hpp>
 
 int main() {
@@ -101,7 +101,7 @@ int main() {
   q.parallel_for(4, [=](sycl::id<1> i) {
     int id = static_cast<int>(i);
     float v = 3.14159f * (id + 1);
-    KHX_PRINTLN("format used: 'id: {{0}}, v2dp={{1:6.2f}}, v={{1:8.5f}}' -> id: {0}, v2dp={1:6.2f}, v={1:8.5f}", id, v);
+    FFMT_PRINTLN("format used: 'id: {{0}}, v2dp={{1:6.2f}}, v={{1:8.5f}}' -> id: {0}, v2dp={1:6.2f}, v={1:8.5f}", id, v);
   }).wait();
 }
 ```
@@ -117,23 +117,23 @@ format used: 'id: {0}, v2dp={1:6.2f}, v={1:8.5f}' -> id: 3, v2dp= 12.57, v=12.56
 ## API
 
 ```cpp
-sycl::ext::khx::print<"format string">(args...);    // no trailing newline
-sycl::ext::khx::println<"format string">(args...);  // appends \n
+ffmt::print<"format string">(args...);    // no trailing newline
+ffmt::println<"format string">(args...);  // appends \n
 
 // Convenience macros (avoid angle-bracket syntax)
-KHX_PRINT("format string", args...);    // primitives only
-KHX_PRINTLN("format string", args...);  // primitives only
+FFMT_PRINT("format string", args...);    // primitives only
+FFMT_PRINTLN("format string", args...);  // primitives only
 
 // Use these when at least one arg is a custom type (sycl::id, sycl::range,
 // or your own formatter<T> specialization). Also accepts plain primitives.
-KHX_PRINTF("format string", args...);
-KHX_PRINTLNF("format string", args...);
+FFMT_PRINTF("format string", args...);
+FFMT_PRINTLNF("format string", args...);
 ```
 
 ## Custom types
 
-`KHX_PRINTF` / `KHX_PRINTLNF` accept any type for which a
-`sycl::ext::khx::formatter<T>` specialization is in scope. The library
+`FFMT_PRINTF` / `FFMT_PRINTLNF` accept any type for which a
+`ffmt::formatter<T>` specialization is in scope. The library
 ships built-in formatters for the following SYCL types:
 
 | Type | Output |
@@ -155,15 +155,15 @@ formattable types.
 struct vec3 { float x, y, z; };
 
 template <>
-struct sycl::ext::khx::formatter<vec3> {
+struct ffmt::formatter<vec3> {
   static constexpr auto format(vec3 v) {
-    return formatted<print_detail::fixed_string{"({}, {}, {})"},
+    return formatted<detail::fixed_string{"({}, {}, {})"},
                      float, float, float>{ {v.x, v.y, v.z} };
   }
 };
 
 // Now usable directly:
-KHX_PRINTLNF("position = {}", vec3{1.0f, 2.0f, 3.0f});
+FFMT_PRINTLNF("position = {}", vec3{1.0f, 2.0f, 3.0f});
 // → position = (1, 2, 3)
 ```
 
@@ -232,11 +232,11 @@ only choice that lets `make test-format` diff against a real reference.
 ### Buffer-path size limit
 
 The buffer-path output buffer defaults to 128 characters. Output longer
-than that per `KHX_PRINT` call is silently truncated. Override with:
+than that per `FFMT_PRINT` call is silently truncated. Override with:
 
 ```cpp
-#define KHX_SYCL_PRINT_BUFFER_SIZE 512
-#include "sycl_khx_print.hpp"
+#define FFMT_BUFFER_SIZE 512
+#include <ffmt/base.hpp>
 ```
 
 ## Build

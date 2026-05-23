@@ -15,12 +15,12 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "../sycl_khx_print.hpp"
+#include <ffmt/base.hpp>
 // Pull in <sycl/sycl.hpp> only when the TU is built for a SYCL backend
 // (so capture_stdout can take a sycl::queue&). Host test rig and OpenMP
 // backends don't define SYCL_LANGUAGE_VERSION and don't have ACPP, so
 // they skip this include.
-#if defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP
+#if defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP
 #include <sycl/sycl.hpp>
 #endif
 
@@ -41,11 +41,11 @@ constexpr int N = 2;
 //                    sign drop on negative floats; multi-arg printfs
 //                    silently drop the body; lowercase '{:a}' on float
 //                    emits uppercase exponent. All clean at -O2.
-#ifndef FMT_PTX_CLANG_O0
-#define FMT_PTX_CLANG_O0 0
+#ifndef FFMT_PTX_CLANG_O0
+#define FFMT_PTX_CLANG_O0 0
 #endif
-#ifndef FMT_SPIRV_O0
-#define FMT_SPIRV_O0 0
+#ifndef FFMT_SPIRV_O0
+#define FFMT_SPIRV_O0 0
 #endif
 
 static std::string capture_stdout(auto&& fn) {

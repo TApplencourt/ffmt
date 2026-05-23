@@ -12,7 +12,7 @@ RUN(PRINT("{:d}\n", 'Z'));
 RUN(PRINT("{:c}\n", 65));
 
 // Bool/string as %s — see "spirv-o0" / "ptx-clang-o0" in capture.hpp.
-#define _S (FMT_SPIRV_O0 || FMT_PTX_CLANG_O0)
+#define _S (FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0)
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", false));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", true));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:>10}\n", true));
@@ -22,7 +22,7 @@ SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:s}\n", false));
 
 // println
 RUN(PRINTLN("hello println"));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0",
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0",
         PRINTLN("{} + {} = {}", 1, 2, 3));
 RUN(PRINTLN("{:08x}", 255u));
 
@@ -45,7 +45,7 @@ SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", "hello world"));
 #if !defined(_OPENMP) && !defined(__CUDACC__)
 {
   const char *env = "cpu-char-* copied";
-#if defined(FMT_STD_PATH) || !(defined(SYCL_LANGUAGE_VERSION) || FMT_SYCL_COMPILER_ACPP)
+#if defined(FFMT_STD_PATH) || !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
   SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", env));
 #else
   size_t len = std::strlen(env) + 1;

@@ -9,11 +9,11 @@ RUN(PRINT("{:+010d}\n", 42));
 RUN(PRINT("{:+15.6f}\n", 3.14));
 
 // Multiple arguments
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", {
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", {
   int a = 1; int b = 2;
   PRINT("{} + {} = {}\n", a, b, a + b);
 });
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0",
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0",
         PRINT("{} {} {} {} {} {} {}\n", 1, 2, 3, 4, 5, 6, 7));
 
 // Plain text and escaped braces
@@ -30,10 +30,10 @@ RUN(PRINT("{}\n", -2147483647 - 1));
 
 // Positional arguments
 RUN(PRINT("{0} {1} {0}\n", 42, 99));
-SKIP_IF((FMT_SPIRV_O0 || FMT_PTX_CLANG_O0), "spirv-o0|ptx-clang-o0",
+SKIP_IF((FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0), "spirv-o0|ptx-clang-o0",
         PRINT("{1} {0}\n", "hello", "world"));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{0:>10} {1:<10}\n", 42, 99));
-SKIP_IF(FMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{2} {0} {1}\n", 'a', 'b', 'c'));
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{0:>10} {1:<10}\n", 42, 99));
+SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{2} {0} {1}\n", 'a', 'b', 'c'));
 RUN(PRINT("{0} {0} {0}\n", 7));
 RUN(PRINT("{0:.2f} {1:+d}\n", 3.14, -42));
 
@@ -47,14 +47,14 @@ RUN(PRINT("{:e}\n", 0.0));
 RUN(PRINT("{:g}\n", 0.0));
 
 // Wide widths — on ACPP these exercise the truncation branches in pad_in_place
-// (the host harness truncates the std reference to KHX_SYCL_PRINT_BUFFER_SIZE
+// (the host harness truncates the std reference to FFMT_BUFFER_SIZE
 // to match). On DPC++ the output is full-length and matches the std reference.
 RUN(PRINT("{:200d}\n", 7));         // plain lpad overflow
 RUN(PRINT("{:+200d}\n", 7));        // sign+overflow: hits sign-bound check
 RUN(PRINT("{:0200d}\n", 7));        // zero-pad+overflow: hits zfill-bound check
 RUN(PRINT("{:150.2f}\n", 3.14));
 // '#' prefix and '^' alignment are ACPP-only (DPC++ rejects them).
-#if FMT_SYCL_BUFFER_PATH
+#if FFMT_BUFFER_PATH
 RUN(PRINT("{:#200x}\n", 0xff));     // prefix+overflow: hits prefix-bound check
 RUN(PRINT("{:^200s}\n", "x"));      // center align with truncation
 #endif

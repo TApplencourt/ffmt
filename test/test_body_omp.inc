@@ -7,14 +7,14 @@ bool CONCAT(test_, TEST_NAME)() {
   int _test_id = 0;
 
   auto std_out = capture_stdout([&]() {
-#define FMT_STD_PATH
-#if FMT_SYCL_BUFFER_PATH
+#define FFMT_STD_PATH
+#if FFMT_BUFFER_PATH
 #define PRINT(fmt_str, ...)                                                   \
   std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, KHX_SYCL_PRINT_BUFFER_SIZE)
+                   .substr(0, FFMT_BUFFER_SIZE)
 #define PRINTLN(fmt_str, ...)                                                 \
   std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, KHX_SYCL_PRINT_BUFFER_SIZE)                     \
+                   .substr(0, FFMT_BUFFER_SIZE)                     \
             << '\n'
 #else
 #define PRINT(fmt_str, ...) std::cout << std::format(fmt_str __VA_OPT__(,) __VA_ARGS__)
@@ -34,14 +34,14 @@ bool CONCAT(test_, TEST_NAME)() {
 #undef RUN
 #undef PRINTLN
 #undef PRINT
-#undef FMT_STD_PATH
+#undef FFMT_STD_PATH
   });
 
   _test_id = 0;
 
   auto omp_out = capture_stdout([&]() {
-#define PRINT(fmt_str, ...) KHX_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
-#define PRINTLN(fmt_str, ...) KHX_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
+#define PRINT(fmt_str, ...) FFMT_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
+#define PRINTLN(fmt_str, ...) FFMT_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
 // icpx-OMP-SPIR64 quirk: when `_Pragma("omp target ...")` is inside a
 // `do { ... } while(0)` block emitted by a macro, the kernel gets registered
 // under one __LINE__ but referenced under another, and the runtime fails

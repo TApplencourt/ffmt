@@ -6,7 +6,7 @@ bool test_strings();
 bool test_layout();
 bool test_misc();
 bool test_formatter();
-#if FMT_SYCL_BUFFER_PATH
+#if FFMT_BUFFER_PATH
 bool test_buffer_path();
 #endif
 
@@ -18,7 +18,7 @@ int main() {
   ok &= test_layout();
   ok &= test_misc();
   ok &= test_formatter();
-#if FMT_SYCL_BUFFER_PATH
+#if FFMT_BUFFER_PATH
   ok &= test_buffer_path();
 #endif
   return ok ? 0 : 1;

@@ -1,6 +1,6 @@
 #pragma once
 // Host-side std::formatter specializations for SYCL composite types.
-// Mirror exactly the device-side output produced by sycl::ext::khx::formatter
+// Mirror exactly the device-side output produced by ffmt::formatter
 // so test reference output (std::format) can be diffed against device output.
 //
 // Test-only — kept here, not in the main header, to avoid pulling SYCL into
