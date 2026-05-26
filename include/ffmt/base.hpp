@@ -1613,10 +1613,12 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
     }
   } else if constexpr (std::is_pointer_v<U>) {
     using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
-    if constexpr (std::same_as<Pointee, char>)
+    if constexpr (std::same_as<Pointee, char>) {
       out.push_str(arg);
-    else
-      out.push_str("<?p>");
+    } else {
+      out.push_str("0x");
+      write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
+    }
   }
 }
 
@@ -2034,6 +2036,14 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     }
   } else if (is_float_format(etype)) {
     if constexpr (std::floating_point<U>) write_float_rt(out, arg, spec, etype, dyn_w, dyn_p);
+  } else if (etype == 'p') {
+    if constexpr (std::is_pointer_v<U>) {
+      int content_start = out.len;
+      write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
+                         reinterpret_cast<std::uintptr_t>(arg));
+      pad_in_place(out, content_start, '\0', "0x", 2, 0,
+                   spec.fill_or(), spec.align_or('<'), dyn_w);
+    }
   } else {
     out.push_str("<?>");
   }

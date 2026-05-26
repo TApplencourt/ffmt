@@ -46,6 +46,16 @@ RUN(PRINT("{:f}\n", 0.0));
 RUN(PRINT("{:e}\n", 0.0));
 RUN(PRINT("{:g}\n", 0.0));
 
+// Pointer formatting — fixed-value casts so host and device produce
+// identical addresses (no real &x: device address would diverge from host
+// std::format reference). Null-pointer tests live in test_buffer_path.cpp
+// because the specifiers path routes through libc printf, which emits
+// "(nil)" for null instead of std::format's "0x0".
+RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
+RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:<20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
+
 // Wide widths — on ACPP these exercise the truncation branches in pad_in_place
 // (the host harness truncates the std reference to FFMT_BUFFER_SIZE
 // to match). On DPC++ the output is full-length and matches the std reference.
