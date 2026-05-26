@@ -1158,9 +1158,8 @@ consteval bool type_can_produce_pct() {
   else return true; // formatter args — be conservative; sub-string may contain '%'
 }
 
-#if FFMT_BUFFER_PATH
 // ============================================================
-// print_string — consteval-validated format string for ACPP
+// Shared consteval validation (both paths)
 // ============================================================
 
 // Consteval-only abort. Calling a non-constexpr function inside a consteval
@@ -1191,6 +1190,38 @@ consteval bool spec_compatible_with_arg(char t) {
   }
   return true;
 }
+
+// Compile-time walker for the specifiers path: visits each placeholder in Fmt
+// and triggers the matching consteval_error if the parsed spec is incompatible
+// with the corresponding arg type. Mirrors the per-arg check performed by
+// print_string's consteval ctor on the buffer path so both paths reject the
+// same set of ill-formed format strings.
+template <fixed_string Fmt, size_t Pos = 0, size_t AutoIdx = 0, typename... Args>
+consteval void validate_spec_arg_compat() {
+  constexpr auto info = find_placeholder<Fmt, Pos>();
+  if constexpr (info.found) {
+    constexpr bool is_auto = (info.index < 0);
+    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
+    if constexpr (idx >= sizeof...(Args)) {
+      // Same diagnostic as the buffer path's print_string ctor.
+      consteval_error::format_argument_index_out_of_range();
+    } else {
+      using U = std::tuple_element_t<idx, std::tuple<Args...>>;
+      constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
+                                       ? parse_spec<Fmt, info.spec_beg, info.close>()
+                                       : format_spec{};
+      if (!spec_compatible_with_arg<U>(spec.type))
+        consteval_error::format_spec_p_requires_non_char_pointer_argument();
+      constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
+      validate_spec_arg_compat<Fmt, info.close + 1, next_auto, Args...>();
+    }
+  }
+}
+
+#if FFMT_BUFFER_PATH
+// ============================================================
+// print_string — consteval-validated format string for ACPP
+// ============================================================
 
 // Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
 struct ph_entry {
@@ -2409,6 +2440,8 @@ inline void print(Args... args) {
         detail::specifiers_path::emit_literal<lit>();
       }
     } else {
+      // Hard validity check (ill-formed everywhere, e.g. {:p} on char*).
+      detail::validate_spec_arg_compat<Fmt, 0, 0, std::decay_t<Args>...>();
       static_assert(detail::specifiers_path::all_printf_compatible<Fmt, 0, 0, Args...>(),
                     "This format string uses features not supported on DPC++ "
                     "({:b}, {:a}, {:^}, custom fill, {:#x} with signed int, "
