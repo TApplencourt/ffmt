@@ -31,13 +31,18 @@ else ifdef USE_OMP_CLANG
     CXX           := clang++
   endif
   OFFLOAD_ARCH    ?= sm_80
-  OMP_OPT         ?= -O0
+  # Two known clang-22+NVPTX bugs, gated per opt level:
+  #   -O0  → printf emit bugs (FFMT_PTX_CLANG_O0, runtime SKIP_IF).
+  #   -O2  → OpenMPOpt ICE on two specific format calls
+  #          (FFMT_PTX_CLANG_O2_ICE, compile-time #if gate).
+  # See capture.hpp for the catalog; tests gate accordingly.
+  OMP_OPT         ?= -O2
   BACKEND_FLAGS   := -fopenmp --offload-arch=$(OFFLOAD_ARCH) $(OMP_OPT)
-  # FFMT_PTX_CLANG_O0: see capture.hpp for the symptom catalog. Verified
-  # clean at -O2, so gate it only when OMP_OPT == -O0. Run
-  # `make ... OMP_OPT=-O2` to confirm.
   ifeq ($(OMP_OPT),-O0)
     BACKEND_FLAGS += -DFFMT_PTX_CLANG_O0
+  endif
+  ifeq ($(OMP_OPT),-O2)
+    BACKEND_FLAGS += -DFFMT_PTX_CLANG_O2_ICE
   endif
   OPT_LEVELS      := O0 O2
 else ifdef USE_CUDA_CLANG

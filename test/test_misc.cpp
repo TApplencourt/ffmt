@@ -30,8 +30,16 @@ RUN(PRINT("{}\n", -2147483647 - 1));
 
 // Positional arguments
 RUN(PRINT("{0} {1} {0}\n", 42, 99));
+// clang-22 NVPTX -O2 ICE: see FFMT_PTX_CLANG_O2_ICE comment in capture.hpp.
+// Gate is preprocessor (not runtime SKIP_IF) — the body must be elided to
+// dodge the OpenMPOpt assertion. Reuses the SKIP_IF skip-marker path with a
+// trivial body so the test-id stays in sync with the reference run.
+#if FFMT_PTX_CLANG_O2_ICE
+SKIP_IF(1, "o2-ptx-ice", PRINT(""));
+#else
 SKIP_IF((FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0), "spirv-o0|ptx-clang-o0",
         PRINT("{1} {0}\n", "hello", "world"));
+#endif
 SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{0:>10} {1:<10}\n", 42, 99));
 SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{2} {0} {1}\n", 'a', 'b', 'c'));
 RUN(PRINT("{0} {0} {0}\n", 7));
