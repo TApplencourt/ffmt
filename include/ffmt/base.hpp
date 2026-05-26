@@ -1274,7 +1274,7 @@ struct print_string {
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
       int arg_i = (info.index >= 0) ? info.index : auto_idx;
-      if (arg_i < 0 || arg_i >= n_args)
+      if (arg_i >= n_args)
         consteval_error::format_argument_index_out_of_range();
       ph_entry &e = phs[ph_count++];
       e.open = static_cast<uint8_t>(info.open);
