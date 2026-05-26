@@ -975,10 +975,6 @@ constexpr bool is_type_char(char c) {
 
 constexpr bool is_align_char(char c) { return c == '<' || c == '>' || c == '^'; }
 
-constexpr bool is_int_format(char c) {
-  return c == 'd' || c == 'u' || c == 'x' || c == 'X' || c == 'o' || c == 'b' || c == 'B';
-}
-
 constexpr bool is_float_format(char c) {
   return c == 'f' || c == 'F' || c == 'e' || c == 'E' || c == 'g' || c == 'G' || c == 'a' ||
          c == 'A';
@@ -1158,9 +1154,8 @@ consteval bool type_can_produce_pct() {
   else return true; // formatter args — be conservative; sub-string may contain '%'
 }
 
-#if FFMT_BUFFER_PATH
 // ============================================================
-// print_string — consteval-validated format string for ACPP
+// Shared consteval validation (both paths)
 // ============================================================
 
 // Consteval-only abort. Calling a non-constexpr function inside a consteval
@@ -1174,23 +1169,74 @@ namespace consteval_error {
 [[noreturn]] void format_argument_index_out_of_range();
 [[noreturn]] void dynamic_width_argument_index_out_of_range();
 [[noreturn]] void dynamic_precision_argument_index_out_of_range();
-[[noreturn]] void format_spec_p_requires_non_char_pointer_argument();
+[[noreturn]] void format_spec_type_incompatible_with_argument_type();
 }
 
-// Spec/arg compatibility: matches std::format. Returns true iff the spec type
-// char `t` is legal for argument type T. Only specs we currently restrict are
-// listed; '\0' (no spec) is always allowed.
+// Spec/arg compatibility: matches std::format's per-type allowed-spec sets.
+// Returns true iff the spec type char `t` is legal for argument type T.
+// '\0' (no spec type) is always allowed (default formatting). The matrix:
+//   integer (not bool/char): d b B o x X c
+//   bool:                    d b B o x X s    (s prints "true"/"false")
+//   char:                    d b B o x X c    (no s)
+//   float:                   a A e E f F g G
+//   char*  / const char*:    s
+//   other pointer (void*):   p
 template <typename T>
 consteval bool spec_compatible_with_arg(char t) {
+  if (t == '\0') return true;
   using U = std::decay_t<T>;
-  if (t == 'p') {
-    if constexpr (std::is_pointer_v<U>)
-      return !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
-    else
-      return false;
+  constexpr bool is_charptr =
+      std::is_pointer_v<U> &&
+      std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
+  if constexpr (is_charptr) {
+    return t == 's';
+  } else if constexpr (std::is_pointer_v<U>) {
+    return t == 'p';
+  } else if constexpr (std::same_as<U, bool>) {
+    return t == 'd' || t == 'b' || t == 'B' || t == 'o' ||
+           t == 'x' || t == 'X' || t == 's';
+  } else if constexpr (std::is_integral_v<U>) {
+    return t == 'd' || t == 'b' || t == 'B' || t == 'o' ||
+           t == 'x' || t == 'X' || t == 'c';
+  } else if constexpr (std::is_floating_point_v<U>) {
+    return t == 'a' || t == 'A' || t == 'e' || t == 'E' ||
+           t == 'f' || t == 'F' || t == 'g' || t == 'G';
+  } else {
+    return true;
   }
-  return true;
 }
+
+// Compile-time walker for the specifiers path: visits each placeholder in Fmt
+// and triggers the matching consteval_error if the parsed spec is incompatible
+// with the corresponding arg type. Mirrors the per-arg check performed by
+// print_string's consteval ctor on the buffer path so both paths reject the
+// same set of ill-formed format strings.
+template <fixed_string Fmt, size_t Pos = 0, size_t AutoIdx = 0, typename... Args>
+consteval void validate_spec_arg_compat() {
+  constexpr auto info = find_placeholder<Fmt, Pos>();
+  if constexpr (info.found) {
+    constexpr bool is_auto = (info.index < 0);
+    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
+    if constexpr (idx >= sizeof...(Args)) {
+      // Same diagnostic as the buffer path's print_string ctor.
+      consteval_error::format_argument_index_out_of_range();
+    } else {
+      using U = std::tuple_element_t<idx, std::tuple<Args...>>;
+      constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
+                                       ? parse_spec<Fmt, info.spec_beg, info.close>()
+                                       : format_spec{};
+      if (!spec_compatible_with_arg<U>(spec.type))
+        consteval_error::format_spec_type_incompatible_with_argument_type();
+      constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
+      validate_spec_arg_compat<Fmt, info.close + 1, next_auto, Args...>();
+    }
+  }
+}
+
+#if FFMT_BUFFER_PATH
+// ============================================================
+// print_string — consteval-validated format string for ACPP
+// ============================================================
 
 // Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
 struct ph_entry {
@@ -1228,7 +1274,7 @@ struct print_string {
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
       int arg_i = (info.index >= 0) ? info.index : auto_idx;
-      if (arg_i < 0 || arg_i >= n_args)
+      if (arg_i >= n_args)
         consteval_error::format_argument_index_out_of_range();
       ph_entry &e = phs[ph_count++];
       e.open = static_cast<uint8_t>(info.open);
@@ -1249,7 +1295,7 @@ struct print_string {
         bool ok = true;
         ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec.type)) : false), ...);
         if (!ok)
-          consteval_error::format_spec_p_requires_non_char_pointer_argument();
+          consteval_error::format_spec_type_incompatible_with_argument_type();
         if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
       } else {
         if (info.index < 0) auto_idx++;
@@ -2033,44 +2079,31 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     }
   }
 
-  char etype = effective_type_rt<U>(spec.type);
-
-  if (is_int_format(etype)) {
-    if constexpr (std::integral<U>) write_int_rt(out, arg, spec, etype, dyn_w);
-  } else if (etype == 'c') {
-    if constexpr (std::integral<U>) {
+  // Per-arg spec/type compatibility is enforced at consteval (see
+  // spec_compatible_with_arg), so each `if constexpr` branch below covers
+  // every (U, etype) pair that can actually reach this point.
+  if constexpr (std::is_pointer_v<U> &&
+                std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
+    int slen = 0;
+    if (dyn_p >= 0) { for (; slen < dyn_p && arg[slen]; slen++); }
+    else { while (arg[slen]) slen++; }
+    apply_padding_data(out, arg, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
+  } else if constexpr (std::is_pointer_v<U>) {
+    int content_start = out.len;
+    write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
+                       reinterpret_cast<std::uintptr_t>(arg));
+    pad_in_place(out, content_start, '\0', "0x", 2, 0,
+                 spec.fill_or(), spec.align_or('<'), dyn_w);
+  } else if constexpr (std::floating_point<U>) {
+    write_float_rt(out, arg, spec, effective_type_rt<U>(spec.type), dyn_w, dyn_p);
+  } else if constexpr (std::integral<U>) {
+    char etype = effective_type_rt<U>(spec.type);
+    if (etype == 'c') {
       char ch = static_cast<char>(arg);
       apply_padding_data(out, &ch, 1, spec.fill_or(), spec.align_or('<'), dyn_w);
+    } else {
+      write_int_rt(out, arg, spec, etype, dyn_w);
     }
-  } else if constexpr (std::is_pointer_v<U> &&
-                       std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
-    // The only remaining etype on a char-pointer arg is 's'; bool 's' was
-    // handled by the early-return above, and other arg types either route
-    // through the int/float/'c' branches or are rejected at consteval.
-    if (etype == 's') {
-      const char *s = arg;
-      int slen = 0;
-      if (dyn_p >= 0) { for (; slen < dyn_p && s[slen]; slen++); }
-      else { while (s[slen]) slen++; }
-      apply_padding_data(out, s, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
-    }
-  } else if (is_float_format(etype)) {
-    if constexpr (std::floating_point<U>) write_float_rt(out, arg, spec, etype, dyn_w, dyn_p);
-  } else if constexpr (std::is_pointer_v<U> &&
-                       !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
-    // 'p' is the only remaining etype on non-char pointers; consteval
-    // validation rejects '{:p}' on any other arg type. Compile this branch
-    // only for the types that can actually reach it so non-pointer
-    // instantiations don't emit dead-code regions.
-    if (etype == 'p') {
-      int content_start = out.len;
-      write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
-                         reinterpret_cast<std::uintptr_t>(arg));
-      pad_in_place(out, content_start, '\0', "0x", 2, 0,
-                   spec.fill_or(), spec.align_or('<'), dyn_w);
-    }
-  } else {
-    out.push_str("<?>");
   }
 }
 
@@ -2409,6 +2442,8 @@ inline void print(Args... args) {
         detail::specifiers_path::emit_literal<lit>();
       }
     } else {
+      // Hard validity check (ill-formed everywhere, e.g. {:p} on char*).
+      detail::validate_spec_arg_compat<Fmt, 0, 0, std::decay_t<Args>...>();
       static_assert(detail::specifiers_path::all_printf_compatible<Fmt, 0, 0, Args...>(),
                     "This format string uses features not supported on DPC++ "
                     "({:b}, {:a}, {:^}, custom fill, {:#x} with signed int, "

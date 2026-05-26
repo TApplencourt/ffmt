@@ -113,7 +113,7 @@ ALL_BINS := $(TEST_BINS)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-omp test-cuda readme-examples test-host coverage clean
+.PHONY: all build test test-format test-omp test-cuda readme-examples test-host test-negative coverage clean
 
 # USE_OMP_CLANG / USE_OMP_ICPX / USE_CUDA_CLANG share the SYCL header but
 # not the SYCL examples (those `#include <sycl/sycl.hpp>`). Default to the
@@ -175,6 +175,36 @@ test-format: $(TEST_BINS)
 	    ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	    if [ $$rc -eq 0 ]; then echo "test_$$t -$$opt: PASS ($${ms}ms)"; \
 	    else echo "test_$$t -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
+	  done; \
+	done; \
+	exit $$fail
+
+# ── Negative tests ──────────────────────────────────────────
+# Each .cpp in test/negative/ uses NEG_EXPECT_REJECTED(fmt, ...) and is
+# compiled THREE times, all of which must fail to compile:
+#   FFMT_BUFFER_PATH=0  → ffmt specifiers path
+#   FFMT_BUFFER_PATH=1  → ffmt buffer path
+#   NEG_CHECK_STD       → std::format (C++20: basic_format_string ctor is
+#                         consteval and rejects ill-formed strings there).
+# The std::format build guards against "wrong" negative tests: a
+# restriction we invent that std::format would actually accept.
+NEG_SRCS := $(wildcard $(TEST_DIR)/negative/*.cpp)
+
+test-negative:
+	@fail=0; \
+	for src in $(NEG_SRCS); do \
+	  name=$$(basename $$src .cpp); \
+	  for variant in specifiers buffer std; do \
+	    case $$variant in \
+	      specifiers) flags="-DFFMT_BUFFER_PATH=0";; \
+	      buffer)     flags="-DFFMT_BUFFER_PATH=1";; \
+	      std)        flags="-DNEG_CHECK_STD";; \
+	    esac; \
+	    t0=$$(date +%s%N); \
+	    $(CXX) $(CXXFLAGS) $$flags -c $$src -o /dev/null >/dev/null 2>&1; rc=$$?; \
+	    ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	    if [ $$rc -ne 0 ]; then echo "negative/$$name [$$variant]: PASS ($${ms}ms — compile rejected)"; \
+	    else echo "negative/$$name [$$variant]: FAIL ($${ms}ms — compile unexpectedly succeeded)"; fail=1; fi; \
 	  done; \
 	done; \
 	exit $$fail

@@ -34,6 +34,8 @@ jobs:
         run: ${{ matrix.cxx }} --version
       - name: Build + run host tests
         run: make -j$(nproc) test-host
+      - name: Run negative-compile tests
+        run: make test-negative
 
   coverage:
     name: coverage non-regression
