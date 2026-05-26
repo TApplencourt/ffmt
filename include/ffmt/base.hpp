@@ -975,10 +975,6 @@ constexpr bool is_type_char(char c) {
 
 constexpr bool is_align_char(char c) { return c == '<' || c == '>' || c == '^'; }
 
-constexpr bool is_int_format(char c) {
-  return c == 'd' || c == 'u' || c == 'x' || c == 'X' || c == 'o' || c == 'b' || c == 'B';
-}
-
 constexpr bool is_float_format(char c) {
   return c == 'f' || c == 'F' || c == 'e' || c == 'E' || c == 'g' || c == 'G' || c == 'a' ||
          c == 'A';
@@ -2083,44 +2079,31 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     }
   }
 
-  char etype = effective_type_rt<U>(spec.type);
-
-  if (is_int_format(etype)) {
-    if constexpr (std::integral<U>) write_int_rt(out, arg, spec, etype, dyn_w);
-  } else if (etype == 'c') {
-    if constexpr (std::integral<U>) {
+  // Per-arg spec/type compatibility is enforced at consteval (see
+  // spec_compatible_with_arg), so each `if constexpr` branch below covers
+  // every (U, etype) pair that can actually reach this point.
+  if constexpr (std::is_pointer_v<U> &&
+                std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
+    int slen = 0;
+    if (dyn_p >= 0) { for (; slen < dyn_p && arg[slen]; slen++); }
+    else { while (arg[slen]) slen++; }
+    apply_padding_data(out, arg, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
+  } else if constexpr (std::is_pointer_v<U>) {
+    int content_start = out.len;
+    write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
+                       reinterpret_cast<std::uintptr_t>(arg));
+    pad_in_place(out, content_start, '\0', "0x", 2, 0,
+                 spec.fill_or(), spec.align_or('<'), dyn_w);
+  } else if constexpr (std::floating_point<U>) {
+    write_float_rt(out, arg, spec, effective_type_rt<U>(spec.type), dyn_w, dyn_p);
+  } else if constexpr (std::integral<U>) {
+    char etype = effective_type_rt<U>(spec.type);
+    if (etype == 'c') {
       char ch = static_cast<char>(arg);
       apply_padding_data(out, &ch, 1, spec.fill_or(), spec.align_or('<'), dyn_w);
+    } else {
+      write_int_rt(out, arg, spec, etype, dyn_w);
     }
-  } else if constexpr (std::is_pointer_v<U> &&
-                       std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
-    // The only remaining etype on a char-pointer arg is 's'; bool 's' was
-    // handled by the early-return above, and other arg types either route
-    // through the int/float/'c' branches or are rejected at consteval.
-    if (etype == 's') {
-      const char *s = arg;
-      int slen = 0;
-      if (dyn_p >= 0) { for (; slen < dyn_p && s[slen]; slen++); }
-      else { while (s[slen]) slen++; }
-      apply_padding_data(out, s, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
-    }
-  } else if (is_float_format(etype)) {
-    if constexpr (std::floating_point<U>) write_float_rt(out, arg, spec, etype, dyn_w, dyn_p);
-  } else if constexpr (std::is_pointer_v<U> &&
-                       !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
-    // 'p' is the only remaining etype on non-char pointers; consteval
-    // validation rejects '{:p}' on any other arg type. Compile this branch
-    // only for the types that can actually reach it so non-pointer
-    // instantiations don't emit dead-code regions.
-    if (etype == 'p') {
-      int content_start = out.len;
-      write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
-                         reinterpret_cast<std::uintptr_t>(arg));
-      pad_in_place(out, content_start, '\0', "0x", 2, 0,
-                   spec.fill_or(), spec.align_or('<'), dyn_w);
-    }
-  } else {
-    out.push_str("<?>");
   }
 }
 
