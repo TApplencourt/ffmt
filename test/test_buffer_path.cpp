@@ -159,6 +159,14 @@ SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:>20a}\n", 3.14));
 SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:^20a}\n", 3.14));
 SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:*>20a}\n", 3.14));
 
+// Null-pointer formatting — buffer-path-only because the specifiers path
+// routes through libc printf which emits "(nil)" for null pointers, while
+// std::format (and our buffer-path implementation) emit "0x0".
+RUN(PRINT("{}\n",         static_cast<void*>(nullptr)));
+RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
+// Centre alignment on pointers — '^' is buffer-path-only generally.
+RUN(PRINT("[{:^20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
+
 // ── Type-instantiation coverage ──
 // write_int_rt<int8_t/short/int64_t/uint64_t/long>: integer specs through
 // less common types so the per-type buffer_path::write_int_rt instantiations

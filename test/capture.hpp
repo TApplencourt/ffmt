@@ -41,8 +41,16 @@ constexpr int N = 2;
 //                    sign drop on negative floats; multi-arg printfs
 //                    silently drop the body; lowercase '{:a}' on float
 //                    emits uppercase exponent. All clean at -O2.
+//   "o2-ptx-ice"   — clang-22+OpenMP+NVPTX at -O2: OpenMPOpt's
+//                    AAPointerInfoFloating asserts in Casting.h:572 when a
+//                    std::format/PRINT call mixes a string-literal arg with
+//                    other arg types. Preprocessor gate (not a runtime
+//                    SKIP_IF) — the body must be elided to dodge the ICE.
 #ifndef FFMT_PTX_CLANG_O0
 #define FFMT_PTX_CLANG_O0 0
+#endif
+#ifndef FFMT_PTX_CLANG_O2_ICE
+#define FFMT_PTX_CLANG_O2_ICE 0
 #endif
 #ifndef FFMT_SPIRV_O0
 #define FFMT_SPIRV_O0 0

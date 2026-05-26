@@ -1174,6 +1174,22 @@ namespace consteval_error {
 [[noreturn]] void format_argument_index_out_of_range();
 [[noreturn]] void dynamic_width_argument_index_out_of_range();
 [[noreturn]] void dynamic_precision_argument_index_out_of_range();
+[[noreturn]] void format_spec_p_requires_non_char_pointer_argument();
+}
+
+// Spec/arg compatibility: matches std::format. Returns true iff the spec type
+// char `t` is legal for argument type T. Only specs we currently restrict are
+// listed; '\0' (no spec) is always allowed.
+template <typename T>
+consteval bool spec_compatible_with_arg(char t) {
+  using U = std::decay_t<T>;
+  if (t == 'p') {
+    if constexpr (std::is_pointer_v<U>)
+      return !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
+    else
+      return false;
+  }
+  return true;
 }
 
 // Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
@@ -1227,6 +1243,13 @@ struct print_string {
           consteval_error::dynamic_width_argument_index_out_of_range();
         if (e.spec.prec_arg >= 0 && e.spec.prec_arg >= n_args)
           consteval_error::dynamic_precision_argument_index_out_of_range();
+        // Per-arg spec type validation. Walk the pack with a fold over
+        // indices; for the arg at position arg_i, check spec_compatible_with_arg.
+        int j = 0;
+        bool ok = true;
+        ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec.type)) : false), ...);
+        if (!ok)
+          consteval_error::format_spec_p_requires_non_char_pointer_argument();
         if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
       } else {
         if (info.index < 0) auto_idx++;
@@ -1613,10 +1636,12 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
     }
   } else if constexpr (std::is_pointer_v<U>) {
     using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
-    if constexpr (std::same_as<Pointee, char>)
+    if constexpr (std::same_as<Pointee, char>) {
       out.push_str(arg);
-    else
-      out.push_str("<?p>");
+    } else {
+      out.push_str("0x");
+      write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
+    }
   }
 }
 
@@ -2017,23 +2042,33 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
       char ch = static_cast<char>(arg);
       apply_padding_data(out, &ch, 1, spec.fill_or(), spec.align_or('<'), dyn_w);
     }
-  } else if (etype == 's') {
-    if constexpr (std::same_as<U, bool>) {
-      const char *bs = arg ? "true" : "false";
-      int blen = arg ? 4 : 5;
-      apply_padding_data(out, bs, blen, spec.fill_or(), spec.align_or('<'), dyn_w);
-    } else if constexpr (std::is_pointer_v<U>) {
-      using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
-      if constexpr (std::same_as<Pointee, char>) {
-        const char *s = arg;
-        int slen = 0;
-        if (dyn_p >= 0) { for (; slen < dyn_p && s[slen]; slen++); }
-        else { while (s[slen]) slen++; }
-        apply_padding_data(out, s, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
-      }
+  } else if constexpr (std::is_pointer_v<U> &&
+                       std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
+    // The only remaining etype on a char-pointer arg is 's'; bool 's' was
+    // handled by the early-return above, and other arg types either route
+    // through the int/float/'c' branches or are rejected at consteval.
+    if (etype == 's') {
+      const char *s = arg;
+      int slen = 0;
+      if (dyn_p >= 0) { for (; slen < dyn_p && s[slen]; slen++); }
+      else { while (s[slen]) slen++; }
+      apply_padding_data(out, s, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
     }
   } else if (is_float_format(etype)) {
     if constexpr (std::floating_point<U>) write_float_rt(out, arg, spec, etype, dyn_w, dyn_p);
+  } else if constexpr (std::is_pointer_v<U> &&
+                       !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
+    // 'p' is the only remaining etype on non-char pointers; consteval
+    // validation rejects '{:p}' on any other arg type. Compile this branch
+    // only for the types that can actually reach it so non-pointer
+    // instantiations don't emit dead-code regions.
+    if (etype == 'p') {
+      int content_start = out.len;
+      write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
+                         reinterpret_cast<std::uintptr_t>(arg));
+      pad_in_place(out, content_start, '\0', "0x", 2, 0,
+                   spec.fill_or(), spec.align_or('<'), dyn_w);
+    }
   } else {
     out.push_str("<?>");
   }

@@ -56,8 +56,13 @@ SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINTLN("b = {}", test_fmt::boxed{42}
 // non-trivial Fmt2 expansion and the runtime args-tuple flatten.
 SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0",
         PRINTLN("step {} of {}: p={}", 3, 100, test_fmt::point{4, 8}));
+// clang-22 NVPTX -O2 ICE — see FFMT_PTX_CLANG_O2_ICE comment in capture.hpp.
+#if FFMT_PTX_CLANG_O2_ICE
+SKIP_IF(1, "o2-ptx-ice", PRINT(""));
+#else
 SKIP_IF((FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0), "spirv-o0|ptx-clang-o0",
         PRINTLN("{} -> {} ({})", test_fmt::boxed{1}, test_fmt::boxed{2}, "ok"));
+#endif
 
 // All-primitive path on the same entry point — should bypass expansion
 RUN(PRINTLN("plain {} works too", 42));
