@@ -1173,22 +1173,41 @@ namespace consteval_error {
 [[noreturn]] void format_argument_index_out_of_range();
 [[noreturn]] void dynamic_width_argument_index_out_of_range();
 [[noreturn]] void dynamic_precision_argument_index_out_of_range();
-[[noreturn]] void format_spec_p_requires_non_char_pointer_argument();
+[[noreturn]] void format_spec_type_incompatible_with_argument_type();
 }
 
-// Spec/arg compatibility: matches std::format. Returns true iff the spec type
-// char `t` is legal for argument type T. Only specs we currently restrict are
-// listed; '\0' (no spec) is always allowed.
+// Spec/arg compatibility: matches std::format's per-type allowed-spec sets.
+// Returns true iff the spec type char `t` is legal for argument type T.
+// '\0' (no spec type) is always allowed (default formatting). The matrix:
+//   integer (not bool/char): d b B o x X c
+//   bool:                    d b B o x X s    (s prints "true"/"false")
+//   char:                    d b B o x X c    (no s)
+//   float:                   a A e E f F g G
+//   char*  / const char*:    s
+//   other pointer (void*):   p
 template <typename T>
 consteval bool spec_compatible_with_arg(char t) {
+  if (t == '\0') return true;
   using U = std::decay_t<T>;
-  if (t == 'p') {
-    if constexpr (std::is_pointer_v<U>)
-      return !std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
-    else
-      return false;
+  constexpr bool is_charptr =
+      std::is_pointer_v<U> &&
+      std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
+  if constexpr (is_charptr) {
+    return t == 's';
+  } else if constexpr (std::is_pointer_v<U>) {
+    return t == 'p';
+  } else if constexpr (std::same_as<U, bool>) {
+    return t == 'd' || t == 'b' || t == 'B' || t == 'o' ||
+           t == 'x' || t == 'X' || t == 's';
+  } else if constexpr (std::is_integral_v<U>) {
+    return t == 'd' || t == 'b' || t == 'B' || t == 'o' ||
+           t == 'x' || t == 'X' || t == 'c';
+  } else if constexpr (std::is_floating_point_v<U>) {
+    return t == 'a' || t == 'A' || t == 'e' || t == 'E' ||
+           t == 'f' || t == 'F' || t == 'g' || t == 'G';
+  } else {
+    return true;
   }
-  return true;
 }
 
 // Compile-time walker for the specifiers path: visits each placeholder in Fmt
@@ -1211,7 +1230,7 @@ consteval void validate_spec_arg_compat() {
                                        ? parse_spec<Fmt, info.spec_beg, info.close>()
                                        : format_spec{};
       if (!spec_compatible_with_arg<U>(spec.type))
-        consteval_error::format_spec_p_requires_non_char_pointer_argument();
+        consteval_error::format_spec_type_incompatible_with_argument_type();
       constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
       validate_spec_arg_compat<Fmt, info.close + 1, next_auto, Args...>();
     }
@@ -1280,7 +1299,7 @@ struct print_string {
         bool ok = true;
         ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec.type)) : false), ...);
         if (!ok)
-          consteval_error::format_spec_p_requires_non_char_pointer_argument();
+          consteval_error::format_spec_type_incompatible_with_argument_type();
         if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
       } else {
         if (info.index < 0) auto_idx++;

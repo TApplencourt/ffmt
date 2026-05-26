@@ -180,19 +180,28 @@ test-format: $(TEST_BINS)
 	exit $$fail
 
 # ── Negative tests ──────────────────────────────────────────
-# Each .cpp in test/negative/ is expected to FAIL to compile (typically
-# because the format string + arg types triggers a consteval_error). The
-# target passes iff the compiler exits non-zero for every file.
+# Each .cpp in test/negative/ uses NEG_EXPECT_REJECTED(fmt, ...) and is
+# compiled THREE times, all of which must fail to compile:
+#   FFMT_BUFFER_PATH=0  → ffmt specifiers path
+#   FFMT_BUFFER_PATH=1  → ffmt buffer path
+#   NEG_CHECK_STD       → std::format (C++20: basic_format_string ctor is
+#                         consteval and rejects ill-formed strings there).
+# The std::format build guards against "wrong" negative tests: a
+# restriction we invent that std::format would actually accept.
 NEG_SRCS := $(wildcard $(TEST_DIR)/negative/*.cpp)
 
 test-negative:
 	@fail=0; \
 	for src in $(NEG_SRCS); do \
 	  name=$$(basename $$src .cpp); \
-	  for path in 0 1; do \
-	    variant=$$([ $$path = 0 ] && echo specifiers || echo buffer); \
+	  for variant in specifiers buffer std; do \
+	    case $$variant in \
+	      specifiers) flags="-DFFMT_BUFFER_PATH=0";; \
+	      buffer)     flags="-DFFMT_BUFFER_PATH=1";; \
+	      std)        flags="-DNEG_CHECK_STD";; \
+	    esac; \
 	    t0=$$(date +%s%N); \
-	    $(CXX) $(CXXFLAGS) -DFFMT_BUFFER_PATH=$$path -c $$src -o /dev/null >/dev/null 2>&1; rc=$$?; \
+	    $(CXX) $(CXXFLAGS) $$flags -c $$src -o /dev/null >/dev/null 2>&1; rc=$$?; \
 	    ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
 	    if [ $$rc -ne 0 ]; then echo "negative/$$name [$$variant]: PASS ($${ms}ms — compile rejected)"; \
 	    else echo "negative/$$name [$$variant]: FAIL ($${ms}ms — compile unexpectedly succeeded)"; fail=1; fi; \
