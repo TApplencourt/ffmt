@@ -2114,11 +2114,12 @@ FMT_HD inline void resolve_int_arg(int idx, int &out, Args&&... args) {
     }, args...);
 }
 
+// Copy str[from, to) unescaping "{{" and "}}". Pointer-based: GCC's
+// -Warray-bounds misjudged the index form as possibly negative.
 FMT_HD inline void write_literal_segment(fmt_buf &out, const char *str, int from, int to) {
-  for (int i = from; i < to;) {
-    if (i + 1 < to && str[i] == '{' && str[i + 1] == '{') { out.push('{'); i += 2; }
-    else if (i + 1 < to && str[i] == '}' && str[i + 1] == '}') { out.push('}'); i += 2; }
-    else out.push(str[i++]);
+  for (const char *p = str + from, *end = str + to; p < end; p++) {
+    if ((*p == '{' || *p == '}') && p + 1 < end && p[1] == *p) p++;
+    out.push(*p);
   }
 }
 

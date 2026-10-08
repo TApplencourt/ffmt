@@ -15,7 +15,7 @@
 //
 // No reference compiled with these flags can be trusted: {fmt} itself prints
 // {:e} of 5e-324 as "0.000000e+00" under DAZ (as does libstdc++'s
-// std::format). Subnormal expectations are therefore literals, taken from
+// std::format), and -0.0 as "0" (-fno-signed-zeros). Subnormal expectations are therefore literals, taken from
 // {fmt} built without -ffast-math.
 //
 // Values go through a volatile (host-only test, never kernel code) so the
@@ -33,6 +33,7 @@ RUN(EXPECT("4.941e-324", "{:.3e}", 4.9406564584124654e-324));
 RUN(EXPECT("4.94066e-324", "{:g}", 4.9406564584124654e-324));
 RUN(EXPECT("2.225074e-308", "{:e}", 2.2250738585072009e-308));
 RUN(EXPECT("1.401298e-45", "{:e}", 1e-45f));
+RUN(EXPECT("-0", "{}", -0.0)); // -fno-signed-zeros: {fmt} built with it prints "0"
 RUN(EXPECT("9.9999999999999694493e-311", "{:.20g}", 1e-310));
 #if FFMT_BUFFER_PATH
 RUN(EXPECT("5e-324", "{}", 4.9406564584124654e-324));
@@ -51,6 +52,5 @@ RUN(PRINT("{:f}\n", 1e15));
 RUN(PRINT("{:.3e}\n", 9.9995));
 RUN(PRINT("{:.0f}\n", 2.5));
 RUN(PRINT("{}\n", 0.0));
-RUN(PRINT("{}\n", -0.0));
 
 #endif

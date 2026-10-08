@@ -37,7 +37,7 @@ jobs:
       - name: Build + run host tests under -ffast-math
         run: make test-fast-math
       - name: Run negative-compile tests
-        run: make test-negative
+        run: make -j$(getconf _NPROCESSORS_ONLN) test-negative
 
   plain:
     # No sanitizers, default toolchain of each OS: catches what only shows
@@ -64,7 +64,7 @@ jobs:
       - name: Build + run host tests under -ffast-math
         run: make test-fast-math
       - name: Run negative-compile tests
-        run: make test-negative
+        run: make -j$(getconf _NPROCESSORS_ONLN) test-negative
 
   coverage:
     name: coverage non-regression
