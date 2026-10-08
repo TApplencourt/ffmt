@@ -63,6 +63,14 @@ RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
 RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:<20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
+// {:p} on a char pointer prints the address, as {fmt} does (std::format
+// rejects it; this used to be a negative test).
+RUN(PRINT("{:p}\n",       reinterpret_cast<const char*>(0xdeadbeef)));
+RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<const char*>(0xcafef00d)));
+// Pointers are right-aligned by default (the buffer path left-aligned them).
+RUN(PRINT("[{:20}]\n",    reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:20p}]\n",   reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:20p}]\n",   reinterpret_cast<const char*>(0xdeadbeef)));
 
 // Wide widths — on ACPP these exercise the truncation branches in pad_in_place
 // (the host harness truncates the std reference to FFMT_BUFFER_SIZE

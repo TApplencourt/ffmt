@@ -199,4 +199,60 @@ RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
 #endif
 
 
+// ── Exact digits beyond 2^53 ────────────────────────────────────────────────
+// The buffer path used to compute round(val·10^prec) in a double/uint64,
+// which is exact only while that product stays below 2^53: {:f} of 1e15
+// printed "0.000000" and {:.20f} of 0.1 lost its trailing "555". Every case
+// here has val·10^prec >= 2^53 (or a hard rounding tie) and compares against
+// std::format's exact digits.
+RUN(PRINT("{:f}\n", 1e15));
+RUN(PRINT("{:f}\n", 1e22));
+RUN(PRINT("{:f}\n", 123456789012345678.0));
+RUN(PRINT("{:.3f}\n", 9007199254740993.0));             // 2^53 + 1 → rounds to even
+RUN(PRINT("{:.20f}\n", 0.1));
+RUN(PRINT("{:.30f}\n", 1.0 / 3.0));
+RUN(PRINT("{:.17f}\n", 0.30000000000000004));
+RUN(PRINT("{:.10f}\n", 1e-5));
+RUN(PRINT("{:.60f}\n", 5e-60));
+RUN(PRINT("{:f}\n", 1.7976931348623157e308));          // 309 integer digits
+RUN(PRINT("{:.17e}\n", 0.1));
+RUN(PRINT("{:.20e}\n", 1e23));                          // 1e23 is not a double
+RUN(PRINT("{:.16e}\n", 2.2250738585072014e-308));       // DBL_MIN
+RUN(PRINT("{:e}\n", 4.9406564584124654e-324));         // smallest subnormal
+RUN(PRINT("{:.25g}\n", 1e24));
+RUN(PRINT("{:.17g}\n", 0.1));
+RUN(PRINT("{:.40g}\n", 1.0 / 3.0));
+RUN(PRINT("{:g}\n", 1.7976931348623157e308));
+// Round half to even on exact binary ties, and carries that change the
+// exponent or add an integer digit.
+RUN(PRINT("{:.1f}\n", 0.25));
+RUN(PRINT("{:.1f}\n", 0.35));                           // 0.35 is just below the tie
+RUN(PRINT("{:.2f}\n", 1.125));
+RUN(PRINT("{:.0f}\n", 3.5));
+RUN(PRINT("{:.0f}\n", 1e16 + 2));
+RUN(PRINT("{:.2f}\n", 999.996));
+RUN(PRINT("{:.0e}\n", 9.5));
+RUN(PRINT("{:.3e}\n", 9.9995));
+RUN(PRINT("{:.2e}\n", 1.125e10));
+RUN(PRINT("{:g}\n", 9.9999995));
+RUN(PRINT("{:g}\n", 999999.5));
+RUN(PRINT("{:g}\n", 0.000099999995));
+RUN(PRINT("{:.3g}\n", 0.00009995));
+// Precision on float args: digits come from the float's exact value.
+RUN(PRINT("{:.10f}\n", 0.1f));
+RUN(PRINT("{:.12e}\n", 3.14159f));
+RUN(PRINT("{:f}\n", 3.4028234663852886e38f));          // FLT_MAX
+
+#if FFMT_BUFFER_PATH // specifiers path: "{}" floats use %g until the next commit
+// "{}" in fixed form with more integer digits than shortest digits prints
+// the exact integer (same length, closer to the value), like std::to_chars:
+// 2^60 is 1152921504606846976, not 1152921504606847000.
+RUN(PRINT("{}\n", 1152921504606846976.0));               // 2^60
+RUN(PRINT("{}\n", 123456789012345678.0));
+RUN(PRINT("{}\n", 9.223372036854775807e18));             // 2^63
+RUN(PRINT("{}\n", 4.722366482869645e21));                // 2^72, > 2^64
+RUN(PRINT("{}\n", -1074311135232.0f));
+RUN(PRINT("{}\n", 16777217.0f * 64));
+#endif
+
 #endif

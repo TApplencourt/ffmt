@@ -222,7 +222,7 @@ RUN(PRINTLN("{}{}", FILL120, FILL120); PRINT("next line\n"));
 #undef FILL120
 
 // ── Null char* ──────────────────────────────────────────────────────────────
-// std::format leaves a null const char* undefined; on a GPU it is an illegal
+// A null const char* is undefined in std::format/{fmt}; on a GPU it is an illegal
 // access. The buffer path prints glibc's "(null)" instead of faulting.
 #ifdef FFMT_STD_PATH
 RUN(printf("(null)\n"));
@@ -270,6 +270,86 @@ RUN(PRINT("[{:.3}]\n", static_cast<const char*>(nullptr)));
 #endif
     }
   }
+}
+#endif
+
+// ── Float formatting fixes ──────────────────────────────────────────────────
+// No type + width/sign/'#' must use the same shortest form as "{}" (it used
+// %g-style 6 digits: "{:10}" of 3.14159265 gave "   3.14159").
+RUN(PRINT("[{:12}]\n", 3.14159265));
+RUN(PRINT("[{:<12}]\n", 0.1));
+RUN(PRINT("[{:+}]\n", 1e100));
+RUN(PRINT("[{:012}]\n", -2.5e-7));
+RUN(PRINT("[{:10}]\n", 0.1f));                          // float keeps float digits
+RUN(PRINT("[{:#}]\n", 1.0));                            // '#' forces the point
+RUN(PRINT("[{:#}]\n", 1e20));
+RUN(PRINT("[{:#}]\n", 0.5));
+RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
+// Hex float: precision rounds half up like {fmt} (and may carry into the
+// leading digit); '0' pads after the "0x".
+RUN(PRINT("{:.0a}\n", 1.5));
+RUN(PRINT("{:.0a}\n", 1.96875));
+RUN(PRINT("{:.1a}\n", 1.03125));
+RUN(PRINT("{:.1a}\n", 1.09375));
+RUN(PRINT("{:.3a}\n", 1.0 / 3.0));
+RUN(PRINT("{:.20a}\n", 1.0 / 3.0));
+RUN(PRINT("{:.2a}\n", 0.0));
+RUN(PRINT("{:#.0a}\n", 1.0));
+RUN(PRINT("{:.3A}\n", -0.1f));
+// Subnormal hex, where the standard libraries disagree with each other and
+// with {fmt}: a float is printed as the equivalent double.
+RUN(PRINT("{:a}\n", 1e-45f));                           // FLT_TRUE_MIN
+RUN(PRINT("{:a}\n", 4.9406564584124654e-324));         // DBL_TRUE_MIN
+RUN(PRINT("{:a}\n", 1.1754942e-38f));                   // largest float subnormal
+RUN(PRINT("{:a}\n", -2.2250738585072009e-308));        // largest double subnormal
+RUN(PRINT("{:.3a}\n", 4.9406564584124654e-324));
+RUN(PRINT("{:.1a}\n", 1.3e-44f));
+RUN(PRINT("[{:012a}]\n", -1.0));
+RUN(PRINT("[{:+012a}]\n", 1.0));
+// '0' is ignored for inf/nan.
+RUN(PRINT("[{:010}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010f}]\n", -std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010e}]\n", std::numeric_limits<double>::quiet_NaN()));
+// Huge dynamic precision: used to write ~1000 bytes past the buffer.
+RUN(PRINT("{:.{}f}\n", 1.5, 1000));
+RUN(PRINT("{:.{}e}\n", 1.0 / 3.0, 5000));
+RUN(PRINT("{:.{}g}\n", 0.1, 400));
+
+// ── Differential sweep against {fmt} (host only) ───────────────────────────
+// Deterministic pseudo-random doubles/floats (raw bit patterns, so every
+// exponent and subnormals are hit) plus short decimals that land on rounding
+// ties. Far denser than the hand-picked cases above; this is what would have
+// caught the >2^53 precision bugs.
+#if !defined(_OPENMP) && !defined(__CUDACC__) && \
+    !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
+{
+  uint64_t st = 0x9E3779B97F4A7C15ULL;
+  auto rnd = [&st]() { st ^= st << 13; st ^= st >> 7; st ^= st << 17; return st; };
+  auto finite_bits = [&]<typename F, typename Bits>(size_t n) { // random finite F
+    std::vector<F> v;
+    while (v.size() < n)
+      if (F x = __builtin_bit_cast(F, static_cast<Bits>(rnd())); x - x == 0) v.push_back(x);
+    return v;
+  };
+  auto dv = finite_bits.operator()<double, uint64_t>(400);
+  auto fv = finite_bits.operator()<float, uint32_t>(300);
+  for (int i = 0; i < 200; i++) {                       // k / 10^j and k / 2^j
+    double k = static_cast<double>(rnd() % 100000);
+    dv.push_back(k / std::pow(10.0, static_cast<double>(rnd() % 8)));
+    dv.push_back(std::ldexp(k + 0.5, -static_cast<int>(rnd() % 12)));
+  }
+#define SWEEP(vec, fmt) RUN(for (auto v : vec) PRINT(fmt "\n", v))
+  SWEEP(dv, "{}");      SWEEP(dv, "{:f}");    SWEEP(dv, "{:.0f}");
+  SWEEP(dv, "{:.3f}");  SWEEP(dv, "{:.17f}"); SWEEP(dv, "{:e}");
+  SWEEP(dv, "{:.0e}");  SWEEP(dv, "{:.16e}"); SWEEP(dv, "{:.30e}");
+  SWEEP(dv, "{:g}");    SWEEP(dv, "{:.1g}");  SWEEP(dv, "{:.17g}");
+  SWEEP(dv, "{:#g}");   SWEEP(dv, "{:a}");    SWEEP(dv, "{:.0a}");
+  SWEEP(dv, "{:.5a}");  SWEEP(dv, "{:#.3a}"); SWEEP(dv, "{:+15}");
+  SWEEP(dv, "{:#}");    SWEEP(dv, "{:.5}");
+  SWEEP(fv, "{}");      SWEEP(fv, "{:12}");   SWEEP(fv, "{:e}");
+  SWEEP(fv, "{:.10f}"); SWEEP(fv, "{:g}");    SWEEP(fv, "{:a}");
+  SWEEP(fv, "{:.2a}");  SWEEP(fv, "{:#}");
+#undef SWEEP
 }
 #endif
 

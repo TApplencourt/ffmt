@@ -8,9 +8,8 @@ by Victor Zverovich and [Dragonbox](https://github.com/jk-jeon/dragonbox)
 by Junekey Jeon. The float formatting paths (default `{}`, `{:g}`, `{:e}`,
 `{:f}`, hex `{:a}`) are a direct port of {fmt}'s Dragonbox integration;
 the spec parser and many formatting decisions follow {fmt}'s precedent.
-Where this library diverges, it does so to match `std::format` rather than
-`fmt::format` (see [Spec target](#spec-target-stdformat-not-fmtformat)
-below).
+The output matches `fmt::format` exactly, including where {fmt} and
+`std::format` disagree (see [Spec target](#spec-target-fmt) below).
 
 ## Supported backends
 
@@ -218,16 +217,21 @@ Features only available on the buffer path:
 - Dynamic width/precision (`{:{}}`, `{:.{}}`)
 - Dragonbox shortest-decimal float (default `{}` with floats)
 
-### Spec target: `std::format`, not `fmt::format`
+### Spec target: `{fmt}`
 
-Where the two disagree, this header matches `std::format` / `std::print`
-(C++20 `[format.string.std]` → `[charconv.to.chars]/3.7`): the default `{}`
-on a float picks the **shorter** of fixed vs scientific, ties go to fixed.
-`{fmt}`'s `fmt::format` predates this rule and instead uses a fixed
-`exp_upper = min(16, digits10+1)` cap, so the two libraries print e.g.
-`fmt::format("{}", 1.0e15)` as `1000000000000000` while
-`std::format("{}", 1.0e15)` is `1e+15`. We follow `std::format` — it's the
-only choice that lets `make test-format` diff against a real reference.
+The output reference is [{fmt}](https://github.com/fmtlib/fmt): ffmt prints
+exactly what `fmt::format` prints, and the test suite diffs against a pinned
+`{fmt}` (`FMT_REF` in the Makefile, fetched into `third_party/fmt`, or point
+`FMT_DIR` at a checkout). The system `std::format` is not used as a
+reference because implementations disagree with each other and with
+`{fmt}`. Where `{fmt}` and `std::format` differ, ffmt follows `{fmt}`:
+
+| | `{fmt}` / ffmt | `std::format` |
+|---|---|---|
+| `{}` of `1e15` | `1000000000000000` (fixed while exponent < 16 for double, < 7 for float) | `1e+15` (shorter form) |
+| `{:a}` of `1.5` | `0x1.8p+0` | `1.8p+0` |
+| `{:.1a}` of `1.03125` | `0x1.1p+0` (ties round up) | `1.0p+0` (ties to even) |
+| `{:a}` of a subnormal | `0x0.0000000000001p-1022` | libc++ and libstdc++ differ |
 
 ### Buffer-path size limit
 

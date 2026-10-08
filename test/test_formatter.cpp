@@ -2,7 +2,7 @@
 #define TEST_NAME formatter
 #define TEST_INC "test_formatter.cpp"
 
-#include "capture.hpp" // pulls in <format> and ffmt/base.hpp
+#include "capture.hpp" // pulls in <fmt/format.h> and ffmt/base.hpp
 
 #if defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP
 #include "sycl_std_formatters.hpp"
@@ -17,17 +17,17 @@ struct boxed { int v; };
 }
 
 template <>
-struct std::formatter<test_fmt::point> {
-  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
-  auto format(const test_fmt::point& p, std::format_context& ctx) const {
-    return std::format_to(ctx.out(), "({}, {})", p.x, p.y);
+struct fmt::formatter<test_fmt::point> {
+  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  auto format(const test_fmt::point& p, fmt::format_context& ctx) const {
+    return fmt::format_to(ctx.out(), "({}, {})", p.x, p.y);
   }
 };
 template <>
-struct std::formatter<test_fmt::boxed> {
-  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
-  auto format(const test_fmt::boxed& b, std::format_context& ctx) const {
-    return std::format_to(ctx.out(), "[{}]", b.v);
+struct fmt::formatter<test_fmt::boxed> {
+  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  auto format(const test_fmt::boxed& b, fmt::format_context& ctx) const {
+    return fmt::format_to(ctx.out(), "[{}]", b.v);
   }
 };
 

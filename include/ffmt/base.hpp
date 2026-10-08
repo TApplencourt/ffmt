@@ -735,21 +735,19 @@ FMT_HD inline auto write_digits(char *buf, uint64_t n, int num_digits) -> char *
   return end;
 }
 
-// std::format "general" rule: pick shorter of fixed vs scientific; tie → fixed.
-// `exp` is the decimal exponent of the most-significant digit; `sig_size` is the
-// number of significant digits in the shortest round-trip representation.
-constexpr auto use_fixed(int exp, int sig_size) -> bool {
-  if (exp < -4) return false;
-  int fixed_len = exp >= 0
-                      ? (exp + 1 >= sig_size ? exp + 1 : sig_size + 1)
-                      : 2 + (-exp - 1) + sig_size;
-  int abs_exp = exp < 0 ? -exp : exp;
-  int sci_len = sig_size + (sig_size > 1 ? 1 : 0) + 2 + (abs_exp >= 100 ? 3 : 2);
-  return fixed_len <= sci_len;
+// {fmt}'s rule for the shortest ("{}") form: fixed notation when the decimal
+// exponent is in [-4, exp_upper), where exp_upper is 16 for double and 7 for
+// float (min(16, digits10 + 1)); scientific otherwise. (std::format instead
+// picks whichever is shorter: 1e+06 where {fmt} prints 1000000.)
+template <typename T> constexpr auto exp_upper() -> int {
+  return std::numeric_limits<T>::digits10 + 1 < 16 ? std::numeric_limits<T>::digits10 + 1 : 16;
 }
 
 template <typename T> FMT_HD inline auto format_shortest(char *buf, T value) -> int {
-  if (value == T(0)) {
+  // Bit test, not value == 0: under -ffast-math (DAZ) a subnormal compares
+  // equal to zero and would print as "0".
+  using carrier = typename float_info<T>::carrier_uint;
+  if ((__builtin_bit_cast(carrier, value) << 1) == 0) {
     buf[0] = '0';
     return 1;
   }
@@ -761,7 +759,7 @@ template <typename T> FMT_HD inline auto format_shortest(char *buf, T value) -> 
 
   char *p = buf;
 
-  if (use_fixed(exponent, sig_size)) {
+  if (exponent >= -4 && exponent < exp_upper<T>()) {
     if (exponent >= 0) {
       int int_digits = exponent + 1;
       if (int_digits >= sig_size) {
@@ -1179,7 +1177,7 @@ namespace consteval_error {
 //   bool:                    d b B o x X s    (s prints "true"/"false")
 //   char:                    d b B o x X c    (no s)
 //   float:                   a A e E f F g G
-//   char*  / const char*:    s
+//   char*  / const char*:    s p  (p prints the address, as {fmt} allows)
 //   other pointer (void*):   p
 template <typename T>
 consteval bool spec_compatible_with_arg(char t) {
@@ -1189,7 +1187,7 @@ consteval bool spec_compatible_with_arg(char t) {
       std::is_pointer_v<U> &&
       std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
   if constexpr (is_charptr) {
-    return t == 's';
+    return t == 's' || t == 'p';
   } else if constexpr (std::is_pointer_v<U>) {
     return t == 'p';
   } else if constexpr (std::same_as<U, bool>) {
@@ -1379,6 +1377,17 @@ FMT_HD inline char hex_digit(int d, bool upper) {
   return static_cast<char>((upper ? 'A' : 'a') + d - 10);
 }
 
+// float → double through the bits. A real conversion is an FP operation, and
+// under DAZ (-ffast-math on x86, icpx's default) it flushes subnormals to 0.
+FMT_HD inline double widen_exact(double d) { return d; }
+FMT_HD inline double widen_exact(long double d) { return static_cast<double>(d); }
+FMT_HD inline double widen_exact(float f) {
+  uint32_t b = __builtin_bit_cast(uint32_t, f);
+  if ((b & 0x7F800000u) != 0 || (b & 0x7FFFFFu) == 0) return static_cast<double>(f);
+  double d = static_cast<double>(b & 0x7FFFFFu) * 0x1p-149; // subnormal: m·2^-149
+  return (b >> 31) ? -d : d;
+}
+
 // Cast an arg to its printf-compatible type.
 template <char EffType, typename T> FMT_HD inline auto printf_cast(T arg) {
   using U = std::decay_t<T>;
@@ -1391,7 +1400,7 @@ template <char EffType, typename T> FMT_HD inline auto printf_cast(T arg) {
   } else if constexpr (EffType == 'u' || EffType == 'x' || EffType == 'X' || EffType == 'o') {
     return unsigned_int_cast(arg);
   } else if constexpr (is_float_format(EffType)) {
-    return static_cast<double>(arg);
+    return widen_exact(arg); // not static_cast: DAZ would flush float subnormals
   }
   else
     return arg;
@@ -1654,6 +1663,10 @@ template <typename T, typename Buf> FMT_HD inline void write_decimal(Buf &out, T
   write_uint_direct<10>(out, uval);
 }
 
+template <typename T>
+FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char etype,
+                                  int dyn_w, int dyn_p);
+
 template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) {
   using U = std::decay_t<T>;
   if constexpr (std::same_as<U, bool>) {
@@ -1663,26 +1676,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
   } else if constexpr (std::signed_integral<U> || std::unsigned_integral<U>) {
     write_decimal(out, arg);
   } else if constexpr (std::floating_point<U>) {
-    // Dragonbox always available on ACPP (buffer guarantees atomicity).
-    U val = arg;
-    using bits_t = std::conditional_t<std::is_same_v<U, float>, uint32_t, uint64_t>;
-    bool neg = __builtin_bit_cast(bits_t, val) >> (sizeof(bits_t) * 8 - 1);
-    if (neg) {
-      out.push('-');
-      val = -val;
-    }
-    bits_t fbits = __builtin_bit_cast(bits_t, val);
-    constexpr int exp_bits = std::is_same_v<U, float> ? 8 : 11;
-    constexpr bits_t exp_mask = ((bits_t(1) << exp_bits) - 1) << (sizeof(bits_t) * 8 - 1 - exp_bits);
-    constexpr bits_t mant_mask = (bits_t(1) << (sizeof(bits_t) * 8 - 1 - exp_bits)) - 1;
-    if ((fbits & exp_mask) == exp_mask && (fbits & mant_mask) == 0) {
-      out.push_str("inf");
-    } else if ((fbits & exp_mask) == exp_mask) {
-      out.push_str("nan");
-    } else {
-      out.len += dragonbox::format_shortest(out.data + out.len, val);
-      if (out.len > fmt_buf::cap) out.len = fmt_buf::cap;
-    }
+    write_float_rt(out, arg, format_spec{}, 'g', 0, -1); // shortest round-trip
   } else if constexpr (std::is_pointer_v<U>) {
     using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
     if constexpr (std::same_as<Pointee, char>) {
@@ -1739,124 +1733,205 @@ FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
 }
 
 // ── Float formatting helpers ──────────────────────────────────────────────────
+//
+// {:f} / {:e} / {:g} need correctly rounded digits at any precision. Scaling
+// by 10^prec in a double/uint64 is only exact while val·10^prec < 2^53, so it
+// garbled e.g. {:f} of 1e15 or {:.20f} of 0.1. Instead, every finite double
+// is M·2^E (M < 2^53), so its decimal expansion is finite and a small bignum
+// yields it digit by digit, exactly:
+//   E >= 0: the value is the integer M·2^E (<= 309 digits), kept in base 1e9.
+//   E <  0: the integer part M >> k (k = -E) fits a uint64; the fraction
+//           r/2^k is kept in binary and each r *= 10 step yields one digit.
+// One 35-limb array (140 B) covers both: 2^1024 < 10^315 = 35 base-1e9 limbs,
+// and r·10 < 2^(k+4) <= 2^1078 fits in 34 binary limbs.
 
-constexpr double pow10(int n) {
-  double s = 1.0;
-  for (int i = 0; i < n; i++) s *= 10.0;
-  return s;
+FMT_HD inline uint64_t pow10_u64(int n) {
+  uint64_t p = 1;
+  for (int i = 0; i < n; i++) p *= 10;
+  return p;
 }
 
-constexpr uint64_t ipow10(int n) {
-  uint64_t s = 1;
-  for (int i = 0; i < n; i++) s *= 10;
-  return s;
-}
+// Exact decimal digits of a positive finite double, most significant first.
+// next() walks the integer digits, then the fraction digits (0 forever once
+// the expansion ends). int_digits == 0 when the value is below 1.
+struct exact_decimal {
+  static constexpr int LIMBS = 35;
+  static constexpr uint32_t BASE = 1000000000u;
+  uint32_t a[LIMBS];
+  int n = 0;           // limbs in use
+  int k = 0;           // fraction width in bits; 0 when the value is an integer
+  uint64_t ipart = 0;  // integer part when k > 0
+  int int_digits = 0;
+  int top_digits = 0;  // decimal digits in a[n-1] when k == 0
+  int pos = 0;         // digits consumed by next()
 
-FMT_HD inline int find_exponent(double val) {
-  int exp = 0;
-  if (val >= 10.0) {
-    while (val >= 10.0) { val /= 10.0; exp++; }
-  } else if (val < 1.0) {
-    while (val < 1.0) { val *= 10.0; exp--; }
+  FMT_HD explicit exact_decimal(double v) {
+    uint64_t bits = __builtin_bit_cast(uint64_t, v);
+    int be = static_cast<int>((bits >> 52) & 0x7FF);
+    uint64_t m = bits & 0x000FFFFFFFFFFFFFULL;
+    int e;
+    if (be == 0) e = -1074;
+    else { m |= 1ULL << 52; e = be - 1075; }
+    if (e >= 0) {
+      for (uint64_t t = m; t; t /= BASE) a[n++] = static_cast<uint32_t>(t % BASE);
+      while (e > 0) { // multiply by 2^e, at most 2^32 per pass
+        int s = e > 32 ? 32 : e;
+        e -= s;
+        uint64_t carry = 0;
+        for (int i = 0; i < n; i++) {
+          uint64_t x = (static_cast<uint64_t>(a[i]) << s) + carry;
+          a[i] = static_cast<uint32_t>(x % BASE);
+          carry = x / BASE;
+        }
+        while (carry) { a[n++] = static_cast<uint32_t>(carry % BASE); carry /= BASE; }
+      }
+      top_digits = dragonbox::count_digits(a[n - 1]);
+      int_digits = 9 * (n - 1) + top_digits;
+    } else {
+      k = -e;
+      uint64_t r = m;
+      if (k < 64) { ipart = m >> k; r = m & ((1ULL << k) - 1); }
+      n = (k + 4 + 31) / 32;
+      for (int i = 0; i < n; i++) a[i] = 0;
+      a[0] = static_cast<uint32_t>(r);
+      if (n > 1) a[1] = static_cast<uint32_t>(r >> 32);
+      int_digits = ipart ? dragonbox::count_digits(ipart) : 0;
+    }
   }
-  return exp;
-}
 
-// Round val*scale to nearest integer with correct midpoint handling.
-// Non-template so __attribute__((target)) works; on x86-64 forces the FMA
-// ISA so __builtin_fma compiles to a real vfmsub instruction instead of
-// being decomposed into mul+sub (which folds to zero at -O2).
-#ifdef __x86_64__
-__attribute__((target("fma")))
-#endif
-FMT_HD inline uint64_t round_scaled(double val, double scale, double shifted) {
-  auto total = static_cast<uint64_t>(shifted);
-  double frac_part = shifted - static_cast<double>(total);
-  if (frac_part > 0.5) {
-    total++;
-  } else if (frac_part == 0.5) {
-    double err = __builtin_fma(val, scale, -shifted);
-    if (err > 0)
-      total++;
-    else if (err == 0 && (total & 1) != 0)
-      total++;
+  // j-th integer digit from the top (k == 0 only).
+  FMT_HD int int_digit(int j) const {
+    if (j < top_digits)
+      return static_cast<int>(a[n - 1] / pow10_u64(top_digits - 1 - j) % 10);
+    j -= top_digits;
+    return static_cast<int>(a[n - 2 - j / 9] / pow10_u64(8 - j % 9) % 10);
   }
-  return total;
+
+  FMT_HD int next() {
+    int j = pos++;
+    if (j < int_digits) {
+      if (k == 0) return int_digit(j);
+      return static_cast<int>(ipart / pow10_u64(int_digits - 1 - j) % 10);
+    }
+    if (k == 0) return 0;
+    uint64_t carry = 0;
+    for (int i = 0; i < n; i++) {
+      uint64_t x = static_cast<uint64_t>(a[i]) * 10 + carry;
+      a[i] = static_cast<uint32_t>(x);
+      carry = x >> 32;
+    }
+    // The digit is bits [k, k+4); clear them to keep r < 2^k.
+    int li = k / 32, sh = k % 32;
+    uint64_t w = a[li];
+    if (li + 1 < n) w |= static_cast<uint64_t>(a[li + 1]) << 32;
+    a[li] &= (1u << sh) - 1;
+    if (li + 1 < n) a[li + 1] = 0;
+    return static_cast<int>((w >> sh) & 0xF);
+  }
+
+  // Is any digit at or after the current position nonzero?
+  FMT_HD bool rest_nonzero() const {
+    if (k == 0) {
+      for (int j = pos; j < int_digits; j++)
+        if (int_digit(j)) return true;
+      return false;
+    }
+    if (pos < int_digits && ipart % pow10_u64(int_digits - pos) != 0) return true;
+    for (int i = 0; i < n; i++)
+      if (a[i]) return true;
+    return false;
+  }
+};
+
+// Writes the digits of one number into out. Digits past the cap are dropped
+// like push() does, but remembered: a rounding carry only crosses them into
+// the visible digits when they are all '9'.
+template <typename Buf>
+struct digit_writer {
+  Buf &out;
+  int first;               // index of the first digit
+  int last = 0;            // last digit put (its parity decides ties)
+  bool blocked = false;    // a digit past the cap was not '9': no carry gets out
+
+  FMT_HD explicit digit_writer(Buf &o) : out(o), first(o.len) {}
+
+  FMT_HD void put(int d) {
+    last = d;
+    if (out.len < Buf::cap) out.data[out.len++] = static_cast<char>('0' + d);
+    else if (d != 9) blocked = true;
+  }
+
+  // Round half to even, given the first dropped digit and whether anything
+  // nonzero follows it. Returns true when the carry ran off the front
+  // (99.9 → 00.0); the caller then supplies the leading '1'.
+  FMT_HD bool round(int next_digit, bool sticky) {
+    if (next_digit < 5 || (next_digit == 5 && !sticky && (last & 1) == 0)) return false;
+    if (blocked) return false;
+    for (int i = out.len - 1; i >= first; i--) {
+      char c = out.data[i];
+      if (c == '.') continue;
+      if (c != '9') { out.data[i] = static_cast<char>(c + 1); return false; }
+      out.data[i] = '0';
+    }
+    return true;
+  }
+};
+
+// Puts the decimal point (if prec > 0 or alt) and `prec` more digits of x,
+// rounded half to even. Returns true when the carry ran off the front.
+template <typename Buf>
+FMT_HD inline bool put_fraction(Buf &out, digit_writer<Buf> &w, exact_decimal &x,
+                                int prec, bool alt) {
+  if (prec > 0 || alt) out.push('.');
+  // The expansion is finite: once it runs out the rest is zeros and nothing
+  // needs rounding, so even a huge precision costs at most ~1100 steps.
+  int i = 0;
+  for (; i < prec && x.rest_nonzero(); i++) w.put(x.next());
+  if (i < prec) { out.push_n('0', prec - i); return false; }
+  int next_digit = x.next();
+  return w.round(next_digit, x.rest_nonzero());
 }
 
-// Format a non-negative finite double in fixed notation into buf.
-// Handles up to prec=15 safely (uint64_t scale limit ~1e15 for val<1e4).
+// Fixed notation with `prec` fraction digits, for a non-negative finite val.
 template <typename Buf>
 FMT_HD inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
-  double scale = pow10(prec);
-  uint64_t total = round_scaled(val, scale, val * scale);
-  auto iscale = static_cast<uint64_t>(scale);
-  uint64_t ipart = total / iscale;
-  uint64_t frac = total % iscale;
-
-  write_decimal(out, ipart);
-
-  if (prec > 0 || alt) {
-    out.push('.');
-    if (prec > 0) {
-      // prec is known, so advance len directly and write right-to-left.
-      int pos = out.len + prec - 1;
-      out.len += prec;
-      for (int i = 0; i < prec; i++) {
-        out.data[pos--] = '0' + static_cast<char>(frac % 10);
-        frac /= 10;
-      }
-      if (out.len > Buf::cap) out.len = Buf::cap;
-    }
+  digit_writer<Buf> w(out);
+  exact_decimal x(val);
+  if (x.int_digits == 0) w.put(0);
+  for (int i = 0; i < x.int_digits; i++) w.put(x.next());
+  if (put_fraction(out, w, x, prec, alt)) {
+    // 99.9 → 100.0: shift right by one and prepend the carry.
+    int end = out.len < Buf::cap ? out.len + 1 : Buf::cap;
+    for (int j = end - 1; j > w.first; j--) out.data[j] = out.data[j - 1];
+    out.data[w.first] = '1';
+    out.len = end;
   }
 }
 
-// Format a non-negative finite double in scientific notation into buf.
+// Scientific notation d.ddd…e±XX with `prec` fraction digits, for a
+// non-negative finite val. Returns the decimal exponent after rounding.
 template <typename Buf>
-FMT_HD inline void fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false) {
-  int exp = 0;
-  if (val == 0.0) {
-    exp = 0;
-  } else {
-    double orig = val;
-    exp = find_exponent(val);
-    double tmp = val;
-    if (exp > 0)
-      for (int i = 0; i < exp; i++) tmp /= 10.0;
-    else if (exp < 0)
-      for (int i = 0; i < -exp; i++) tmp *= 10.0;
-    val = tmp;
-    // If rounding would make the mantissa overflow to 10 (e.g. 9.999... rounds
-    // to 10.00000), detect and adjust.  For small |shift| use the original
-    // un-normalized value to avoid accumulated error from repeated /10;
-    // for extreme exponents (|shift|>22) check_scale would lose exactness or
-    // overflow, so fall back to the normalized value which is accurate enough.
-    {
-      int shift = prec - exp;
-      bool overflow = false;
-      if (shift >= 0 && shift <= 22) {
-        double check_scale = pow10(shift);
-        uint64_t total = round_scaled(orig, check_scale, orig * check_scale);
-        overflow = (total >= ipow10(prec + 1));
-      } else {
-        double scale = pow10(prec);
-        uint64_t total = round_scaled(val, scale, val * scale);
-        overflow = (total / static_cast<uint64_t>(scale) >= 10);
-      }
-      if (overflow) {
-        val /= 10.0;
-        exp++;
-      }
-    }
+FMT_HD inline int fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false) {
+  digit_writer<Buf> w(out);
+  exact_decimal x(val);
+  int exp = x.int_digits - 1; // exponent of the next digit
+  int d = 0;
+  if (x.rest_nonzero())
+    while ((d = x.next()) == 0) exp--; // skip leading zeros of a value < 1
+  else
+    exp = 0;                           // zero: 0.000e+00
+  w.put(d);
+  if (put_fraction(out, w, x, prec, alt)) { // 9.99e+00 → 1.00e+01
+    out.data[w.first] = '1';
+    exp++;
   }
-  fmt_fixed(out, val, prec, alt);
   out.push(upper ? 'E' : 'e');
-  out.push(exp >= 0 ? '+' : '-');
-  if (exp < 0)
-    exp = -exp;
-  if (exp < 10)
+  out.push(exp < 0 ? '-' : '+');
+  int abs_exp = exp < 0 ? -exp : exp;
+  if (abs_exp < 10)
     out.push('0'); // at least 2 exponent digits
-  write_decimal(out, static_cast<unsigned>(exp));
+  write_decimal(out, static_cast<unsigned>(abs_exp));
+  return exp;
 }
 
 // Remove trailing zeros (and decimal point) from buf[start..len),
@@ -1887,32 +1962,18 @@ FMT_HD inline void trim_trailing_zeros(Buf &buf, int start = 0) {
   buf.data[new_len] = '\0';
 }
 
-// Format g/G: shortest of fixed/scientific, remove trailing zeros unless alt.
-// prec = significant digits (default 6, min 1).
+// g/G per [format.string.std]: with P = prec (0 → 1) and X the exponent the
+// 'e' form would have at precision P-1, use fixed with P-1-X digits when
+// P > X >= -4, else scientific; trailing zeros are dropped unless alt.
 template <typename Buf>
 FMT_HD inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
   if (prec == 0)
     prec = 1;
-  int exp = 0;
-  if (val != 0.0)
-    exp = find_exponent(val);
-  bool use_fixed = (exp >= -4 && exp < prec);
-  if (use_fixed && exp == prec - 1) {
-    uint64_t rounded = static_cast<uint64_t>(val + 0.5);
-    uint64_t t = rounded;
-    int d = 0;
-    do { d++; t /= 10; } while (t);
-    if (d > exp + 1)
-      use_fixed = false;
-  }
   int start = out.len;
-  if (use_fixed) {
-    int f_prec = prec - (exp + 1);
-    if (f_prec < 0)
-      f_prec = 0;
-    fmt_fixed(out, val, f_prec, alt);
-  } else {
-    fmt_sci(out, val, prec - 1, upper, alt);
+  int x = fmt_sci(out, val, prec - 1, upper, alt);
+  if (x >= -4 && x < prec) {
+    out.len = start;
+    fmt_fixed(out, val, prec - 1 - x, alt);
   }
   if (!alt)
     trim_trailing_zeros(out, start);
@@ -1922,45 +1983,43 @@ FMT_HD inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
 // Runtime-spec formatting (for print("...", args...) syntax)
 // ============================================================
 
-// hex_float_to_buf with runtime spec
-template <typename T, typename Buf>
-FMT_HD inline void hex_float_to_buf_rt(Buf &content, T arg, const format_spec &spec, bool upper) {
-  double val = static_cast<double>(arg);
+// {:a} / {:A} digits for a non-negative finite double, as {fmt} prints them
+// after its "0x" prefix (the sign and prefix come from write_float_rt;
+// floats are widened exactly first). Leading 1, or 0 for zero and
+// subnormals (0x0.0000000000001p-1022); 13 hex digits with trailing zeros
+// trimmed. An explicit precision rounds half up on the first dropped hex
+// digit, like {fmt} (0x1.08p+0 at .1 → 0x1.1p+0), and may carry into the
+// leading digit (0x1.f8p+0 at .0 → 0x2p+0).
+template <typename Buf>
+FMT_HD inline void hex_float_to_buf_rt(Buf &content, double val, int prec, bool alt, bool upper) {
+  constexpr int ndig = 13;
   uint64_t bits = __builtin_bit_cast(uint64_t, val);
-  bool negative = (bits >> 63) != 0;
-  if (negative) {
-    content.push('-'); val = -val; bits &= 0x7FFFFFFFFFFFFFFFULL;
-  } else if (spec.sign == '+') content.push('+');
-  else if (spec.sign == ' ') content.push(' ');
-
-  int biased_exp = static_cast<int>((bits >> 52) & 0x7FF);
-  uint64_t mantissa = bits & 0x000FFFFFFFFFFFFFULL;
-  if (biased_exp == 0x7FF) {
-    content.push_str((mantissa == 0) ? (upper ? "INF" : "inf") : (upper ? "NAN" : "nan"));
-    return;
-  }
-  int exponent;
-  if (biased_exp == 0) {
-    if (mantissa == 0) { content.push('0'); content.push(upper ? 'P' : 'p'); content.push('+'); content.push('0'); return; }
-    content.push('0'); exponent = -1022;
-  } else {
-    content.push('1'); exponent = biased_exp - 1023;
-  }
-  if (mantissa != 0 || spec.alt) {
-    content.push('.');
-    if (mantissa != 0) {
-      int last_nz = -1;
-      for (int i = 0; i < 13; i++)
-        if (((mantissa >> (48 - i * 4)) & 0xF) != 0) last_nz = i;
-      for (int i = 0; i <= last_nz; i++)
-        content.push(hex_digit(static_cast<int>((mantissa >> (48 - i * 4)) & 0xF), upper));
+  int biased = static_cast<int>((bits >> 52) & 0x7FF);
+  uint64_t mant = bits & 0x000FFFFFFFFFFFFFULL;
+  int lead = biased == 0 ? 0 : 1;
+  int exponent = biased != 0 ? biased - 1023 : (mant == 0 ? 0 : -1022);
+  int digits = ndig;
+  if (prec >= 0 && prec < ndig) {
+    int drop = (ndig - prec) * 4;
+    bool round_up = ((mant >> (drop - 4)) & 0xF) >= 8;
+    mant >>= drop;
+    if (round_up) {
+      mant++;
+      if (mant >> (prec * 4)) { mant = 0; lead++; }
     }
+    digits = prec;
+  } else if (prec < 0) {
+    while (digits > 0 && (mant & 0xF) == 0) { mant >>= 4; digits--; }
   }
+  content.push(hex_digit(lead, upper));
+  if (digits > 0 || alt) content.push('.');
+  for (int i = digits - 1; i >= 0; i--)
+    content.push(hex_digit(static_cast<int>((mant >> (i * 4)) & 0xF), upper));
+  if (prec > ndig) content.push_n('0', prec - ndig);
   content.push(upper ? 'P' : 'p');
   if (exponent >= 0) content.push('+');
   else { content.push('-'); exponent = -exponent; }
-  if (exponent == 0) content.push('0');
-  else write_uint_direct<10>(content, static_cast<unsigned>(exponent));
+  write_uint_direct<10>(content, static_cast<unsigned>(exponent));
 }
 
 // write_int with runtime spec and etype — writes directly to out (no stack temp).
@@ -2020,41 +2079,58 @@ FMT_HD inline void write_int_rt(fmt_buf &out, T arg, const format_spec &spec, ch
 template <typename T>
 FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char etype,
                            int dyn_w, int dyn_p) {
+  using bits_t = std::conditional_t<sizeof(T) == 4, uint32_t, uint64_t>;
+  constexpr int mant_bits = std::numeric_limits<T>::digits - 1;
+  constexpr bits_t sign_bit = bits_t(1) << (sizeof(T) * 8 - 1);
+  constexpr bits_t mant_mask = (bits_t(1) << mant_bits) - 1;
+  constexpr bits_t exp_mask = ~sign_bit & ~mant_mask;
   bool upper = (etype == 'F' || etype == 'E' || etype == 'G' || etype == 'A');
-  double val = static_cast<double>(arg);
-  int prec = dyn_p >= 0 ? dyn_p : (spec.precision >= 0 ? spec.precision : 6);
 
-  uint64_t bits = __builtin_bit_cast(uint64_t, val);
-  bool neg = (bits >> 63) != 0;
-  if (neg) val = -val;
+  bits_t bits = __builtin_bit_cast(bits_t, arg);
+  bool neg = (bits & sign_bit) != 0;
+  bool finite = (bits & exp_mask) != exp_mask;
+  T val = __builtin_bit_cast(T, static_cast<bits_t>(bits & ~sign_bit));
   char sign_ch = neg ? '-' : (spec.sign == '+') ? '+' : (spec.sign == ' ') ? ' ' : '\0';
 
+  const char *prefix = nullptr;
+  int prefix_n = 0;
   int content_start = out.len;
-  if (etype == 'a' || etype == 'A') {
-    // hex_float_to_buf_rt emits its own sign (so we can include sign chars in
-    // the padded content width). Suppress the outer sign to avoid duplication.
-    sign_ch = '\0';
-    hex_float_to_buf_rt(out, arg, spec, upper);
-  } else {
-    int biased_exp = static_cast<int>((bits >> 52) & 0x7FF);
-    if (biased_exp == 0x7FF) {
-      uint64_t mant = bits & 0x000FFFFFFFFFFFFFULL;
-      out.push_str(mant == 0 ? (upper ? "INF" : "inf") : (upper ? "NAN" : "nan"));
-    } else if (etype == 'f' || etype == 'F') {
-      fmt_fixed(out, val, prec, spec.alt);
-    } else if (etype == 'e' || etype == 'E') {
-      fmt_sci(out, val, prec, upper, spec.alt);
-    } else if (etype == 'g' || etype == 'G') {
-      fmt_g(out, val, prec, upper, spec.alt);
+  if (!finite) {
+    bool nan = (bits & mant_mask) != 0;
+    out.push_str(nan ? (upper ? "NAN" : "nan") : (upper ? "INF" : "inf"));
+  } else if (etype == 'a' || etype == 'A') {
+    prefix = upper ? "0X" : "0x"; // {fmt} always prints it; '0' pads after it
+    prefix_n = 2;
+    hex_float_to_buf_rt(out, widen_exact(val), dyn_p, spec.alt, upper);
+  } else if (spec.type == '\0' && dyn_p < 0) {
+    // No type, no precision ("{:10}", "{:+}", ...): the same shortest
+    // round-trip form as plain "{}", in the argument's own precision.
+    out.len += dragonbox::format_shortest(out.data + out.len, val);
+    if (out.len > fmt_buf::cap) out.len = fmt_buf::cap;
+    if (spec.alt) { // '#' forces a point: "1" → "1.", "1e+20" → "1.e+20"
+      int e = content_start;
+      while (e < out.len && out.data[e] != '.' && out.data[e] != 'e') e++;
+      if ((e == out.len || out.data[e] == 'e') && out.len < fmt_buf::cap) {
+        for (int i = out.len; i > e; i--) out.data[i] = out.data[i - 1];
+        out.data[e] = '.';
+        out.len++;
+      }
     }
+  } else {
+    int prec = dyn_p >= 0 ? dyn_p : 6;
+    double dv = widen_exact(val);
+    if (etype == 'f' || etype == 'F') fmt_fixed(out, dv, prec, spec.alt);
+    else if (etype == 'e' || etype == 'E') fmt_sci(out, dv, prec, upper, spec.alt);
+    else fmt_g(out, dv, prec, upper, spec.alt); // g, G, or none + precision
   }
 
   int dlen = out.len - content_start;
-  int content_w = (sign_ch ? 1 : 0) + dlen;
-  bool zpad = spec.zero_pad && !spec.fill && !spec.align;
+  int content_w = (sign_ch ? 1 : 0) + prefix_n + dlen;
+  // '0' is ignored for inf/nan (and whenever an alignment is given).
+  bool zpad = spec.zero_pad && !spec.fill && !spec.align && finite;
   int zfill = (zpad && dyn_w > content_w) ? dyn_w - content_w : 0;
 
-  pad_in_place(out, content_start, sign_ch, nullptr, 0, zfill,
+  pad_in_place(out, content_start, sign_ch, prefix, prefix_n, zfill,
                spec.fill_or(), spec.align_or(), dyn_w);
 }
 
@@ -2087,17 +2163,21 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
   // every (U, etype) pair that can actually reach this point.
   if constexpr (std::is_pointer_v<U> &&
                 std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
-    const char *str = arg ? arg : "(null)"; // UB in std::format; never fault on device
-    int slen = 0;
-    if (dyn_p >= 0) { for (; slen < dyn_p && str[slen]; slen++); }
-    else { while (str[slen]) slen++; }
-    apply_padding_data(out, str, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
-  } else if constexpr (std::is_pointer_v<U>) {
+    if (spec.type != 'p') { // {:p} prints the address: falls through below
+      const char *str = arg ? arg : "(null)"; // UB in std::format; never fault on device
+      int slen = 0;
+      if (dyn_p >= 0) { for (; slen < dyn_p && str[slen]; slen++); }
+      else { while (str[slen]) slen++; }
+      apply_padding_data(out, str, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
+      return;
+    }
+  }
+  if constexpr (std::is_pointer_v<U>) {
     int content_start = out.len;
     write_uint_raw<16>(out.data, out.len, fmt_buf::cap,
                        reinterpret_cast<std::uintptr_t>(arg));
     pad_in_place(out, content_start, '\0', "0x", 2, 0,
-                 spec.fill_or(), spec.align_or('<'), dyn_w);
+                 spec.fill_or(), spec.align_or('>'), dyn_w);
   } else if constexpr (std::floating_point<U>) {
     write_float_rt(out, arg, spec, effective_type_rt<U>(spec.type), dyn_w, dyn_p);
   } else if constexpr (std::integral<U>) {
