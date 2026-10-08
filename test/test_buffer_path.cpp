@@ -202,4 +202,75 @@ RUN(PRINT("{:{}d}\n", 42, static_cast<unsigned>(8)));   // resolve_int_arg<unsig
 RUN(PRINT("{:{}d}\n", 42, static_cast<int8_t>(8)));     // resolve_int_arg<int8_t>
 RUN(PRINT("{:{}d}\n", 42, static_cast<uint8_t>(8)));    // resolve_int_arg<uint8_t>
 
+// ── Writes near the buffer cap ──────────────────────────────────────────────
+// Each case starts with 120 filler chars so the next write straddles the
+// 128-byte cap. Before the fix these wrote past fmt_buf::data (up to 23 bytes
+// for 64 binary digits) — invisible in the truncated output, so they only
+// fail under -fsanitize=address. Keep running the host suite with ASan.
+#define FILL120 "........................................................................................................................"
+RUN(PRINT("{}{:b}\n", FILL120, ~0ull));                       // write_uint_raw, base 2
+RUN(PRINT("{}{:o}\n", FILL120, ~0ull));                       // write_uint_raw, base 8
+RUN(PRINT("{}{:#X}\n", FILL120, ~0ull));                      // prefix + base 16
+RUN(PRINT("{}{}\n", FILL120, ~0ull));                         // write_arg_default
+RUN(PRINT("{}{}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
+RUN(PRINT("{}{:p}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
+RUN(PRINT("{}{:a}\n", FILL120, 1e300));                       // hex-float exponent digits
+RUN(PRINT("{}{}{}\n", FILL120, FILL120, 12345));              // already full
+// println keeps its '\n' even when the line is truncated; before the fix the
+// next line was glued onto the truncated one.
+RUN(PRINTLN("{}{}", FILL120, FILL120); PRINT("next line\n"));
+#undef FILL120
+
+// ── Null char* ──────────────────────────────────────────────────────────────
+// std::format leaves a null const char* undefined; on a GPU it is an illegal
+// access. The buffer path prints glibc's "(null)" instead of faulting.
+#ifdef FFMT_STD_PATH
+RUN(printf("(null)\n"));
+RUN(printf("[    (null)]\n"));
+RUN(printf("[(nu]\n"));
+#else
+RUN(PRINT("{}\n", static_cast<const char*>(nullptr)));
+RUN(PRINT("[{:>10}]\n", static_cast<const char*>(nullptr)));
+RUN(PRINT("[{:.3}]\n", static_cast<const char*>(nullptr)));
+#endif
+
+// ── escape_percent_inplace (host-only unit test) ───────────────────────────
+// The ACPP device emit escapes % → %% in place. When the escaped text no
+// longer fits, it must keep the longest fitting prefix (never half of a %%
+// pair) and keep println's trailing '\n'. Before the fix the right-to-left
+// copy overran unread source bytes and the output came out as "%%%%…".
+#if !defined(_OPENMP) && !defined(__CUDACC__) && \
+    !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
+{
+  auto make_input = [](int n, bool nl) {
+    std::string in;
+    for (int i = 0; i < n; i++) in += (i % 10 == 9) ? '%' : char('a' + i % 10);
+    if (nl) in += '\n';
+    return in;
+  };
+  for (int n : {5, 100, 116, 117, 118, 128}) {
+    for (bool nl : {false, true}) {
+      std::string in = make_input(n, nl);
+#ifdef FFMT_STD_PATH
+      // Reference: escape char by char while the result fits in the cap.
+      std::string body = nl ? in.substr(0, in.size() - 1) : in, want;
+      for (char c : body) {
+        std::string e = (c == '%') ? "%%" : std::string(1, c);
+        if (want.size() + e.size() > FFMT_BUFFER_SIZE) break;
+        want += e;
+      }
+      if (nl) want += '\n';
+      RUN(printf("[%s]\n", want.c_str()));
+#else
+      ffmt::detail::fmt_buf b;
+      for (char c : in) b.data[b.len++] = c;
+      ffmt::detail::buffer_path::escape_percent_inplace(b);
+      b.data[b.len] = '\0';
+      RUN(printf("[%s]\n", b.data));
+#endif
+    }
+  }
+}
+#endif
+
 #endif

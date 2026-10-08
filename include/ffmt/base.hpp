@@ -1348,6 +1348,8 @@ struct static_buf {
 using fmt_buf = static_buf<FFMT_BUFFER_SIZE, 32>;
 
 // Write an unsigned integer in any base into raw (data, len, cap) right-to-left.
+// Digits that would land at or past `cap` are dropped (the low-order ones,
+// matching push()'s silent truncation) — never written out of bounds.
 template <int Base, bool Upper = false, typename U>
   requires (Base == 2 || Base == 8 || Base == 10 || Base == 16)
 FMT_HD inline void write_uint_raw(char *data, int &len, int cap, U val) {
@@ -1357,7 +1359,8 @@ FMT_HD inline void write_uint_raw(char *data, int &len, int cap, U val) {
   int pos = len + n - 1;
   while (val > 0) {
     int d = static_cast<int>(val % U(Base));
-    data[pos--] = Upper ? "0123456789ABCDEF"[d] : "0123456789abcdef"[d];
+    if (pos < cap) data[pos] = Upper ? "0123456789ABCDEF"[d] : "0123456789abcdef"[d];
+    pos--;
     val /= U(Base);
   }
   len += n;
@@ -1366,7 +1369,7 @@ FMT_HD inline void write_uint_raw(char *data, int &len, int cap, U val) {
 
 template <int Base, bool Upper = false, typename U, typename Buf>
 FMT_HD inline void write_uint_direct(Buf &buf, U val) {
-  write_uint_raw<Base, Upper>(buf.data, buf.len, static_cast<int>(sizeof(buf.data)), val);
+  write_uint_raw<Base, Upper>(buf.data, buf.len, Buf::cap, val);
 }
 
 // Hex digit helper
@@ -1683,7 +1686,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
   } else if constexpr (std::is_pointer_v<U>) {
     using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
     if constexpr (std::same_as<Pointee, char>) {
-      out.push_str(arg);
+      out.push_str(arg ? arg : "(null)"); // UB in std::format; glibc's choice
     } else {
       out.push_str("0x");
       write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
@@ -2084,13 +2087,14 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
   // every (U, etype) pair that can actually reach this point.
   if constexpr (std::is_pointer_v<U> &&
                 std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
+    const char *str = arg ? arg : "(null)"; // UB in std::format; never fault on device
     int slen = 0;
-    if (dyn_p >= 0) { for (; slen < dyn_p && arg[slen]; slen++); }
-    else { while (arg[slen]) slen++; }
-    apply_padding_data(out, arg, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
+    if (dyn_p >= 0) { for (; slen < dyn_p && str[slen]; slen++); }
+    else { while (str[slen]) slen++; }
+    apply_padding_data(out, str, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
   } else if constexpr (std::is_pointer_v<U>) {
     int content_start = out.len;
-    write_uint_raw<16>(out.data, out.len, static_cast<int>(sizeof(out.data)),
+    write_uint_raw<16>(out.data, out.len, fmt_buf::cap,
                        reinterpret_cast<std::uintptr_t>(arg));
     pad_in_place(out, content_start, '\0', "0x", 2, 0,
                  spec.fill_or(), spec.align_or('<'), dyn_w);
@@ -2207,18 +2211,30 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
 // printf-family function (CUDA's vprintf interprets %); harmless to skip
 // when emit is a verbatim writer like fputs. Lives outside flush_buf so
 // custom FFMT_EMIT_BUFFER overrides can opt into it if they need it.
+//
+// When the escaped text no longer fits in `cap`, the longest prefix whose
+// escaped form fits is kept (a '%' is never split from its twin), and a
+// trailing '\n' from println survives the truncation.
 FMT_HD inline void escape_percent_inplace(fmt_buf &out) {
-  int pct = 0;
-  for (int i = 0; i < out.len; i++)
-    if (out.data[i] == '%') pct++;
-  if (pct == 0) return;
-  int newlen = out.len + pct;
-  if (newlen > (int)fmt_buf::cap) newlen = fmt_buf::cap;
-  for (int src = out.len - 1, dst = newlen - 1; src >= 0 && dst >= 0; src--) {
-    out.data[dst--] = out.data[src];
-    if (out.data[src] == '%' && dst >= 0) out.data[dst--] = '%';
+  bool nl = out.len > 0 && out.data[out.len - 1] == '\n';
+  int body = out.len - (nl ? 1 : 0);
+  int src_n = 0, dst_n = 0;
+  while (src_n < body) {
+    int w = (out.data[src_n] == '%') ? 2 : 1;
+    if (dst_n + w > fmt_buf::cap) break;
+    dst_n += w;
+    src_n++;
   }
-  out.len = newlen;
+  if (dst_n == src_n && src_n == body) return; // no '%' and nothing dropped
+  // Expand right-to-left. dst - src equals the number of '%' still to the
+  // left, so it never goes negative: no unread byte is overwritten.
+  for (int s = src_n - 1, d = dst_n - 1; s >= 0; s--) {
+    char c = out.data[s];
+    out.data[d--] = c;
+    if (c == '%') out.data[d--] = '%';
+  }
+  out.len = dst_n;
+  if (nl) out.data[out.len++] = '\n';
 }
 
 // Flush buf: null-terminate and hand the bytes to FFMT_EMIT_BUFFER.
@@ -2487,7 +2503,9 @@ template <sycl_formattable... Args>
 FMT_HD inline void println(const detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   detail::fmt_buf out;
   detail::buffer_path::format_rt(out, ps, args...);
-  out.push('\n');
+  // Not push(): a truncated line must still end in '\n', or the next print
+  // gets glued onto it. data[] has ExtraPad bytes past cap for this.
+  out.data[out.len++] = '\n';
   detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
 }
 
