@@ -12,7 +12,6 @@
 #include <set>
 #include <sstream>
 #include <string>
-#include <sys/mman.h>
 #include <unistd.h>
 
 #include <ffmt/base.hpp>
@@ -60,7 +59,11 @@ static std::string capture_stdout(auto&& fn) {
   std::cout.flush();
   fflush(stdout);
 
-  int mem_fd = memfd_create("capture", 0);
+  // tmpfile() rather than Linux-only memfd_create: an anonymous, already-
+  // unlinked regular file on any POSIX libc (Linux, macOS, BSD).
+  FILE* tmp = std::tmpfile();
+  assert(tmp);
+  int mem_fd = fileno(tmp);
   int saved_fd = dup(STDOUT_FILENO);
   dup2(mem_fd, STDOUT_FILENO);
 
@@ -75,8 +78,8 @@ static std::string capture_stdout(auto&& fn) {
   lseek(mem_fd, 0, SEEK_SET);
   std::string result(size, '\0');
   ssize_t n = ::read(mem_fd, result.data(), size);
-  assert(n == size);  // memfd is regular-file: full read or EOF, no shorts
-  close(mem_fd);
+  assert(n == size);  // regular file: full read or EOF, no shorts
+  fclose(tmp);
   return result;
 }
 
