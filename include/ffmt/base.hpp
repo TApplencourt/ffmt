@@ -715,6 +715,12 @@ small_divisor:
   return ret;
 }
 
+FMT_HD inline uint64_t pow10_u64(int n) {
+  uint64_t p = 1;
+  for (int i = 0; i < n; i++) p *= 10;
+  return p;
+}
+
 FMT_HD inline auto count_digits(uint64_t n) -> int {
   int count = 1;
   while (n >= 10) {
@@ -910,21 +916,6 @@ consteval auto make_literal() {
   walk_literal<Fmt, Begin, End, EscapePercent>(result.data);
   result.data[N - 1] = '\0';
   return result;
-}
-
-// Cast an integer to its printf-compatible type (int/long long or unsigned variants)
-template <typename U> FMT_HD inline auto signed_int_cast(U arg) {
-  if constexpr (sizeof(U) <= 4)
-    return static_cast<int>(arg);
-  else
-    return static_cast<long long>(arg);
-}
-
-template <typename U> FMT_HD inline auto unsigned_int_cast(U arg) {
-  if constexpr (sizeof(U) <= 4)
-    return static_cast<unsigned>(arg);
-  else
-    return static_cast<unsigned long long>(arg);
 }
 
 // Types supported by ffmt::print
@@ -1179,10 +1170,15 @@ namespace consteval_error {
 //   float:                   a A e E f F g G
 //   char*  / const char*:    s p  (p prints the address, as {fmt} allows)
 //   other pointer (void*):   p
+// Any sign ('+', '-', ' ') is rejected on unsigned types, bool included, as
+// {fmt} does; the standard (and std::format) accepts it.
 template <typename T>
-consteval bool spec_compatible_with_arg(char t) {
-  if (t == '\0') return true;
+consteval bool spec_compatible_with_arg(const format_spec &spec) {
   using U = std::decay_t<T>;
+  if (spec.sign && std::unsigned_integral<U> && !std::same_as<U, char>)
+    return false;
+  char t = spec.type;
+  if (t == '\0') return true;
   constexpr bool is_charptr =
       std::is_pointer_v<U> &&
       std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
@@ -1201,33 +1197,6 @@ consteval bool spec_compatible_with_arg(char t) {
            t == 'f' || t == 'F' || t == 'g' || t == 'G';
   } else {
     return true;
-  }
-}
-
-// Compile-time walker for the specifiers path: visits each placeholder in Fmt
-// and triggers the matching consteval_error if the parsed spec is incompatible
-// with the corresponding arg type. Mirrors the per-arg check performed by
-// print_string's consteval ctor on the buffer path so both paths reject the
-// same set of ill-formed format strings.
-template <fixed_string Fmt, size_t Pos = 0, size_t AutoIdx = 0, typename... Args>
-consteval void validate_spec_arg_compat() {
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (info.found) {
-    constexpr bool is_auto = (info.index < 0);
-    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
-    if constexpr (idx >= sizeof...(Args)) {
-      // Same diagnostic as the buffer path's print_string ctor.
-      consteval_error::format_argument_index_out_of_range();
-    } else {
-      using U = std::tuple_element_t<idx, std::tuple<Args...>>;
-      constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
-                                       ? parse_spec<Fmt, info.spec_beg, info.close>()
-                                       : format_spec{};
-      if (!spec_compatible_with_arg<U>(spec.type))
-        consteval_error::format_spec_type_incompatible_with_argument_type();
-      constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
-      validate_spec_arg_compat<Fmt, info.close + 1, next_auto, Args...>();
-    }
   }
 }
 
@@ -1291,7 +1260,7 @@ struct print_string {
         // indices; for the arg at position arg_i, check spec_compatible_with_arg.
         int j = 0;
         bool ok = true;
-        ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec.type)) : false), ...);
+        ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec)) : false), ...);
         if (!ok)
           consteval_error::format_spec_type_incompatible_with_argument_type();
         if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
@@ -1388,20 +1357,18 @@ FMT_HD inline double widen_exact(float f) {
   return (b >> 31) ? -d : d;
 }
 
-// Cast an arg to its printf-compatible type.
-template <char EffType, typename T> FMT_HD inline auto printf_cast(T arg) {
-  using U = std::decay_t<T>;
-  if constexpr (std::same_as<U, bool> && EffType == 's')
+// Cast an arg to the type its printf conversion expects.
+template <char Type, bool Wide, typename T> FMT_HD inline auto printf_cast(T arg) {
+  if constexpr (std::same_as<T, bool> && Type == 's')
     return arg ? "true" : "false";
-  else if constexpr (EffType == 'c')
+  else if constexpr (Type == 'c')
     return static_cast<char>(arg);
-  else if constexpr (EffType == 'd') {
-    return signed_int_cast(arg);
-  } else if constexpr (EffType == 'u' || EffType == 'x' || EffType == 'X' || EffType == 'o') {
-    return unsigned_int_cast(arg);
-  } else if constexpr (is_float_format(EffType)) {
+  else if constexpr (Type == 'd')
+    return static_cast<std::conditional_t<Wide, long long, int>>(arg);
+  else if constexpr (Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o')
+    return static_cast<std::conditional_t<Wide, unsigned long long, unsigned>>(arg);
+  else if constexpr (is_float_format(Type))
     return widen_exact(arg); // not static_cast: DAZ would flush float subnormals
-  }
   else
     return arg;
 }
@@ -1433,202 +1400,139 @@ template <fixed_string Lit> inline void emit_literal() {
   }
 }
 
-// Buffer for building printf format strings at compile time
+// A printf conversion built at compile time.
 struct printf_fmt_buf {
   char data[32]{};
   size_t len = 0;
 
   constexpr void push(char c) { data[len++] = c; }
   constexpr void push_int(int val) {
-    if (val == 0) {
-      push('0');
-      return;
-    }
     char tmp[10]{};
     int n = 0;
-    while (val > 0) {
-      tmp[n++] = '0' + val % 10;
-      val /= 10;
-    }
-    for (int j = n - 1; j >= 0; j--)
-      push(tmp[j]);
+    do { tmp[n++] = static_cast<char>('0' + val % 10); val /= 10; } while (val > 0);
+    while (n > 0) push(tmp[--n]);
   }
 };
 
-// Build the printf format string: %[flags][width][.precision][length]type
-template <format_spec Spec, char EffType, bool Is64>
-  requires (is_type_char(EffType) || EffType == 'u')
+// %[flags][width][.precision][ll]type
+template <format_spec Spec, char Type, bool Wide>
 consteval printf_fmt_buf build_printf_fmt() {
   printf_fmt_buf buf;
   buf.push('%');
-
-  // Flags
-  if (Spec.align == '<')
-    buf.push('-');
-  if (Spec.sign == '+')
-    buf.push('+');
-  else if (Spec.sign == ' ')
-    buf.push(' ');
-  if (Spec.alt)
-    buf.push('#');
-  if (Spec.zero_pad && Spec.align != '<')
-    buf.push('0');
-
-  // Width
-  if (Spec.width > 0)
-    buf.push_int(Spec.width);
-
-  // Precision
-  if (Spec.precision >= 0) {
-    buf.push('.');
-    buf.push_int(Spec.precision);
-  }
-
-  // Length modifier for 64-bit integers
-  bool is_int =
-      (EffType == 'd' || EffType == 'u' || EffType == 'x' || EffType == 'X' || EffType == 'o');
-  if (is_int && Is64) {
-    buf.push('l');
-    buf.push('l');
-  }
-
-  // Type
-  buf.push(EffType);
-  buf.data[buf.len] = '\0';
+  if (Spec.align == '<') buf.push('-');
+  if (Spec.sign == '+' || Spec.sign == ' ') buf.push(Spec.sign);
+  if (Spec.alt) buf.push('#');
+  if (Spec.zero_pad && !Spec.align) buf.push('0'); // ignored once an alignment is given
+  if (Spec.width > 0) buf.push_int(Spec.width);
+  if (Spec.precision >= 0) { buf.push('.'); buf.push_int(Spec.precision); }
+  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o'))
+    { buf.push('l'); buf.push('l'); }
+  buf.push(Type);
   return buf;
 }
 
-// ============================================================
-// Atomic print — single ::sycl::ext::oneapi::experimental::printf call for the entire format
-// ============================================================
+// How one placeholder is printed: its printf conversion and argument. A float
+// with no type ("{}", "{:10}") prints like {:g}: printf has no shortest
+// round-trip conversion, and Intel GPU printf supports neither `*` widths nor
+// %s on computed strings, so {fmt}'s shortest form needs the buffer path.
+template <typename U, format_spec Spec> struct conversion {
+  static constexpr char type = [] {
+    char t = effective_type<U, Spec.type>();
+    return std::unsigned_integral<U> && t == 'd' ? 'u' : t;
+  }();
+  static constexpr bool wide = sizeof(U) > 4;
+  static constexpr auto format = build_printf_fmt<Spec, type, wide>();
+  // What printf cannot express (these need the buffer path).
+  static constexpr bool supported =
+      type != 'b' && type != 'B' && type != 'a' && type != 'A' && Spec.align != '^' &&
+      (!Spec.fill || Spec.fill == ' ') && Spec.width_arg < 0 && Spec.prec_arg < 0 &&
+      !(std::signed_integral<U> && (type == 'x' || type == 'X' || type == 'o')) &&
+      !(Spec.alt && (type == 'x' || type == 'X'));
+  static auto arg(U v) { return printf_cast<type, wide>(v); }
+};
 
-// Check at compile time if a placeholder + arg type can use a standard
-// printf specifier (i.e. does NOT need the buffer/dragonbox path).
-template <typename U, format_spec Spec> consteval bool is_printf_compatible() {
-  constexpr char etype = effective_type<U, Spec.type>();
-  // Binary, hex-float, center, custom fill, signed hex/oct, alt hex
-  if (etype == 'b' || etype == 'B')
-    return false;
-  if (etype == 'a' || etype == 'A')
-    return false;
-  if (Spec.align == '^')
-    return false;
-  if (Spec.fill != '\0' && Spec.fill != ' ')
-    return false;
-  constexpr bool is_signed_int = std::signed_integral<U>;
-  if (is_signed_int && (etype == 'x' || etype == 'X' || etype == 'o'))
-    return false;
-  if (Spec.alt && (etype == 'x' || etype == 'X'))
-    return false;
-  // Dynamic width/precision
-  if (Spec.width_arg >= 0 || Spec.prec_arg >= 0)
-    return false;
-  return true;
-}
+// The placeholder at or after Pos, resolved once for the walkers below.
+template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
+  static constexpr placeholder_info info = find_placeholder<Fmt, Pos>();
+  static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
+  static constexpr size_t next_auto = info.index < 0 ? AutoIdx + 1 : AutoIdx;
+  static constexpr format_spec spec = info.has_spec && info.close > info.spec_beg
+                                          ? parse_spec<Fmt, info.spec_beg, info.close>()
+                                          : format_spec{};
+};
 
-// Walk the entire format string at compile time. Return true if every
-// placeholder can be handled by a single printf specifier.
-template <fixed_string Fmt, size_t Pos = 0, size_t AutoIdx = 0, typename... Args>
-consteval bool all_printf_compatible() {
-#if FFMT_BUFFER_PATH
-  return false; // Always use print_impl on ACPP (format into buffers)
-#endif
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
+template <typename P, typename... Args>
+using arg_t = std::decay_t<std::tuple_element_t<P::index, std::tuple<Args...>>>;
+
+// Compile-time checks: argument index and spec/type compatibility (the
+// diagnostics print_string gives on the buffer path), then whether printf
+// can express the spec at all.
+template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
+consteval bool check() {
+  using P = placeholder<Fmt, Pos, AutoIdx>;
+  if constexpr (!P::info.found) {
     return true;
+  } else if constexpr (P::index >= sizeof...(Args)) {
+    consteval_error::format_argument_index_out_of_range();
   } else {
-    constexpr bool is_auto = (info.index < 0);
-    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
-    using U = std::decay_t<std::tuple_element_t<idx, std::tuple<Args...>>>;
-
-    constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
-                                     ? parse_spec<Fmt, info.spec_beg, info.close>()
-                                     : format_spec{};
-
-    if constexpr (!is_printf_compatible<U, spec>()) {
-      return false;
-    } else {
-      constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
-      return all_printf_compatible<Fmt, info.close + 1, next_auto, Args...>();
-    }
+    using U = arg_t<P, Args...>;
+    if (!spec_compatible_with_arg<U>(P::spec))
+      consteval_error::format_spec_type_incompatible_with_argument_type();
+    static_assert(conversion<U, P::spec>::supported,
+                  "This format string uses features the specifiers path (DPC++, "
+                  "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
+                  "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
+    return check<Fmt, P::info.close + 1, P::next_auto, Args...>();
   }
 }
 
-// Unified walk: when out==nullptr, counts total size; otherwise writes.
-// Handles literal segments and printf specifiers for each placeholder.
+// The whole printf format string; out == nullptr only measures it.
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval size_t walk_combined_fmt(char *out, size_t pos = 0) {
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
+consteval size_t write_printf_fmt(char *out, size_t pos = 0) {
+  using P = placeholder<Fmt, Pos, AutoIdx>;
+  if constexpr (!P::info.found) {
     return walk_literal<Fmt, Pos, flen(Fmt)>(out, pos);
   } else {
-    pos = walk_literal<Fmt, Pos, info.open>(out, pos);
-    constexpr bool is_auto = (info.index < 0);
-    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
-    using U = std::decay_t<std::tuple_element_t<idx, std::tuple<Args...>>>;
-    constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
-                                     ? parse_spec<Fmt, info.spec_beg, info.close>()
-                                     : format_spec{};
-    constexpr char etype = effective_type<U, spec.type>();
-    constexpr bool is_64 = sizeof(U) > 4;
-    constexpr auto pfmt = build_printf_fmt<spec, etype, is_64>();
-    for (size_t i = 0; i < pfmt.len; i++) {
-      if (out)
-        out[pos] = pfmt.data[i];
-      pos++;
-    }
-    constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
-    return walk_combined_fmt<Fmt, info.close + 1, next_auto, Args...>(out, pos);
+    pos = walk_literal<Fmt, Pos, P::info.open>(out, pos);
+    constexpr auto f = conversion<arg_t<P, Args...>, P::spec>::format;
+    for (size_t i = 0; i < f.len; i++, pos++)
+      if (out) out[pos] = f.data[i];
+    return write_printf_fmt<Fmt, P::info.close + 1, P::next_auto, Args...>(out, pos);
   }
 }
 
-template <fixed_string Fmt, typename... Args> consteval auto build_combined_printf_fmt() {
-  constexpr size_t N = walk_combined_fmt<Fmt, 0, 0, Args...>(nullptr) + 1;
-  fixed_string<N> result{};
-  walk_combined_fmt<Fmt, 0, 0, Args...>(result.data);
-  result.data[N - 1] = '\0';
-  return result;
-}
-
-// Unpack a tuple of printf-cast args and emit a single printf call.
-template <fixed_string CombinedFmt, size_t... FmtIs, typename... CastArgs>
-inline void emit_printf_impl(std::index_sequence<FmtIs...>, CastArgs... args) {
-  static constexpr FFMT_CONST_AS char s[] = {CombinedFmt.data[FmtIs]..., '\0'};
-  FFMT_EMIT_PRINTF(s, args...);
-}
-
-// Walk placeholders at compile time, accumulate printf-cast args in
-// placeholder order (handles positional: "{0} {1} {0}" → a, b, a).
-// Returns a tuple of all cast args.
-template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args, typename... CastArgs>
-inline auto collect_printf_args(std::tuple<Args...> all_args, CastArgs... cast_args) {
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
-    return std::tuple(cast_args...);
+// The printf arguments, in placeholder order ("{0} {1} {0}" → a, b, a).
+template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
+inline auto printf_args(const std::tuple<Args...> &args) {
+  using P = placeholder<Fmt, Pos, AutoIdx>;
+  if constexpr (!P::info.found) {
+    return std::tuple<>();
   } else {
-    constexpr bool is_auto = (info.index < 0);
-    constexpr size_t idx = is_auto ? AutoIdx : static_cast<size_t>(info.index);
-    using U = std::decay_t<std::tuple_element_t<idx, std::tuple<Args...>>>;
-    constexpr format_spec spec = (info.has_spec && info.close > info.spec_beg)
-                                     ? parse_spec<Fmt, info.spec_beg, info.close>()
-                                     : format_spec{};
-    constexpr char etype = effective_type<U, spec.type>();
-    constexpr size_t next_auto = is_auto ? AutoIdx + 1 : AutoIdx;
-    return collect_printf_args<Fmt, info.close + 1, next_auto, Args...>(
-        all_args, cast_args..., printf_cast<etype>(std::get<idx>(all_args)));
+    using C = conversion<arg_t<P, Args...>, P::spec>;
+    return std::tuple_cat(std::tuple(C::arg(std::get<P::index>(args))),
+                          printf_args<Fmt, P::info.close + 1, P::next_auto>(args));
   }
 }
 
-template <fixed_string CombinedFmt, typename Tuple, size_t... Is>
-inline void emit_printf(Tuple &t, std::index_sequence<Is...>) {
-  emit_printf_impl<CombinedFmt>(std::make_index_sequence<flen(CombinedFmt)>{}, std::get<Is>(t)...);
+template <fixed_string Fmt, typename... Args> consteval auto printf_fmt() {
+  fixed_string<write_printf_fmt<Fmt, 0, 0, Args...>(nullptr) + 1> r{};
+  write_printf_fmt<Fmt, 0, 0, Args...>(r.data);
+  return r;
 }
 
-template <fixed_string Fmt, typename... Args> inline void print_combined_dispatch(Args... args) {
-  constexpr auto combined = build_combined_printf_fmt<Fmt, Args...>();
-  auto cast_args = collect_printf_args<Fmt, 0, 0, Args...>(std::tuple<Args...>(args...));
-  emit_printf<combined>(cast_args,
-                        std::make_index_sequence<std::tuple_size_v<decltype(cast_args)>>{});
+// One printf call; the format string lands in constant address space.
+template <fixed_string PrintfFmt, size_t... Is, typename Tuple, size_t... Js>
+inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::index_sequence<Js...>) {
+  static constexpr FFMT_CONST_AS char s[] = {PrintfFmt.data[Is]..., '\0'};
+  FFMT_EMIT_PRINTF(s, std::get<Js>(args)...);
+}
+
+template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
+  static_assert(check<Fmt, 0, 0, Args...>());
+  constexpr auto pf = printf_fmt<Fmt, Args...>();
+  auto a = printf_args<Fmt, 0, 0>(std::tuple<Args...>(args...));
+  emit_printf<pf>(std::make_index_sequence<flen(pf)>{}, a,
+                  std::make_index_sequence<std::tuple_size_v<decltype(a)>>{});
 }
 } // namespace specifiers_path
 #endif // !FFMT_BUFFER_PATH
@@ -1745,12 +1649,6 @@ FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
 // One 35-limb array (140 B) covers both: 2^1024 < 10^315 = 35 base-1e9 limbs,
 // and r·10 < 2^(k+4) <= 2^1078 fits in 34 binary limbs.
 
-FMT_HD inline uint64_t pow10_u64(int n) {
-  uint64_t p = 1;
-  for (int i = 0; i < n; i++) p *= 10;
-  return p;
-}
-
 // Exact decimal digits of a positive finite double, most significant first.
 // next() walks the integer digits, then the fraction digits (0 forever once
 // the expansion ends). int_digits == 0 when the value is below 1.
@@ -1802,16 +1700,16 @@ struct exact_decimal {
   // j-th integer digit from the top (k == 0 only).
   FMT_HD int int_digit(int j) const {
     if (j < top_digits)
-      return static_cast<int>(a[n - 1] / pow10_u64(top_digits - 1 - j) % 10);
+      return static_cast<int>(a[n - 1] / dragonbox::pow10_u64(top_digits - 1 - j) % 10);
     j -= top_digits;
-    return static_cast<int>(a[n - 2 - j / 9] / pow10_u64(8 - j % 9) % 10);
+    return static_cast<int>(a[n - 2 - j / 9] / dragonbox::pow10_u64(8 - j % 9) % 10);
   }
 
   FMT_HD int next() {
     int j = pos++;
     if (j < int_digits) {
       if (k == 0) return int_digit(j);
-      return static_cast<int>(ipart / pow10_u64(int_digits - 1 - j) % 10);
+      return static_cast<int>(ipart / dragonbox::pow10_u64(int_digits - 1 - j) % 10);
     }
     if (k == 0) return 0;
     uint64_t carry = 0;
@@ -1836,7 +1734,7 @@ struct exact_decimal {
         if (int_digit(j)) return true;
       return false;
     }
-    if (pos < int_digits && ipart % pow10_u64(int_digits - pos) != 0) return true;
+    if (pos < int_digits && ipart % dragonbox::pow10_u64(int_digits - pos) != 0) return true;
     for (int i = 0; i < n; i++)
       if (a[i]) return true;
     return false;
@@ -2538,14 +2436,7 @@ inline void print(Args... args) {
         detail::specifiers_path::emit_literal<lit>();
       }
     } else {
-      // Hard validity check (ill-formed everywhere, e.g. {:p} on char*).
-      detail::validate_spec_arg_compat<Fmt, 0, 0, std::decay_t<Args>...>();
-      static_assert(detail::specifiers_path::all_printf_compatible<Fmt, 0, 0, Args...>(),
-                    "This format string uses features not supported on DPC++ "
-                    "({:b}, {:a}, {:^}, custom fill, {:#x} with signed int, "
-                    "dynamic width/precision, dragonbox default float). "
-                    "These features are only available on ACPP.");
-      detail::specifiers_path::print_combined_dispatch<Fmt>(args...);
+      detail::specifiers_path::print<Fmt>(args...);
     }
   } else {
     // Formatter splicer — runs entirely at compile time, then forwards

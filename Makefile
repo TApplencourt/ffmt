@@ -210,7 +210,9 @@ test-format: $(TEST_BINS)
 # The {fmt} build guards against "wrong" negative tests: a restriction we
 # invent that {fmt}, our output reference, would actually accept.
 # test/negative/control/accept_valid.cpp must instead compile in every
-# variant — otherwise a broken harness would make every negative "pass".
+# variant, and each test must compile with -DNEG_SYNTAX_CHECK (the format
+# call reduced to its arguments) — otherwise a broken harness or a typo in a
+# test would make it "pass".
 NEG_SRCS := $(wildcard $(TEST_DIR)/negative/*.cpp)
 NEG_CONTROL := $(TEST_DIR)/negative/control/accept_valid.cpp
 
@@ -225,6 +227,9 @@ test-negative: $(FMT_HDR)
 	done; \
 	for src in $(NEG_SRCS); do \
 	  name=$$(basename $$src .cpp); \
+	  if ! $(CXX) $(CXXFLAGS) -DNEG_SYNTAX_CHECK -c $$src -o /dev/null; then \
+	    echo "negative/$$name: FAIL (the test file itself does not compile)"; fail=1; continue; \
+	  fi; \
 	  for variant in specifiers buffer fmt; do \
 	    t0=$$($(NOW_NS)); \
 	    $(CXX) $(CXXFLAGS) $$(flags $$variant) -c $$src -o /dev/null >/dev/null 2>&1; rc=$$?; \

@@ -201,10 +201,9 @@ DPC++ rejects unsupported features at compile time:
 
 ```
 error: static assertion failed:
-  This format string uses features not supported on DPC++
-  ({:b}, {:a}, {:^}, custom fill, {:#x} with signed int,
-  dynamic width/precision, dragonbox default float).
-  These features are only available on ACPP.
+  This format string uses features the specifiers path (DPC++, icpx OpenMP)
+  cannot express with printf: {:b}, {:a}, {:^}, custom fill, {:x}/{:o} with
+  signed int, {:#x}, dynamic width/precision.
 ```
 
 Features only available on the buffer path:
@@ -215,7 +214,11 @@ Features only available on the buffer path:
 - Signed integers with hex/oct (`{:x}` with `int`)
 - Alternate hex (`{:#x}` with signed int)
 - Dynamic width/precision (`{:{}}`, `{:.{}}`)
-- Dragonbox shortest-decimal float (default `{}` with floats)
+- {fmt}'s shortest float form: on the specifiers path a float with no type
+  (`{}`, `{:10}`, `{:+}`) prints like `{:g}` (6 significant digits), since
+  printf has no shortest conversion and Intel GPU printf supports neither
+  `*` widths nor `%s` on computed strings. Explicit `{:g}`/`{:e}`/`{:f}`
+  match {fmt} on both paths.
 
 ### Spec target: `{fmt}`
 
@@ -232,6 +235,7 @@ reference because implementations disagree with each other and with
 | `{:a}` of `1.5` | `0x1.8p+0` | `1.8p+0` |
 | `{:.1a}` of `1.03125` | `0x1.1p+0` (ties round up) | `1.0p+0` (ties to even) |
 | `{:a}` of a subnormal | `0x0.0000000000001p-1022` | libc++ and libstdc++ differ |
+| `{:+}` on `5u` (any sign on an unsigned or `bool`) | compile error | `+5` (valid per the standard) |
 
 ### Buffer-path size limit
 

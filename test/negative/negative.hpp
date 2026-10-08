@@ -1,5 +1,6 @@
 // Negative test harness. Each test file expands NEG_EXPECT_REJECTED(fmt, ...)
-// once. The Makefile then compiles the file three times:
+// once. The Makefile first checks the file compiles with -DNEG_SYNTAX_CHECK
+// (so a typo cannot pass as a "rejection"), then compiles it three times:
 //   -DFFMT_BUFFER_PATH=0  → ffmt specifiers path; must fail to compile
 //   -DFFMT_BUFFER_PATH=1  → ffmt buffer path;     must fail to compile
 //   -DNEG_CHECK_FMT       → fmt::format;          must fail to compile
@@ -9,7 +10,11 @@
 // accepts — i.e. "wrong" negative tests.
 #pragma once
 
-#if defined(NEG_CHECK_FMT)
+#if defined(NEG_SYNTAX_CHECK)
+  // The file itself must be valid C++: only the format call may fail.
+  #define NEG_EXPECT_REJECTED(fmt_str, ...) \
+    ((void)fmt_str, [](auto &&...) {}(__VA_ARGS__))
+#elif defined(NEG_CHECK_FMT)
   #include <fmt/format.h>
   #define NEG_EXPECT_REJECTED(fmt_str, ...) \
     (void)::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__)

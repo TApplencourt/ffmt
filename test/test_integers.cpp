@@ -31,4 +31,13 @@ RUN(PRINT("{:d}\n", static_cast<int64_t>(-9223372036854775807LL - 1)));
 RUN(PRINT("{}\n", static_cast<int64_t>(-9223372036854775807LL - 1)));
 
 
+// Specifiers-path bugs (printf flags that differ from {fmt}):
+// '0' is ignored when an alignment is given ("%05d" zero-padded "{:>05}").
+RUN(PRINT("[{:>05}]\n", 42));
+RUN(PRINT("[{:<05}]\n", -42));
+// {:d} on unsigned stays unsigned (it went through a signed int cast).
+RUN(PRINT("{:d}\n", 4000000000u));
+RUN(PRINT("{:d}\n", ~0ull));
+RUN(PRINT("{:5d}\n", static_cast<uint8_t>(200)));
+
 #endif

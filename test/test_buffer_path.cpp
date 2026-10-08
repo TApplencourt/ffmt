@@ -274,17 +274,10 @@ RUN(PRINT("[{:.3}]\n", static_cast<const char*>(nullptr)));
 #endif
 
 // ── Float formatting fixes ──────────────────────────────────────────────────
-// No type + width/sign/'#' must use the same shortest form as "{}" (it used
-// %g-style 6 digits: "{:10}" of 3.14159265 gave "   3.14159").
-RUN(PRINT("[{:12}]\n", 3.14159265));
-RUN(PRINT("[{:<12}]\n", 0.1));
-RUN(PRINT("[{:+}]\n", 1e100));
-RUN(PRINT("[{:012}]\n", -2.5e-7));
-RUN(PRINT("[{:10}]\n", 0.1f));                          // float keeps float digits
-RUN(PRINT("[{:#}]\n", 1.0));                            // '#' forces the point
-RUN(PRINT("[{:#}]\n", 1e20));
-RUN(PRINT("[{:#}]\n", 0.5));
-RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
+// '+' on NaN. Buffer path only: on the specifiers path the sign of a NaN is
+// up to the printf implementation (glibc: "+nan", macOS libc: "nan").
+RUN(PRINT("[{:+}]\n", std::numeric_limits<float>::quiet_NaN()));
+
 // Hex float: precision rounds half up like {fmt} (and may carry into the
 // leading digit); '0' pads after the "0x".
 RUN(PRINT("{:.0a}\n", 1.5));

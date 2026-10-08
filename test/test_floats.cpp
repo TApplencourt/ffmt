@@ -243,16 +243,40 @@ RUN(PRINT("{:.10f}\n", 0.1f));
 RUN(PRINT("{:.12e}\n", 3.14159f));
 RUN(PRINT("{:f}\n", 3.4028234663852886e38f));          // FLT_MAX
 
-#if FFMT_BUFFER_PATH // specifiers path: "{}" floats use %g until the next commit
-// "{}" in fixed form with more integer digits than shortest digits prints
-// the exact integer (same length, closer to the value), like std::to_chars:
-// 2^60 is 1152921504606846976, not 1152921504606847000.
-RUN(PRINT("{}\n", 1152921504606846976.0));               // 2^60
-RUN(PRINT("{}\n", 123456789012345678.0));
-RUN(PRINT("{}\n", 9.223372036854775807e18));             // 2^63
-RUN(PRINT("{}\n", 4.722366482869645e21));                // 2^72, > 2^64
-RUN(PRINT("{}\n", -1074311135232.0f));
-RUN(PRINT("{}\n", 16777217.0f * 64));
+
+
+// A float with no type ("{}", "{:10}", "{:#}") gets {fmt}'s shortest form on
+// the buffer path. On the specifiers path it prints like {:g}: printf has no
+// shortest conversion and Intel GPU printf supports neither `*` widths nor %s
+// on computed strings (README, Backend differences). Where the two differ the
+// specifiers path is checked against a fixed value instead of {fmt}.
+#if FFMT_BUFFER_PATH || !defined(FFMT_STD_PATH)
+#define OR_ON_SPECIFIERS(g_out, fmt_str, v) PRINT(fmt_str, v)
+#else
+#define OR_ON_SPECIFIERS(g_out, fmt_str, v) printf("%s\n", g_out)
 #endif
+RUN(OR_ON_SPECIFIERS("1.15292e+18", "{}\n", 1152921504606846976.0));
+RUN(OR_ON_SPECIFIERS("1.23457e+17", "{}\n", 123456789012345678.0));
+RUN(OR_ON_SPECIFIERS("9.22337e+18", "{}\n", 9.223372036854775807e18));
+RUN(OR_ON_SPECIFIERS("4.72237e+21", "{}\n", 4.722366482869645e21));
+RUN(OR_ON_SPECIFIERS("-1.07431e+12", "{}\n", -1074311135232.0f));
+RUN(OR_ON_SPECIFIERS("1.07374e+09", "{}\n", 16777217.0f * 64));
+RUN(OR_ON_SPECIFIERS("1.23457e+06", "{}\n", 1234567.0));
+RUN(PRINT("{}\n", 1e16));
+RUN(OR_ON_SPECIFIERS("1.23457e+07", "{}\n", 12345678.0f));
+RUN(OR_ON_SPECIFIERS("[     3.14159]", "[{:12}]\n", 3.14159265));
+RUN(PRINT("[{:<12}]\n", 0.1));
+RUN(PRINT("[{:+}]\n", 1e100));
+RUN(PRINT("[{:012}]\n", -2.5e-7));
+RUN(PRINT("[{:10}]\n", 0.1f));
+RUN(OR_ON_SPECIFIERS("[1.00000]", "[{:#}]\n", 1.0));
+RUN(OR_ON_SPECIFIERS("[1.00000e+20]", "[{:#}]\n", 1e20));
+RUN(OR_ON_SPECIFIERS("[0.500000]", "[{:#}]\n", 0.5));
+RUN(PRINT("[{:>12}]\n", -0.0));
+RUN(PRINT("[{:<+10}]\n", 1.5e-300));
+RUN(OR_ON_SPECIFIERS("[1.00000e-07]", "[{:#}]\n", 1e-7f));
+RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
+#undef OR_ON_SPECIFIERS
 
 #endif
