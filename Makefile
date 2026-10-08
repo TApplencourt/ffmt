@@ -129,13 +129,17 @@ endif
 
 # ── Build directory ─────────────────────────────────────────
 
-build/:
+# Order-only prereq is a stamp file, not `build/`: GNU Make 3.81 (the
+# macOS default) strips the trailing slash and resolves `build/` to the
+# phony `build` target below, dragging every SYCL binary into test-host.
+build/.dir:
 	mkdir -p build
+	touch $@
 
 # ── Test binaries (one binary per test × opt level) ─────────
 
 define TEST_template
-build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp | build/
+build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp | build/.dir
 	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
 	@TIMEFORMAT="  compile test_$(1)_$(2): %Rs"; time \
 	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
@@ -145,7 +149,7 @@ $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,
 
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
 # under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
-build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp | build/
+build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp | build/.dir
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
 	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
@@ -226,7 +230,7 @@ ifdef USE_OMP_ICPX
 endif
 
 build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/
+                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/.dir
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
@@ -248,7 +252,7 @@ test-omp: build/test_main_omp
 TEST_NAMES_CUDA := integers floats strings layout misc formatter buffer_path
 
 build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) | build/
+                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) | build/.dir
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_cuda: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
@@ -282,16 +286,16 @@ define HOST_TEMPLATE
 $(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o)
 $(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o)
 
-build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/.dir
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/.dir
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/.dir
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/.dir
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
