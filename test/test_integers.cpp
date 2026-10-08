@@ -40,4 +40,9 @@ RUN(PRINT("{:d}\n", 4000000000u));
 RUN(PRINT("{:d}\n", ~0ull));
 RUN(PRINT("{:5d}\n", static_cast<uint8_t>(200)));
 
+// Width and precision above 255 / 127 (they were stored in 8 bits: {:300}
+// padded to 44).
+RUN(PRINT("[{:300}]\n", 1));
+RUN(PRINT("[{:<1000}]\n", -7));
+
 #endif

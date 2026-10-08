@@ -969,6 +969,26 @@ constexpr bool is_float_format(char c) {
          c == 'A';
 }
 
+// Consteval-only abort. Calling a non-constexpr function inside a consteval
+// context makes the evaluation fail with a diagnostic citing the function
+// name — which we use as the error message. Equivalent in info content to
+// the old `throw "literal"` pattern (all our messages were static strings
+// anyway) but doesn't require -fcxx-exceptions — matters under e.g.
+// -fopenmp-targets=spir64 which disables exceptions on the device side.
+namespace consteval_error {
+[[noreturn]] void too_many_placeholders_max_16();
+[[noreturn]] void format_argument_index_out_of_range();
+[[noreturn]] void dynamic_width_argument_index_out_of_range();
+[[noreturn]] void dynamic_precision_argument_index_out_of_range();
+[[noreturn]] void format_spec_type_incompatible_with_argument_type();
+[[noreturn]] void invalid_format_spec();
+[[noreturn]] void invalid_placeholder();
+[[noreturn]] void unmatched_closing_brace();
+[[noreturn]] void cannot_mix_automatic_and_manual_indexing();
+[[noreturn]] void width_or_precision_above_32767();
+[[noreturn]] void dynamic_width_or_precision_must_be_an_integer();
+}
+
 // Parsed format spec: [[fill]align][sign][#][0][width][.precision][type]
 struct format_spec {
   char fill = '\0';
@@ -977,8 +997,8 @@ struct format_spec {
   char type = '\0';
   bool alt = false;
   bool zero_pad = false;
-  uint8_t width = 0;
-  int8_t precision = -1;
+  uint16_t width = 0;
+  int16_t precision = -1;
   int8_t width_arg = -1; // >=0: dynamic width from arg N, -1: static
   int8_t prec_arg = -1;  // >=0: dynamic precision from arg N, -1: static
   uint8_t dyn_count = 0; // number of auto-indexed dynamic args consumed
@@ -987,25 +1007,18 @@ struct format_spec {
   constexpr char align_or(char def = '>') const { return align ? align : def; }
 };
 
-// Parse a dynamic arg reference {N} or {} inside a spec.
-// Returns the arg index (or auto_idx if {}), advances i past '}'.
-// Sets auto_idx to -1 after first manual use.
+// Parse a dynamic width/precision reference ({} or {N}) at data[i] == '{' and
+// advance i past its '}'. auto_idx >= 0 inside an automatically indexed
+// placeholder ({} consumes it) and -1 inside a manual one; mixing the two is
+// an error, as is anything else between the braces.
 constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &auto_idx) {
-  // i points at '{'
-  i++; // skip '{'
-  int idx;
-  if (i < len && data[i] >= '0' && data[i] <= '9') {
-    idx = 0;
-    while (i < len && data[i] >= '0' && data[i] <= '9') {
-      idx = idx * 10 + (data[i] - '0');
-      i++;
-    }
-  } else {
-    idx = auto_idx >= 0 ? auto_idx++ : 0;
-  }
-  if (i < len && data[i] == '}')
-    i++; // skip '}'
-  return idx;
+  int idx = -1;
+  for (i++; i < len && data[i] >= '0' && data[i] <= '9'; i++)
+    idx = (idx < 0 ? 0 : idx * 10) + (data[i] - '0');
+  if (i >= len || data[i] != '}') consteval_error::invalid_format_spec();
+  i++;
+  if ((idx < 0) != (auto_idx >= 0)) consteval_error::cannot_mix_automatic_and_manual_indexing();
+  return idx < 0 ? auto_idx++ : idx;
 }
 
 // Forward decl — defined alongside the other runtime helpers below.
@@ -1078,14 +1091,23 @@ constexpr placeholder_info find_placeholder_rt(const char *s, int len, int from)
 }
 
 // Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
+// Parse data[begin, end). Only ever evaluated at compile time, so a
+// malformed spec fails the build like it does with {fmt}.
 constexpr format_spec parse_spec_rt(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
   format_spec s{};
   size_t i = static_cast<size_t>(begin);
   size_t e = static_cast<size_t>(end);
   int dyn_auto = dyn_auto_start;
+  auto number = [&] { // width or precision digits
+    int n = 0;
+    for (; i < e && data[i] >= '0' && data[i] <= '9'; i++)
+      if ((n = n * 10 + (data[i] - '0')) > 0x7fff) consteval_error::width_or_precision_above_32767();
+    return n;
+  };
 
   if (i + 1 < e && is_align_char(data[i + 1])) {
+    if (data[i] == '{' || data[i] == '}') consteval_error::invalid_format_spec();
     s.fill = data[i]; s.align = data[i + 1]; i += 2;
   } else if (i < e && is_align_char(data[i])) {
     s.align = data[i]; i++;
@@ -1095,26 +1117,16 @@ constexpr format_spec parse_spec_rt(const char *data, int begin, int end,
   }
   if (i < e && data[i] == '#') { s.alt = true; i++; }
   if (i < e && data[i] == '0') { s.zero_pad = true; i++; }
-  if (i < e && data[i] == '{') {
-    s.width_arg = parse_dynamic_arg(data, e, i, dyn_auto);
-  } else {
-    while (i < e && data[i] >= '0' && data[i] <= '9') {
-      s.width = s.width * 10 + (data[i] - '0'); i++;
-    }
-  }
+  if (i < e && data[i] == '{') s.width_arg = static_cast<int8_t>(parse_dynamic_arg(data, e, i, dyn_auto));
+  else s.width = static_cast<uint16_t>(number());
   if (i < e && data[i] == '.') {
-    i++; s.precision = 0;
-    if (i < e && data[i] == '{') {
-      s.prec_arg = parse_dynamic_arg(data, e, i, dyn_auto);
-      s.precision = -1;
-    } else {
-      while (i < e && data[i] >= '0' && data[i] <= '9') {
-        s.precision = s.precision * 10 + (data[i] - '0'); i++;
-      }
-    }
+    i++;
+    if (i < e && data[i] == '{') s.prec_arg = static_cast<int8_t>(parse_dynamic_arg(data, e, i, dyn_auto));
+    else s.precision = static_cast<int16_t>(number());
   }
-  if (i < e && is_type_char(data[i])) { s.type = data[i]; }
-  s.dyn_count = (dyn_auto >= 0 && dyn_auto_start >= 0) ? (dyn_auto - dyn_auto_start) : 0;
+  if (i < e && is_type_char(data[i])) s.type = data[i++];
+  if (i != e) consteval_error::invalid_format_spec();
+  s.dyn_count = static_cast<uint8_t>(dyn_auto_start >= 0 ? dyn_auto - dyn_auto_start : 0);
   return s;
 }
 
@@ -1147,42 +1159,29 @@ consteval bool type_can_produce_pct() {
 // Shared consteval validation (both paths)
 // ============================================================
 
-// Consteval-only abort. Calling a non-constexpr function inside a consteval
-// context makes the evaluation fail with a diagnostic citing the function
-// name — which we use as the error message. Equivalent in info content to
-// the old `throw "literal"` pattern (all our messages were static strings
-// anyway) but doesn't require -fcxx-exceptions — matters under e.g.
-// -fopenmp-targets=spir64 which disables exceptions on the device side.
-namespace consteval_error {
-[[noreturn]] void too_many_placeholders_max_16();
-[[noreturn]] void format_argument_index_out_of_range();
-[[noreturn]] void dynamic_width_argument_index_out_of_range();
-[[noreturn]] void dynamic_precision_argument_index_out_of_range();
-[[noreturn]] void format_spec_type_incompatible_with_argument_type();
-}
 
-// Spec/arg compatibility: matches std::format's per-type allowed-spec sets.
-// Returns true iff the spec type char `t` is legal for argument type T.
-// '\0' (no spec type) is always allowed (default formatting). The matrix:
-//   integer (not bool/char): d b B o x X c
-//   bool:                    d b B o x X s    (s prints "true"/"false")
-//   char:                    d b B o x X c    (no s)
-//   float:                   a A e E f F g G
-//   char*  / const char*:    s p  (p prints the address, as {fmt} allows)
-//   other pointer (void*):   p
-// Any sign ('+', '-', ' ') is rejected on unsigned types, bool included, as
-// {fmt} does; the standard (and std::format) accepts it.
+// Spec/argument compatibility, following {fmt}'s compile-time checks.
+// Presentation types:
+//   integer: d b B o x X c    bool: d b B o x X s    char: d b B o x X c
+//   float:   a A e E f F g G  char*: s p             other pointer: p
+// A sign only on signed integers (not char) and floats — std::format also
+// allows unsigned; '#' and '0' only on arithmetic types (a char needs an
+// integer presentation); a precision only on floats and strings.
 template <typename T>
 consteval bool spec_compatible_with_arg(const format_spec &spec) {
   using U = std::decay_t<T>;
-  if (spec.sign && std::unsigned_integral<U> && !std::same_as<U, char>)
-    return false;
+  constexpr bool is_str = std::is_pointer_v<U> &&
+                          std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
+  constexpr bool is_char = std::same_as<U, char>;
   char t = spec.type;
+  bool numeric = std::is_arithmetic_v<U> && !(is_char && (t == '\0' || t == 'c'));
+  if (spec.sign && !(std::floating_point<U> || (std::signed_integral<U> && !is_char)))
+    return false;
+  if ((spec.alt || spec.zero_pad) && !numeric) return false;
+  if ((spec.precision >= 0 || spec.prec_arg >= 0) && !(std::floating_point<U> || is_str))
+    return false;
   if (t == '\0') return true;
-  constexpr bool is_charptr =
-      std::is_pointer_v<U> &&
-      std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>;
-  if constexpr (is_charptr) {
+  if constexpr (is_str) {
     return t == 's' || t == 'p';
   } else if constexpr (std::is_pointer_v<U>) {
     return t == 'p';
@@ -1197,6 +1196,42 @@ consteval bool spec_compatible_with_arg(const format_spec &spec) {
            t == 'f' || t == 'F' || t == 'g' || t == 'G';
   } else {
     return true;
+  }
+}
+
+// {fmt}'s compile-time checks over a whole format string, for both paths:
+// brace structure, argument ids, no mixing of automatic and manual indexing,
+// spec syntax (parse_spec_rt) and spec/argument compatibility.
+template <typename... Args>
+consteval void validate_format(const char *s, int len) {
+  constexpr int n_args = static_cast<int>(sizeof...(Args));
+  int auto_idx = 0;
+  bool automatic = false, manual = false;
+  for (int i = 0; i < len; i++) {
+    if (s[i] != '{' && s[i] != '}') continue;
+    if (i + 1 < len && s[i + 1] == s[i]) { i++; continue; } // "{{" or "}}"
+    if (s[i] == '}') consteval_error::unmatched_closing_brace();
+    auto ph = find_placeholder_rt(s, len, i);
+    int close = static_cast<int>(ph.close);
+    if (close >= len || s[close] != '}') consteval_error::invalid_placeholder();
+    (ph.index < 0 ? automatic : manual) = true;
+    int arg = ph.index < 0 ? auto_idx++ : ph.index;
+    format_spec spec = parse_spec_rt(s, static_cast<int>(ph.spec_beg), close,
+                                     ph.index < 0 ? auto_idx : -1);
+    if (ph.index < 0) auto_idx += spec.dyn_count;
+    if (automatic && manual) consteval_error::cannot_mix_automatic_and_manual_indexing();
+    if (arg >= n_args) consteval_error::format_argument_index_out_of_range();
+    if (spec.width_arg >= n_args) consteval_error::dynamic_width_argument_index_out_of_range();
+    if (spec.prec_arg >= n_args) consteval_error::dynamic_precision_argument_index_out_of_range();
+    int j = 0;
+    bool ok = true, dyn_ok = true;
+    ((ok = ok && (j != arg || spec_compatible_with_arg<Args>(spec)),
+      dyn_ok = dyn_ok && ((j != spec.width_arg && j != spec.prec_arg) ||
+                          std::integral<std::decay_t<Args>>),
+      j++), ...);
+    if (!ok) consteval_error::format_spec_type_incompatible_with_argument_type();
+    if (!dyn_ok) consteval_error::dynamic_width_or_precision_must_be_an_integer();
+    i = close;
   }
 }
 
@@ -1233,41 +1268,20 @@ struct print_string {
     // callees even from consteval ctors, so std::copy_n's libstdc++
     // __assign_one trips a "host-only function called from device" error.
     for (size_t i = 0; i < N; i++) str[i] = s[i];
-    int pos = 0, auto_idx = 0;
-    constexpr int n_args = static_cast<int>(sizeof...(Args));
-    while (true) {
-      auto info = find_placeholder_rt(s, len, pos);
-      if (!info.found) break;
+    validate_format<Args...>(s, len);
+    int auto_idx = 0;
+    for (auto info = find_placeholder_rt(s, len, 0); info.found;
+         info = find_placeholder_rt(s, len, static_cast<int>(info.close) + 1)) {
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
-      int arg_i = (info.index >= 0) ? info.index : auto_idx;
-      if (arg_i >= n_args)
-        consteval_error::format_argument_index_out_of_range();
       ph_entry &e = phs[ph_count++];
       e.open = static_cast<uint8_t>(info.open);
       e.close = static_cast<uint8_t>(info.close);
-      e.arg_idx = static_cast<int8_t>(arg_i);
+      e.arg_idx = static_cast<int8_t>(info.index >= 0 ? info.index : auto_idx);
       e.has_spec = info.has_spec && info.close > info.spec_beg;
-      if (e.has_spec) {
-        int dyn_auto = (info.index < 0) ? auto_idx + 1 : -1;
-        e.spec = parse_spec_rt(s, static_cast<int>(info.spec_beg),
-                               static_cast<int>(info.close), dyn_auto);
-        if (e.spec.width_arg >= 0 && e.spec.width_arg >= n_args)
-          consteval_error::dynamic_width_argument_index_out_of_range();
-        if (e.spec.prec_arg >= 0 && e.spec.prec_arg >= n_args)
-          consteval_error::dynamic_precision_argument_index_out_of_range();
-        // Per-arg spec type validation. Walk the pack with a fold over
-        // indices; for the arg at position arg_i, check spec_compatible_with_arg.
-        int j = 0;
-        bool ok = true;
-        ((j++ == arg_i ? (ok = spec_compatible_with_arg<Args>(e.spec)) : false), ...);
-        if (!ok)
-          consteval_error::format_spec_type_incompatible_with_argument_type();
-        if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
-      } else {
-        if (info.index < 0) auto_idx++;
-      }
-      pos = static_cast<int>(info.close) + 1;
+      e.spec = parse_spec_rt(s, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
+                             info.index < 0 ? auto_idx + 1 : -1);
+      if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
     }
     needs_pct_escape = (type_can_produce_pct<Args>() || ...);
     if (!needs_pct_escape) {
@@ -1455,35 +1469,24 @@ template <typename U, format_spec Spec> struct conversion {
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
   static constexpr placeholder_info info = find_placeholder<Fmt, Pos>();
   static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
-  static constexpr size_t next_auto = info.index < 0 ? AutoIdx + 1 : AutoIdx;
-  static constexpr format_spec spec = info.has_spec && info.close > info.spec_beg
-                                          ? parse_spec<Fmt, info.spec_beg, info.close>()
-                                          : format_spec{};
+  static constexpr format_spec spec =
+      parse_spec<Fmt, info.spec_beg, info.close, info.index < 0 ? int(AutoIdx) + 1 : -1>();
+  static constexpr size_t next_auto = info.index < 0 ? AutoIdx + 1 + spec.dyn_count : AutoIdx;
 };
 
 template <typename P, typename... Args>
 using arg_t = std::decay_t<std::tuple_element_t<P::index, std::tuple<Args...>>>;
 
-// Compile-time checks: argument index and spec/type compatibility (the
-// diagnostics print_string gives on the buffer path), then whether printf
-// can express the spec at all.
+// Can printf express every placeholder? (validate_format has already checked
+// that the format string is well formed.)
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval bool check() {
+consteval bool supported() {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::info.found) {
+  if constexpr (!P::info.found)
     return true;
-  } else if constexpr (P::index >= sizeof...(Args)) {
-    consteval_error::format_argument_index_out_of_range();
-  } else {
-    using U = arg_t<P, Args...>;
-    if (!spec_compatible_with_arg<U>(P::spec))
-      consteval_error::format_spec_type_incompatible_with_argument_type();
-    static_assert(conversion<U, P::spec>::supported,
-                  "This format string uses features the specifiers path (DPC++, "
-                  "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
-                  "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
-    return check<Fmt, P::info.close + 1, P::next_auto, Args...>();
-  }
+  else
+    return conversion<arg_t<P, Args...>, P::spec>::supported &&
+           supported<Fmt, P::info.close + 1, P::next_auto, Args...>();
 }
 
 // The whole printf format string; out == nullptr only measures it.
@@ -1528,7 +1531,10 @@ inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::inde
 }
 
 template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
-  static_assert(check<Fmt, 0, 0, Args...>());
+  static_assert(supported<Fmt, 0, 0, Args...>(),
+                "This format string uses features the specifiers path (DPC++, "
+                "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
+                "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
   constexpr auto pf = printf_fmt<Fmt, Args...>();
   auto a = printf_args<Fmt, 0, 0>(std::tuple<Args...>(args...));
   emit_printf<pf>(std::make_index_sequence<flen(pf)>{}, a,
@@ -2283,7 +2289,7 @@ template <fixed_string Fmt, size_t Pos = 0> consteval bool any_positional() {
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 consteval bool no_spec_on_custom() {
   constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
+  if constexpr (!info.found || AutoIdx >= sizeof...(Args)) { // too few: validate_format reports it
     return true;
   } else {
     using U = std::decay_t<std::tuple_element_t<AutoIdx, std::tuple<Args...>>>;
@@ -2301,7 +2307,7 @@ template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 consteval size_t walk_expand(char *out, size_t op = 0) {
   constexpr size_t len = flen(Fmt);
   constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
+  if constexpr (!info.found || AutoIdx >= sizeof...(Args)) { // too few: validate_format reports it
     if (out) {
       for (size_t i = Pos; i < len; i++) out[op + (i - Pos)] = Fmt[i];
     }
@@ -2427,6 +2433,7 @@ template <fixed_string Fmt> consteval auto append_newline() {
 template <detail::fixed_string Fmt, sycl_formattable... Args>
 inline void print(Args... args) {
   if constexpr ((detail::sycl_printable<std::decay_t<Args>> && ...)) {
+    detail::validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(detail::flen(Fmt)));
     if constexpr (sizeof...(Args) == 0) {
       // No args — just emit the literal
       constexpr size_t end = detail::flen(Fmt);
@@ -2441,6 +2448,9 @@ inline void print(Args... args) {
   } else {
     // Formatter splicer — runs entirely at compile time, then forwards
     // through the primitive path with the expanded format + flattened args.
+    // Validate first: a wrong argument count would otherwise fail deep in
+    // <tuple> while splicing.
+    detail::validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(detail::flen(Fmt)));
     constexpr auto Fmt2 =
         detail::formatter_expand::expand_format_full<Fmt, 0, std::decay_t<Args>...>();
     auto values = detail::formatter_expand::expand_args_full_rt(args...);

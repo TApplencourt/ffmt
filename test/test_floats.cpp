@@ -279,4 +279,8 @@ RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity()));
 RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
 #undef OR_ON_SPECIFIERS
 
+// Precision above 127 (stored in 8 bits, it wrapped negative).
+RUN(PRINT("{:.200f}\n", 0.1));
+RUN(PRINT("{:.150e}\n", 1.0 / 3.0));
+
 #endif
