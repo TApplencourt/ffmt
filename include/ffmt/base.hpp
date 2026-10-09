@@ -847,12 +847,11 @@ template <size_t N> consteval size_t flen(const fixed_string<N> &) {
 // ============================================================
 
 struct placeholder_info {
-  size_t open;     // index of '{'
-  size_t close;    // index of '}'
-  size_t spec_beg; // index after ':' (or close if no spec)
-  bool has_spec;
-  bool found;
-  int index; // -1 = auto ({}), >=0 = positional ({N})
+  size_t open = 0;     // index of '{'
+  size_t close = 0;    // index of '}'
+  size_t spec_beg = 0; // index after ':' (or close if no spec)
+  bool has_spec = false;
+  int index = -1; // -1 = auto ({}), >=0 = positional ({N})
 };
 
 // ============================================================
@@ -1003,7 +1002,7 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
 // of custom formatters on the buffer path.
 
 // Find the first {} or {:spec} or {N} or {N:spec} placeholder in s[from..len).
-constexpr placeholder_info find_placeholder(const char *s, int len, int from) {
+constexpr std::optional<placeholder_info> find_placeholder(const char *s, int len, int from) {
   int i = from;
   while (i < len) {
     if (s[i] == '{') {
@@ -1032,8 +1031,8 @@ constexpr placeholder_info find_placeholder(const char *s, int len, int from) {
       }
       int close = j;
       if (!has_spec) spec_beg = close;
-      return {static_cast<size_t>(i), static_cast<size_t>(close),
-              static_cast<size_t>(spec_beg), has_spec, true, index};
+      return placeholder_info{static_cast<size_t>(i), static_cast<size_t>(close),
+                              static_cast<size_t>(spec_beg), has_spec, index};
     } else if (s[i] == '}') {
       if (i + 1 < len && s[i + 1] == '}') { i += 2; continue; }
       i++;
@@ -1041,7 +1040,7 @@ constexpr placeholder_info find_placeholder(const char *s, int len, int from) {
       i++;
     }
   }
-  return {0, 0, 0, false, false, -1};
+  return std::nullopt;
 }
 
 // Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
@@ -1166,7 +1165,7 @@ consteval void validate_format(const char *s, int len) {
     if (s[i] != '{' && s[i] != '}') continue;
     if (i + 1 < len && s[i + 1] == s[i]) { i++; continue; } // "{{" or "}}"
     if (s[i] == '}') consteval_error::unmatched_closing_brace();
-    auto ph = find_placeholder(s, len, i);
+    auto ph = *find_placeholder(s, len, i); // s[i] is an unescaped '{'
     int close = static_cast<int>(ph.close);
     if (close >= len || s[close] != '}') consteval_error::invalid_placeholder();
     (ph.index < 0 ? automatic : manual) = true;
@@ -1225,8 +1224,9 @@ struct print_string {
     for (size_t i = 0; i < N; i++) str[i] = s[i];
     validate_format<Args...>(s, len);
     int auto_idx = 0;
-    for (auto info = find_placeholder(s, len, 0); info.found;
-         info = find_placeholder(s, len, static_cast<int>(info.close) + 1)) {
+    for (auto ph = find_placeholder(s, len, 0); ph;
+         ph = find_placeholder(s, len, static_cast<int>(ph->close) + 1)) {
+      const placeholder_info &info = *ph;
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
       ph_entry &e = phs[ph_count++];
@@ -1396,8 +1396,12 @@ template <typename U, format_spec Spec> struct conversion {
 
 // The placeholder at or after Pos, resolved once for the walkers below.
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
-  static constexpr placeholder_info info =
+  static constexpr auto ph =
       find_placeholder(Fmt.data, static_cast<int>(flen(Fmt)), static_cast<int>(Pos));
+  static constexpr bool found = ph.has_value();
+  // A default info when !found keeps the members below well formed; the
+  // walkers never use them then.
+  static constexpr placeholder_info info = ph.value_or(placeholder_info{});
   static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
   static constexpr format_spec spec =
       parse_spec(Fmt.data, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
@@ -1413,7 +1417,7 @@ using arg_t = std::decay_t<std::tuple_element_t<P::index, std::tuple<Args...>>>;
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 consteval bool supported() {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::info.found)
+  if constexpr (!P::found)
     return true;
   else
     return conversion<arg_t<P, Args...>, P::spec>::supported &&
@@ -1424,7 +1428,7 @@ consteval bool supported() {
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 consteval size_t write_printf_fmt(char *out, size_t pos = 0) {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::info.found) {
+  if constexpr (!P::found) {
     return walk_literal<Fmt, Pos, flen(Fmt)>(out, pos);
   } else {
     pos = walk_literal<Fmt, Pos, P::info.open>(out, pos);
@@ -1439,7 +1443,7 @@ consteval size_t write_printf_fmt(char *out, size_t pos = 0) {
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 inline auto printf_args(const std::tuple<Args...> &args) {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::info.found) {
+  if constexpr (!P::found) {
     return std::tuple<>();
   } else {
     using C = conversion<arg_t<P, Args...>, P::spec>;
@@ -2123,13 +2127,13 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
   int auto_idx = 0;
   format_spec empty{};
   while (true) {
-    auto info = find_placeholder(fmt, fmt_len, pos);
-    if (!info.found) break;
-    write_literal_segment(out, fmt, pos, static_cast<int>(info.open));
-    int idx = (info.index >= 0) ? info.index : auto_idx++;
+    auto ph = find_placeholder(fmt, fmt_len, pos);
+    if (!ph) break;
+    write_literal_segment(out, fmt, pos, static_cast<int>(ph->open));
+    int idx = (ph->index >= 0) ? ph->index : auto_idx++;
     dyn_args dyn{0, -1};
     dispatch_arg(out, idx, /*has_spec*/ false, empty, dyn, args...);
-    pos = static_cast<int>(info.close) + 1;
+    pos = static_cast<int>(ph->close) + 1;
   }
   write_literal_segment(out, fmt, pos, fmt_len);
 }
@@ -2237,12 +2241,12 @@ template <typename... Args> consteval size_t splice(char *out, const char *s, in
   // Copies text, rewriting each placeholder's index i to base + i.
   auto reindex = [&](const char *t, int n, size_t base, auto &&on_arg) {
     int pos = 0, auto_idx = 0;
-    for (auto ph = find_placeholder(t, n, 0); ph.found;
+    for (auto ph = find_placeholder(t, n, 0); ph;
          ph = find_placeholder(t, n, pos)) {
-      copy(t + pos, t + ph.open);
-      on_arg(static_cast<size_t>(ph.index < 0 ? auto_idx++ : ph.index), base,
-             t + (ph.has_spec ? ph.spec_beg - 1 : ph.close), t + ph.close);
-      pos = static_cast<int>(ph.close) + 1;
+      copy(t + pos, t + ph->open);
+      on_arg(static_cast<size_t>(ph->index < 0 ? auto_idx++ : ph->index), base,
+             t + (ph->has_spec ? ph->spec_beg - 1 : ph->close), t + ph->close);
+      pos = static_cast<int>(ph->close) + 1;
     }
     copy(t + pos, t + n);
   };
