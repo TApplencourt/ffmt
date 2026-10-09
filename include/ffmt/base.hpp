@@ -216,6 +216,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <tuple>
 #include <type_traits>
 #include <utility> // std::index_sequence
@@ -2204,15 +2205,19 @@ template <typename T> consteval size_t n_values() {
   else return std::tuple_size_v<decltype(formatter<T>::format(std::declval<T>()).values)>;
 }
 
+struct inner_fmt {
+  const char *data;
+  int len;
+};
+
 struct splice_arg {
-  size_t base = 0;             // index of its first value in the flattened list
-  const char *inner = nullptr; // custom formatter's format string, else null
-  int inner_len = 0;
+  size_t base = 0;                 // index of its first value in the flattened list
+  std::optional<inner_fmt> inner;  // custom formatter's format string, if any
 };
 
 template <typename T> consteval splice_arg splice_arg_of(size_t base) {
-  if constexpr (sycl_printable<T>) return {base, nullptr, 0};
-  else return {base, inner_format_string<T>.data, static_cast<int>(flen(inner_format_string<T>))};
+  if constexpr (sycl_printable<T>) return {base, std::nullopt};
+  else return {base, inner_fmt{inner_format_string<T>.data, static_cast<int>(flen(inner_format_string<T>))}};
 }
 
 template <typename... Args> struct splice_table {
@@ -2252,8 +2257,10 @@ template <typename... Args> consteval size_t splice(char *out, const char *s, in
   };
   reindex(s, len, 0, [&](size_t i, size_t, const char *spec, const char *spec_end) {
     const splice_arg &a = tab.a[i];
+    // Not a null-pointer sentinel: GCC rejects comparing a variable
+    // template's address with null in a constant expression.
     if (!a.inner) placeholder(0, a.base, spec, spec_end);
-    else reindex(a.inner, a.inner_len, a.base, placeholder);
+    else reindex(a.inner->data, a.inner->len, a.base, placeholder);
   });
   return op;
 }
