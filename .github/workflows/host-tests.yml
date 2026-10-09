@@ -34,8 +34,37 @@ jobs:
         run: ${{ matrix.cxx }} --version
       - name: Build + run host tests
         run: make -j$(nproc) test-host
+      - name: Build + run host tests under -ffast-math
+        run: make test-fast-math
       - name: Run negative-compile tests
-        run: make test-negative
+        run: make -j$(getconf _NPROCESSORS_ONLN) test-negative
+
+  plain:
+    # No sanitizers, default toolchain of each OS: catches what only shows
+    # up in a normal build (macOS: Apple clang + libc++ + GNU Make 3.81 —
+    # e.g. the memfd_create and build/ target-clash breakages).
+    name: plain ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            cxx: g++
+          - os: macos-latest
+            cxx: clang++
+    env:
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show toolchain
+        run: ${{ matrix.cxx }} --version && make --version | head -1
+      - name: Build + run host tests
+        run: make -j$(getconf _NPROCESSORS_ONLN) test-host
+      - name: Build + run host tests under -ffast-math
+        run: make test-fast-math
+      - name: Run negative-compile tests
+        run: make -j$(getconf _NPROCESSORS_ONLN) test-negative
 
   coverage:
     name: coverage non-regression

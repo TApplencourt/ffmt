@@ -63,6 +63,14 @@ RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
 RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:<20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
+// {:p} on a char pointer prints the address, as {fmt} does (std::format
+// rejects it; this used to be a negative test).
+RUN(PRINT("{:p}\n",       reinterpret_cast<const char*>(0xdeadbeef)));
+RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<const char*>(0xcafef00d)));
+// Pointers are right-aligned by default (the buffer path left-aligned them).
+RUN(PRINT("[{:20}]\n",    reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:20p}]\n",   reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:20p}]\n",   reinterpret_cast<const char*>(0xdeadbeef)));
 
 // Wide widths — on ACPP these exercise the truncation branches in pad_in_place
 // (the host harness truncates the std reference to FFMT_BUFFER_SIZE
@@ -76,5 +84,15 @@ RUN(PRINT("{:150.2f}\n", 3.14));
 RUN(PRINT("{:#200x}\n", 0xff));     // prefix+overflow: hits prefix-bound check
 RUN(PRINT("{:^200s}\n", "x"));      // center align with truncation
 #endif
+
+// No arguments: the literal goes through the printf format string on the
+// specifiers path the literal is printed through "%s" ('%' kept as is: it
+// used to come out doubled, "100%%"). One print per RUN: on a device the N
+// work-items interleave separate prints.
+RUN(PRINT("no args\n"));
+RUN(PRINT("100% {{braces}} %d %s %%\n"));
+RUN(PRINT(""));
+RUN(PRINTLN(""));
+RUN(PRINTLN("}}{{"));
 
 #endif
