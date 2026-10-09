@@ -217,8 +217,8 @@ RUN(PRINT("{}{:p}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
 RUN(PRINT("{}{:a}\n", FILL120, 1e300));                       // hex-float exponent digits
 RUN(PRINT("{}{}{}\n", FILL120, FILL120, 12345));              // already full
 // println keeps its '\n' even when the line is truncated; before the fix the
-// next line was glued onto the truncated one.
-RUN(PRINTLN("{}{}", FILL120, FILL120); PRINT("next line\n"));
+// next "Test N" header was glued onto the truncated line.
+RUN(PRINTLN("{}{}", FILL120, FILL120));
 #undef FILL120
 
 // ── Null char* ──────────────────────────────────────────────────────────────

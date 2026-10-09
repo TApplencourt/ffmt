@@ -168,10 +168,9 @@ FFMT_PRINTLNF("position = {}", vec3{1.0f, 2.0f, 3.0f});
 
 ### Restrictions
 
-When at least one arg has a custom formatter, the format string must use
-auto-indexed `{}` placeholders only — positional indices (`{0}`, `{1}`)
-and format specs (`{:>5}`) on the custom-formatter arg are rejected at
-compile time. Calls with all-primitive args are unaffected.
+A format spec (`{:>5}`) on a custom-formatter argument is rejected at compile
+time, as {fmt} does for a formatter without a spec parser. Positional
+indices (`{1} {0}`, also inside a formatter's own string) are supported.
 
 ### Floating-point: FTZ/DAZ depends on the runtime
 

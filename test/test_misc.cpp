@@ -85,4 +85,14 @@ RUN(PRINT("{:#200x}\n", 0xff));     // prefix+overflow: hits prefix-bound check
 RUN(PRINT("{:^200s}\n", "x"));      // center align with truncation
 #endif
 
+// No arguments: the literal goes through the printf format string on the
+// specifiers path the literal is printed through "%s" ('%' kept as is: it
+// used to come out doubled, "100%%"). One print per RUN: on a device the N
+// work-items interleave separate prints.
+RUN(PRINT("no args\n"));
+RUN(PRINT("100% {{braces}} %d %s %%\n"));
+RUN(PRINT(""));
+RUN(PRINTLN(""));
+RUN(PRINTLN("}}{{"));
+
 #endif

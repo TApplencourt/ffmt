@@ -854,25 +854,12 @@ struct placeholder_info {
   int index; // -1 = auto ({}), >=0 = positional ({N})
 };
 
-// Forward decl — defined alongside the other runtime helpers below.
-constexpr placeholder_info find_placeholder_rt(const char *s, int len, int from);
-
-// NTTP wrapper: same algorithm, just calls the runtime version on Fmt.data.
-// Both are evaluated at compile time when invoked from a consteval context.
-template <fixed_string Fmt, size_t From = 0> consteval placeholder_info find_placeholder() {
-  return find_placeholder_rt(Fmt.data, static_cast<int>(flen(Fmt)), static_cast<int>(From));
-}
-
 // ============================================================
 // Literal segment: unescape {{ → {, }} → } (and optionally % → %%)
 // ============================================================
 
-// Unified literal walker: unescape {{ → {, }} → }.
-// When EscapePercent=true (DPC++ path), also escapes % → %% for printf.
-// When EscapePercent=false (ACPP buffer path), % is left as-is; the
-// runtime loop in print() will escape all % at once after the buffer
-// is fully assembled (covering both literals and argument values).
-// When out == nullptr, counts output size; otherwise writes to out.
+// Literal text of Fmt[Begin, End): "{{" → "{", "}}" → "}", and for a printf
+// format string "%" → "%%". out == nullptr only measures it.
 template <fixed_string Fmt, size_t Begin, size_t End, bool EscapePercent = true>
 consteval size_t walk_literal(char *out, size_t pos = 0) {
   size_t i = Begin;
@@ -902,20 +889,6 @@ consteval size_t walk_literal(char *out, size_t pos = 0) {
     }
   }
   return pos;
-}
-
-template <fixed_string Fmt, size_t Begin, size_t End, bool EscapePercent = true>
-consteval size_t literal_out_size() {
-  return walk_literal<Fmt, Begin, End, EscapePercent>(nullptr);
-}
-
-template <fixed_string Fmt, size_t Begin, size_t End, bool EscapePercent = true>
-consteval auto make_literal() {
-  constexpr size_t N = literal_out_size<Fmt, Begin, End, EscapePercent>() + 1;
-  fixed_string<N> result{};
-  walk_literal<Fmt, Begin, End, EscapePercent>(result.data);
-  result.data[N - 1] = '\0';
-  return result;
 }
 
 // Types supported by ffmt::print
@@ -1021,35 +994,15 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
   return idx < 0 ? auto_idx++ : idx;
 }
 
-// Forward decl — defined alongside the other runtime helpers below.
-constexpr format_spec parse_spec_rt(const char *data, int begin, int end,
-                                    int dyn_auto_start);
-
-// NTTP wrapper: same algorithm, just calls the runtime version on Fmt.data.
-template <fixed_string Fmt, size_t Begin, size_t End, int DynAutoStart = -1>
-consteval format_spec parse_spec() {
-  return parse_spec_rt(Fmt.data, static_cast<int>(Begin), static_cast<int>(End),
-                       DynAutoStart);
-}
-
-// Forward decl — defined alongside the other runtime helpers below.
-template <typename U> constexpr char effective_type_rt(char spec_type);
-
-// Effective printf type char given the spec and the C++ argument type.
-// NTTP wrapper over effective_type_rt — same algorithm, no duplication.
-template <typename U, char SpecType> consteval char effective_type() {
-  return effective_type_rt<U>(SpecType);
-}
-
 // ============================================================
 // Runtime placeholder + spec parsing
 // ============================================================
-// Both backends use these. The consteval NTTP wrappers above (find_placeholder,
-// parse_spec) just call into these — same algorithm, no duplication. ACPP also
-// uses them at runtime via print_string's consteval ctor and the inner walker.
+// Used at compile time by both paths (validate_format, print_string, the
+// specifiers walkers); find_placeholder also runs on device for the strings
+// of custom formatters on the buffer path.
 
 // Find the first {} or {:spec} or {N} or {N:spec} placeholder in s[from..len).
-constexpr placeholder_info find_placeholder_rt(const char *s, int len, int from) {
+constexpr placeholder_info find_placeholder(const char *s, int len, int from) {
   int i = from;
   while (i < len) {
     if (s[i] == '{') {
@@ -1093,7 +1046,7 @@ constexpr placeholder_info find_placeholder_rt(const char *s, int len, int from)
 // Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
 // Parse data[begin, end). Only ever evaluated at compile time, so a
 // malformed spec fails the build like it does with {fmt}.
-constexpr format_spec parse_spec_rt(const char *data, int begin, int end,
+constexpr format_spec parse_spec(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
   format_spec s{};
   size_t i = static_cast<size_t>(begin);
@@ -1131,7 +1084,7 @@ constexpr format_spec parse_spec_rt(const char *data, int begin, int end,
 }
 
 // Runtime version of effective_type — spec_type is a runtime parameter
-template <typename U> constexpr char effective_type_rt(char spec_type) {
+template <typename U> constexpr char effective_type(char spec_type) {
   if (spec_type != '\0') return spec_type;
   if constexpr (std::same_as<U, bool>) return 's';
   else if constexpr (std::same_as<U, char>) return 'c';
@@ -1180,6 +1133,9 @@ consteval bool spec_compatible_with_arg(const format_spec &spec) {
   if ((spec.alt || spec.zero_pad) && !numeric) return false;
   if ((spec.precision >= 0 || spec.prec_arg >= 0) && !(std::floating_point<U> || is_str))
     return false;
+  if constexpr (!sycl_printable<U>) // custom formatter: only "{}" / "{:}"
+    return !spec.fill && !spec.align && !spec.sign && !spec.alt && !spec.zero_pad &&
+           !spec.width && spec.precision < 0 && spec.width_arg < 0 && spec.prec_arg < 0 && !t;
   if (t == '\0') return true;
   if constexpr (is_str) {
     return t == 's' || t == 'p';
@@ -1191,17 +1147,15 @@ consteval bool spec_compatible_with_arg(const format_spec &spec) {
   } else if constexpr (std::is_integral_v<U>) {
     return t == 'd' || t == 'b' || t == 'B' || t == 'o' ||
            t == 'x' || t == 'X' || t == 'c';
-  } else if constexpr (std::is_floating_point_v<U>) {
+  } else {
     return t == 'a' || t == 'A' || t == 'e' || t == 'E' ||
            t == 'f' || t == 'F' || t == 'g' || t == 'G';
-  } else {
-    return true;
   }
 }
 
 // {fmt}'s compile-time checks over a whole format string, for both paths:
 // brace structure, argument ids, no mixing of automatic and manual indexing,
-// spec syntax (parse_spec_rt) and spec/argument compatibility.
+// spec syntax (parse_spec) and spec/argument compatibility.
 template <typename... Args>
 consteval void validate_format(const char *s, int len) {
   constexpr int n_args = static_cast<int>(sizeof...(Args));
@@ -1211,12 +1165,12 @@ consteval void validate_format(const char *s, int len) {
     if (s[i] != '{' && s[i] != '}') continue;
     if (i + 1 < len && s[i + 1] == s[i]) { i++; continue; } // "{{" or "}}"
     if (s[i] == '}') consteval_error::unmatched_closing_brace();
-    auto ph = find_placeholder_rt(s, len, i);
+    auto ph = find_placeholder(s, len, i);
     int close = static_cast<int>(ph.close);
     if (close >= len || s[close] != '}') consteval_error::invalid_placeholder();
     (ph.index < 0 ? automatic : manual) = true;
     int arg = ph.index < 0 ? auto_idx++ : ph.index;
-    format_spec spec = parse_spec_rt(s, static_cast<int>(ph.spec_beg), close,
+    format_spec spec = parse_spec(s, static_cast<int>(ph.spec_beg), close,
                                      ph.index < 0 ? auto_idx : -1);
     if (ph.index < 0) auto_idx += spec.dyn_count;
     if (automatic && manual) consteval_error::cannot_mix_automatic_and_manual_indexing();
@@ -1270,8 +1224,8 @@ struct print_string {
     for (size_t i = 0; i < N; i++) str[i] = s[i];
     validate_format<Args...>(s, len);
     int auto_idx = 0;
-    for (auto info = find_placeholder_rt(s, len, 0); info.found;
-         info = find_placeholder_rt(s, len, static_cast<int>(info.close) + 1)) {
+    for (auto info = find_placeholder(s, len, 0); info.found;
+         info = find_placeholder(s, len, static_cast<int>(info.close) + 1)) {
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
       ph_entry &e = phs[ph_count++];
@@ -1279,7 +1233,7 @@ struct print_string {
       e.close = static_cast<uint8_t>(info.close);
       e.arg_idx = static_cast<int8_t>(info.index >= 0 ? info.index : auto_idx);
       e.has_spec = info.has_spec && info.close > info.spec_beg;
-      e.spec = parse_spec_rt(s, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
+      e.spec = parse_spec(s, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
                              info.index < 0 ? auto_idx + 1 : -1);
       if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
     }
@@ -1301,21 +1255,23 @@ struct print_string {
 #define FFMT_BUFFER_SIZE 128
 #endif
 
-template <int Cap, int ExtraPad = 0>
-struct static_buf {
-  static constexpr int cap = Cap;
-  char data[Cap + ExtraPad]{};
+// Output of one print on the buffer path. The 32 bytes past cap let
+// dragonbox write directly into data[len] (len is clamped to cap afterwards)
+// and leave room for println's '\n' and the terminator.
+struct fmt_buf {
+  static constexpr int cap = FFMT_BUFFER_SIZE;
+  char data[cap + 32]{};
   int len = 0;
   FMT_HD void push(char c) {
-    if (len < Cap)
+    if (len < cap)
       data[len++] = c;
   }
   FMT_HD void push_n(char c, int n) {
-    for (int i = 0; i < n && len < Cap; i++)
+    for (int i = 0; i < n && len < cap; i++)
       data[len++] = c;
   }
   FMT_HD void push_data(const char *s, int n) {
-    for (int i = 0; i < n && len < Cap; i++)
+    for (int i = 0; i < n && len < cap; i++)
       data[len++] = s[i];
   }
   FMT_HD void push_str(const char *s) {
@@ -1323,10 +1279,6 @@ struct static_buf {
       push(*s++);
   }
 };
-
-// Extra 32 bytes let dragonbox write directly into data[len] without a
-// temporary buffer; len is clamped to cap afterwards.
-using fmt_buf = static_buf<FFMT_BUFFER_SIZE, 32>;
 
 // Write an unsigned integer in any base into raw (data, len, cap) right-to-left.
 // Digits that would land at or past `cap` are dropped (the low-order ones,
@@ -1348,9 +1300,9 @@ FMT_HD inline void write_uint_raw(char *data, int &len, int cap, U val) {
   if (len > cap) len = cap;
 }
 
-template <int Base, bool Upper = false, typename U, typename Buf>
-FMT_HD inline void write_uint_direct(Buf &buf, U val) {
-  write_uint_raw<Base, Upper>(buf.data, buf.len, Buf::cap, val);
+template <int Base, bool Upper = false, typename U>
+FMT_HD inline void write_uint_direct(fmt_buf &buf, U val) {
+  write_uint_raw<Base, Upper>(buf.data, buf.len, fmt_buf::cap, val);
 }
 
 // Hex digit helper
@@ -1390,30 +1342,6 @@ template <char Type, bool Wide, typename T> FMT_HD inline auto printf_cast(T arg
 #if !FFMT_BUFFER_PATH
 namespace specifiers_path {
 
-// ============================================================
-// emit_literal — printf a fixed_string ensuring constant addr space
-// ============================================================
-
-// Expand the fixed_string into a static constexpr char[] via index_sequence.
-// This guarantees the SYCL compiler places it in the constant address space.
-template <fixed_string Lit, size_t... Is>
-inline void emit_literal_impl(std::index_sequence<Is...>) {
-  static constexpr FFMT_CONST_AS char s[] = {Lit.data[Is]..., '\0'};
-  // Print verbatim via "%s" so user content with % survives — matches
-  // the pre-refactor ::printf("%s", s) and is safe under -Wformat-security.
-  // The "%s" literal also needs to land in constant AS on SPIR backends
-  // that don't run SYCL's printf-AS-promotion pass (e.g., OpenMP-target).
-  static constexpr FFMT_CONST_AS char fmt_s[] = "%s";
-  FFMT_EMIT_PRINTF(fmt_s, s);
-}
-
-template <fixed_string Lit> inline void emit_literal() {
-  constexpr size_t len = flen(Lit);
-  if constexpr (len > 0) {
-    emit_literal_impl<Lit>(std::make_index_sequence<len>{});
-  }
-}
-
 // A printf conversion built at compile time.
 struct printf_fmt_buf {
   char data[32]{};
@@ -1451,7 +1379,7 @@ consteval printf_fmt_buf build_printf_fmt() {
 // %s on computed strings, so {fmt}'s shortest form needs the buffer path.
 template <typename U, format_spec Spec> struct conversion {
   static constexpr char type = [] {
-    char t = effective_type<U, Spec.type>();
+    char t = effective_type<U>(Spec.type);
     return std::unsigned_integral<U> && t == 'd' ? 'u' : t;
   }();
   static constexpr bool wide = sizeof(U) > 4;
@@ -1467,10 +1395,12 @@ template <typename U, format_spec Spec> struct conversion {
 
 // The placeholder at or after Pos, resolved once for the walkers below.
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
-  static constexpr placeholder_info info = find_placeholder<Fmt, Pos>();
+  static constexpr placeholder_info info =
+      find_placeholder(Fmt.data, static_cast<int>(flen(Fmt)), static_cast<int>(Pos));
   static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
   static constexpr format_spec spec =
-      parse_spec<Fmt, info.spec_beg, info.close, info.index < 0 ? int(AutoIdx) + 1 : -1>();
+      parse_spec(Fmt.data, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
+                 info.index < 0 ? static_cast<int>(AutoIdx) + 1 : -1);
   static constexpr size_t next_auto = info.index < 0 ? AutoIdx + 1 + spec.dyn_count : AutoIdx;
 };
 
@@ -1523,6 +1453,22 @@ template <fixed_string Fmt, typename... Args> consteval auto printf_fmt() {
   return r;
 }
 
+// No arguments: the literal text ('%' kept as is) goes through "%s", since
+// printf(fmt) alone trips -Wformat-security. Passed directly rather than via
+// a tuple: Intel's SPIR-V printf at -O0 faults on a string pointer loaded
+// from memory.
+template <fixed_string Fmt> consteval auto literal_text() {
+  fixed_string<walk_literal<Fmt, 0, flen(Fmt), false>(nullptr) + 1> r{};
+  walk_literal<Fmt, 0, flen(Fmt), false>(r.data);
+  return r;
+}
+
+template <fixed_string Lit, size_t... Is> inline void emit_literal(std::index_sequence<Is...>) {
+  static constexpr FFMT_CONST_AS char s[] = {Lit.data[Is]..., '\0'};
+  static constexpr FFMT_CONST_AS char fmt_s[] = "%s";
+  FFMT_EMIT_PRINTF(fmt_s, s);
+}
+
 // One printf call; the format string lands in constant address space.
 template <fixed_string PrintfFmt, size_t... Is, typename Tuple, size_t... Js>
 inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::index_sequence<Js...>) {
@@ -1536,9 +1482,14 @@ template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
                 "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
                 "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
   constexpr auto pf = printf_fmt<Fmt, Args...>();
-  auto a = printf_args<Fmt, 0, 0>(std::tuple<Args...>(args...));
-  emit_printf<pf>(std::make_index_sequence<flen(pf)>{}, a,
-                  std::make_index_sequence<std::tuple_size_v<decltype(a)>>{});
+  if constexpr (sizeof...(Args) == 0) {
+    constexpr auto lit = literal_text<Fmt>();
+    if constexpr (flen(lit) > 0) emit_literal<lit>(std::make_index_sequence<flen(lit)>{});
+  } else {
+    auto a = printf_args<Fmt, 0, 0>(std::tuple<Args...>(args...));
+    emit_printf<pf>(std::make_index_sequence<flen(pf)>{}, a,
+                    std::make_index_sequence<std::tuple_size_v<decltype(a)>>{});
+  }
 }
 } // namespace specifiers_path
 #endif // !FFMT_BUFFER_PATH
@@ -1554,7 +1505,7 @@ template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
 
 namespace buffer_path {
 
-template <typename T, typename Buf> FMT_HD inline void write_decimal(Buf &out, T val) {
+template <typename T> FMT_HD inline void write_decimal(fmt_buf &out, T val) {
   using U = std::make_unsigned_t<T>;
   U uval;
   if constexpr (std::signed_integral<T>) {
@@ -1571,31 +1522,6 @@ template <typename T, typename Buf> FMT_HD inline void write_decimal(Buf &out, T
     uval = static_cast<U>(val);
   }
   write_uint_direct<10>(out, uval);
-}
-
-template <typename T>
-FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, char etype,
-                                  int dyn_w, int dyn_p);
-
-template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) {
-  using U = std::decay_t<T>;
-  if constexpr (std::same_as<U, bool>) {
-    out.push_str(arg ? "true" : "false");
-  } else if constexpr (std::same_as<U, char>) {
-    out.push(arg);
-  } else if constexpr (std::signed_integral<U> || std::unsigned_integral<U>) {
-    write_decimal(out, arg);
-  } else if constexpr (std::floating_point<U>) {
-    write_float_rt(out, arg, format_spec{}, 'g', 0, -1); // shortest round-trip
-  } else if constexpr (std::is_pointer_v<U>) {
-    using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
-    if constexpr (std::same_as<Pointee, char>) {
-      out.push_str(arg ? arg : "(null)"); // UB in std::format; glibc's choice
-    } else {
-      out.push_str("0x");
-      write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
-    }
-  }
 }
 
 
@@ -1750,18 +1676,17 @@ struct exact_decimal {
 // Writes the digits of one number into out. Digits past the cap are dropped
 // like push() does, but remembered: a rounding carry only crosses them into
 // the visible digits when they are all '9'.
-template <typename Buf>
 struct digit_writer {
-  Buf &out;
+  fmt_buf &out;
   int first;               // index of the first digit
   int last = 0;            // last digit put (its parity decides ties)
   bool blocked = false;    // a digit past the cap was not '9': no carry gets out
 
-  FMT_HD explicit digit_writer(Buf &o) : out(o), first(o.len) {}
+  FMT_HD explicit digit_writer(fmt_buf &o) : out(o), first(o.len) {}
 
   FMT_HD void put(int d) {
     last = d;
-    if (out.len < Buf::cap) out.data[out.len++] = static_cast<char>('0' + d);
+    if (out.len < fmt_buf::cap) out.data[out.len++] = static_cast<char>('0' + d);
     else if (d != 9) blocked = true;
   }
 
@@ -1783,8 +1708,7 @@ struct digit_writer {
 
 // Puts the decimal point (if prec > 0 or alt) and `prec` more digits of x,
 // rounded half to even. Returns true when the carry ran off the front.
-template <typename Buf>
-FMT_HD inline bool put_fraction(Buf &out, digit_writer<Buf> &w, exact_decimal &x,
+FMT_HD inline bool put_fraction(fmt_buf &out, digit_writer &w, exact_decimal &x,
                                 int prec, bool alt) {
   if (prec > 0 || alt) out.push('.');
   // The expansion is finite: once it runs out the rest is zeros and nothing
@@ -1797,15 +1721,14 @@ FMT_HD inline bool put_fraction(Buf &out, digit_writer<Buf> &w, exact_decimal &x
 }
 
 // Fixed notation with `prec` fraction digits, for a non-negative finite val.
-template <typename Buf>
-FMT_HD inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
-  digit_writer<Buf> w(out);
+FMT_HD inline void fmt_fixed(fmt_buf &out, double val, int prec, bool alt = false) {
+  digit_writer w(out);
   exact_decimal x(val);
   if (x.int_digits == 0) w.put(0);
   for (int i = 0; i < x.int_digits; i++) w.put(x.next());
   if (put_fraction(out, w, x, prec, alt)) {
     // 99.9 → 100.0: shift right by one and prepend the carry.
-    int end = out.len < Buf::cap ? out.len + 1 : Buf::cap;
+    int end = out.len < fmt_buf::cap ? out.len + 1 : fmt_buf::cap;
     for (int j = end - 1; j > w.first; j--) out.data[j] = out.data[j - 1];
     out.data[w.first] = '1';
     out.len = end;
@@ -1814,9 +1737,8 @@ FMT_HD inline void fmt_fixed(Buf &out, double val, int prec, bool alt = false) {
 
 // Scientific notation d.ddd…e±XX with `prec` fraction digits, for a
 // non-negative finite val. Returns the decimal exponent after rounding.
-template <typename Buf>
-FMT_HD inline int fmt_sci(Buf &out, double val, int prec, bool upper, bool alt = false) {
-  digit_writer<Buf> w(out);
+FMT_HD inline int fmt_sci(fmt_buf &out, double val, int prec, bool upper, bool alt = false) {
+  digit_writer w(out);
   exact_decimal x(val);
   int exp = x.int_digits - 1; // exponent of the next digit
   int d = 0;
@@ -1840,8 +1762,7 @@ FMT_HD inline int fmt_sci(Buf &out, double val, int prec, bool upper, bool alt =
 
 // Remove trailing zeros (and decimal point) from buf[start..len),
 // stopping at 'e'/'E' if present (scientific notation).
-template <typename Buf>
-FMT_HD inline void trim_trailing_zeros(Buf &buf, int start = 0) {
+FMT_HD inline void trim_trailing_zeros(fmt_buf &buf, int start = 0) {
   int dot_pos = -1;
   int e_pos = buf.len;
   for (int i = start; i < buf.len; i++) {
@@ -1869,8 +1790,7 @@ FMT_HD inline void trim_trailing_zeros(Buf &buf, int start = 0) {
 // g/G per [format.string.std]: with P = prec (0 → 1) and X the exponent the
 // 'e' form would have at precision P-1, use fixed with P-1-X digits when
 // P > X >= -4, else scientific; trailing zeros are dropped unless alt.
-template <typename Buf>
-FMT_HD inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
+FMT_HD inline void fmt_g(fmt_buf &out, double val, int prec, bool upper, bool alt) {
   if (prec == 0)
     prec = 1;
   int start = out.len;
@@ -1894,8 +1814,7 @@ FMT_HD inline void fmt_g(Buf &out, double val, int prec, bool upper, bool alt) {
 // trimmed. An explicit precision rounds half up on the first dropped hex
 // digit, like {fmt} (0x1.08p+0 at .1 → 0x1.1p+0), and may carry into the
 // leading digit (0x1.f8p+0 at .0 → 0x2p+0).
-template <typename Buf>
-FMT_HD inline void hex_float_to_buf_rt(Buf &content, double val, int prec, bool alt, bool upper) {
+FMT_HD inline void hex_float_to_buf_rt(fmt_buf &content, double val, int prec, bool alt, bool upper) {
   constexpr int ndig = 13;
   uint64_t bits = __builtin_bit_cast(uint64_t, val);
   int biased = static_cast<int>((bits >> 52) & 0x7FF);
@@ -2038,6 +1957,28 @@ FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, 
                spec.fill_or(), spec.align_or(), dyn_w);
 }
 
+template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) {
+  using U = std::decay_t<T>;
+  if constexpr (std::same_as<U, bool>) {
+    out.push_str(arg ? "true" : "false");
+  } else if constexpr (std::same_as<U, char>) {
+    out.push(arg);
+  } else if constexpr (std::signed_integral<U> || std::unsigned_integral<U>) {
+    write_decimal(out, arg);
+  } else if constexpr (std::floating_point<U>) {
+    write_float_rt(out, arg, format_spec{}, 'g', 0, -1); // shortest round-trip
+  } else if constexpr (std::is_pointer_v<U>) {
+    using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
+    if constexpr (std::same_as<Pointee, char>) {
+      out.push_str(arg ? arg : "(null)"); // UB in std::format; glibc's choice
+    } else {
+      out.push_str("0x");
+      write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
+    }
+  }
+}
+
+
 // Workaround for clang-OMP-CUDA -O0 codegen bug: bundle two trailing
 // by-value scalar ints into a struct so dispatch_arg / write_arg_rt can
 // receive them via reference. Two trailing by-value ints on a function
@@ -2083,9 +2024,9 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     pad_in_place(out, content_start, '\0', "0x", 2, 0,
                  spec.fill_or(), spec.align_or('>'), dyn_w);
   } else if constexpr (std::floating_point<U>) {
-    write_float_rt(out, arg, spec, effective_type_rt<U>(spec.type), dyn_w, dyn_p);
+    write_float_rt(out, arg, spec, effective_type<U>(spec.type), dyn_w, dyn_p);
   } else if constexpr (std::integral<U>) {
-    char etype = effective_type_rt<U>(spec.type);
+    char etype = effective_type<U>(spec.type);
     if (etype == 'c') {
       char ch = static_cast<char>(arg);
       apply_padding_data(out, &ch, 1, spec.fill_or(), spec.align_or('<'), dyn_w);
@@ -2173,7 +2114,7 @@ FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&
 }
 
 // Inner walker for formatter sub-strings. These don't have a print_string
-// (no compile-time pre-parse), so we re-parse with find_placeholder_rt.
+// (no compile-time pre-parse), so we re-parse with find_placeholder.
 // No spec/dyn-width support here — Stage 1 forbids them on custom args.
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
@@ -2181,7 +2122,7 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
   int auto_idx = 0;
   format_spec empty{};
   while (true) {
-    auto info = find_placeholder_rt(fmt, fmt_len, pos);
+    auto info = find_placeholder(fmt, fmt_len, pos);
     if (!info.found) break;
     write_literal_segment(out, fmt, pos, static_cast<int>(info.open));
     int idx = (info.index >= 0) ? info.index : auto_idx++;
@@ -2249,152 +2190,83 @@ FMT_HD inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
 namespace detail {
 namespace formatter_expand {
 
-// Per-arg post-one-round tuple type: primitive stays as-is, formatter expands to its values.
-// Specialize on the primitive vs custom case so the unused branch never instantiates
-// formatter<T> for primitive T.
-template <typename T, bool IsPrim = sycl_printable<T>> struct per_arg_round;
-template <typename T> struct per_arg_round<T, true> {
-  using type = std::tuple<T>;
-};
-template <typename T> struct per_arg_round<T, false> {
-  using type = decltype(formatter<std::decay_t<T>>::format(std::declval<T>()).values);
-};
-
-template <typename... Args>
-using expand_args_round_t =
-    decltype(std::tuple_cat(std::declval<typename per_arg_round<Args>::type>()...));
-
-// Inner format string of a custom formatter (only valid when has_formatter<T>).
+// One round of splicing: each custom-formatter argument is replaced by its
+// inner format string and its values. The spliced string uses explicit
+// indices into the flattened value list, so positional and repeated
+// placeholders keep pointing at the right values ("{1} {0}" and "({1}, {0})"
+// both work). Custom values left over are spliced by the next print<>.
 template <typename T>
 inline constexpr auto inner_format_string =
     decltype(formatter<std::decay_t<T>>::format(std::declval<T>()))::format_string;
 
-template <typename... Args>
-consteval bool all_primitive() {
-  return (... && sycl_printable<std::decay_t<Args>>);
+template <typename T> consteval size_t n_values() {
+  if constexpr (sycl_printable<T>) return 1;
+  else return std::tuple_size_v<decltype(formatter<T>::format(std::declval<T>()).values)>;
 }
 
-// Scan Fmt for any positional ({N}) placeholder.
-template <fixed_string Fmt, size_t Pos = 0> consteval bool any_positional() {
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found) {
-    return false;
-  } else if constexpr (info.index >= 0) {
-    return true;
-  } else {
-    return any_positional<Fmt, info.close + 1>();
+struct splice_arg {
+  size_t base = 0;             // index of its first value in the flattened list
+  const char *inner = nullptr; // custom formatter's format string, else null
+  int inner_len = 0;
+};
+
+template <typename T> consteval splice_arg splice_arg_of(size_t base) {
+  if constexpr (sycl_printable<T>) return {base, nullptr, 0};
+  else return {base, inner_format_string<T>.data, static_cast<int>(flen(inner_format_string<T>))};
+}
+
+template <typename... Args> struct splice_table {
+  splice_arg a[sizeof...(Args)];
+  consteval splice_table() {
+    size_t base = 0, i = 0;
+    ((a[i++] = splice_arg_of<Args>(base), base += n_values<Args>()), ...);
   }
-}
+};
 
-// Scan Fmt; for each placeholder mapping to a has_formatter arg, ensure no spec.
-template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval bool no_spec_on_custom() {
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found || AutoIdx >= sizeof...(Args)) { // too few: validate_format reports it
-    return true;
-  } else {
-    using U = std::decay_t<std::tuple_element_t<AutoIdx, std::tuple<Args...>>>;
-    if constexpr (has_formatter<U>) {
-      if constexpr (info.has_spec && info.close > info.spec_beg) return false;
+// Writes (out != nullptr) or measures the spliced format string.
+template <typename... Args> consteval size_t splice(char *out, const char *s, int len) {
+  constexpr splice_table<Args...> tab;
+  size_t op = 0;
+  auto put = [&](char c) { if (out) out[op] = c; op++; };
+  auto copy = [&](const char *b, const char *e) { while (b < e) put(*b++); };
+  // Copies text, rewriting each placeholder's index i to base + i.
+  auto reindex = [&](const char *t, int n, size_t base, auto &&on_arg) {
+    int pos = 0, auto_idx = 0;
+    for (auto ph = find_placeholder(t, n, 0); ph.found;
+         ph = find_placeholder(t, n, pos)) {
+      copy(t + pos, t + ph.open);
+      on_arg(static_cast<size_t>(ph.index < 0 ? auto_idx++ : ph.index), base,
+             t + (ph.has_spec ? ph.spec_beg - 1 : ph.close), t + ph.close);
+      pos = static_cast<int>(ph.close) + 1;
     }
-    return no_spec_on_custom<Fmt, info.close + 1, AutoIdx + 1, Args...>();
-  }
+    copy(t + pos, t + n);
+  };
+  auto placeholder = [&](size_t i, size_t base, const char *spec, const char *spec_end) {
+    char d[20];
+    int k = 0;
+    for (size_t v = base + i; k == 0 || v; v /= 10) d[k++] = static_cast<char>('0' + v % 10);
+    put('{');
+    while (k) put(d[--k]);
+    copy(spec, spec_end); // ":spec" or nothing
+    put('}');
+  };
+  reindex(s, len, 0, [&](size_t i, size_t, const char *spec, const char *spec_end) {
+    const splice_arg &a = tab.a[i];
+    if (!a.inner) placeholder(0, a.base, spec, spec_end);
+    else reindex(a.inner, a.inner_len, a.base, placeholder);
+  });
+  return op;
 }
 
-// Single-round splicer. out=nullptr → measure; non-null → write.
-// For each placeholder: primitive → copy "{...}" verbatim;
-// has_formatter → splice the inner fixed_string body in place of "{...}".
-template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval size_t walk_expand(char *out, size_t op = 0) {
-  constexpr size_t len = flen(Fmt);
-  constexpr auto info = find_placeholder<Fmt, Pos>();
-  if constexpr (!info.found || AutoIdx >= sizeof...(Args)) { // too few: validate_format reports it
-    if (out) {
-      for (size_t i = Pos; i < len; i++) out[op + (i - Pos)] = Fmt[i];
-    }
-    return op + (len - Pos);
-  } else {
-    if (out) {
-      for (size_t i = Pos; i < info.open; i++) out[op + (i - Pos)] = Fmt[i];
-    }
-    op += info.open - Pos;
-    using U = std::decay_t<std::tuple_element_t<AutoIdx, std::tuple<Args...>>>;
-    if constexpr (sycl_printable<U>) {
-      if (out) {
-        for (size_t i = info.open; i <= info.close; i++)
-          out[op + (i - info.open)] = Fmt[i];
-      }
-      op += (info.close - info.open + 1);
-    } else {
-      constexpr auto inner = inner_format_string<U>;
-      constexpr size_t inner_len = flen(inner);
-      if (out) {
-        for (size_t i = 0; i < inner_len; i++) out[op + i] = inner.data[i];
-      }
-      op += inner_len;
-    }
-    return walk_expand<Fmt, info.close + 1, AutoIdx + 1, Args...>(out, op);
-  }
+template <fixed_string Fmt, typename... Args> consteval auto splice_format() {
+  fixed_string<splice<Args...>(nullptr, Fmt.data, static_cast<int>(flen(Fmt))) + 1> r{};
+  splice<Args...>(r.data, Fmt.data, static_cast<int>(flen(Fmt)));
+  return r;
 }
 
-template <fixed_string Fmt, typename... Args>
-consteval auto expand_format_one_round() {
-  constexpr size_t N = walk_expand<Fmt, 0, 0, Args...>(nullptr) + 1; // +1 for '\0'
-  fixed_string<N> result{};
-  walk_expand<Fmt, 0, 0, Args...>(result.data);
-  result.data[N - 1] = '\0';
-  return result;
-}
-
-// Compile-time fixed-point on (Fmt, Args...).
-template <fixed_string Fmt, int Depth, typename... Args>
-consteval auto expand_format_full();
-
-template <fixed_string Fmt, int Depth, typename Tup, size_t... Is>
-consteval auto expand_format_full_apply(std::index_sequence<Is...>) {
-  return expand_format_full<Fmt, Depth, std::tuple_element_t<Is, Tup>...>();
-}
-
-template <fixed_string Fmt, int Depth, typename... Args>
-consteval auto expand_format_full() {
-  static_assert(Depth < 8,
-                "formatter expansion exceeded depth limit; check for cycles in formatter<T>");
-  if constexpr (all_primitive<Args...>()) {
-    return Fmt;
-  } else {
-    if constexpr (Depth == 0) {
-      static_assert(!any_positional<Fmt>(),
-                    "positional indices ({0}, {1}, ...) are not allowed in format strings "
-                    "that contain custom-formatter args; use auto-indexed {} placeholders");
-      static_assert(no_spec_on_custom<Fmt, 0, 0, std::decay_t<Args>...>(),
-                    "format spec ({:...}) on a custom-formatter arg is not supported");
-    }
-    constexpr auto Fmt2 = expand_format_one_round<Fmt, std::decay_t<Args>...>();
-    using NewTup = expand_args_round_t<std::decay_t<Args>...>;
-    return expand_format_full_apply<Fmt2, Depth + 1, NewTup>(
-        std::make_index_sequence<std::tuple_size_v<NewTup>>{});
-  }
-}
-
-// Runtime per-arg expansion: primitive → tuple{a}; formatter → its .values tuple.
-template <typename T>
-constexpr auto per_arg_expand_rt(T arg) {
-  if constexpr (sycl_printable<std::decay_t<T>>) {
-    return std::tuple<std::decay_t<T>>{arg};
-  } else {
-    return formatter<std::decay_t<T>>::format(arg).values;
-  }
-}
-
-// Runtime fixed-point: matches the type-level recursion of expand_format_full.
-template <typename... Args>
-constexpr auto expand_args_full_rt(Args... args) {
-  if constexpr (all_primitive<Args...>()) {
-    return std::tuple<std::decay_t<Args>...>{args...};
-  } else {
-    return std::apply([](auto... a) { return expand_args_full_rt(a...); },
-                      std::tuple_cat(per_arg_expand_rt(args)...));
-  }
+template <typename T> constexpr auto values_of(T arg) {
+  if constexpr (sycl_printable<T>) return std::tuple<T>{arg};
+  else return formatter<T>::format(arg).values;
 }
 
 // Forward to the public print<Fmt>(args...) by unpacking a tuple of expanded args.
@@ -2435,26 +2307,13 @@ template <detail::fixed_string Fmt, sycl_formattable... Args>
 inline void print(Args... args) {
   if constexpr ((detail::sycl_printable<std::decay_t<Args>> && ...)) {
     detail::validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(detail::flen(Fmt)));
-    if constexpr (sizeof...(Args) == 0) {
-      // No args — just emit the literal
-      constexpr size_t end = detail::flen(Fmt);
-      constexpr size_t out_sz = detail::literal_out_size<Fmt, 0, end>();
-      if constexpr (out_sz > 0) {
-        constexpr auto lit = detail::make_literal<Fmt, 0, end>();
-        detail::specifiers_path::emit_literal<lit>();
-      }
-    } else {
-      detail::specifiers_path::print<Fmt>(args...);
-    }
+    detail::specifiers_path::print<Fmt>(args...);
   } else {
-    // Formatter splicer — runs entirely at compile time, then forwards
-    // through the primitive path with the expanded format + flattened args.
-    // Validate first: a wrong argument count would otherwise fail deep in
-    // <tuple> while splicing.
+    // Splice the custom formatters in (compile time) and print the result;
+    // validated first so a bad index fails here, not inside the splicer.
     detail::validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(detail::flen(Fmt)));
-    constexpr auto Fmt2 =
-        detail::formatter_expand::expand_format_full<Fmt, 0, std::decay_t<Args>...>();
-    auto values = detail::formatter_expand::expand_args_full_rt(args...);
+    constexpr auto Fmt2 = detail::formatter_expand::splice_format<Fmt, std::decay_t<Args>...>();
+    auto values = std::tuple_cat(detail::formatter_expand::values_of(args)...);
     detail::formatter_expand::apply_print<Fmt2>(
         values, std::make_index_sequence<std::tuple_size_v<decltype(values)>>{});
   }
