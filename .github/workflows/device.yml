@@ -1,0 +1,59 @@
+name: device
+
+# Does it compile for every device? One job per supported GPU route in the
+# README table, building the full test suite. Compile and link only: there
+# is no GPU to run on.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  nvptx:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: clang CUDA
+            targets: build/test_main_cuda
+            make-args: USE_CUDA_CLANG=1
+          - name: clang OpenMP offload NVPTX -O0
+            targets: build/test_main_omp
+            make-args: USE_OMP_CLANG=1 OMP_OPT=-O0
+          - name: clang OpenMP offload NVPTX -O2
+            targets: build/test_main_omp
+            make-args: USE_OMP_CLANG=1 OMP_OPT=-O2
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-cuda
+      - name: Build
+        run: make -j$(nproc) CXX=clang++-20 ${{ matrix.make-args }} ${{ matrix.targets }}
+
+  intel:
+    # Ahead-of-time for PVC: icpx emits SPIR-V and ocloc (IGC) compiles it
+    # to the device's ISA at build time, so IGC's codegen is checked too.
+    name: ${{ matrix.name }} (AOT pvc)
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: icpx SYCL
+            targets: build build/readme1_sycl build/readme2_sycl
+            make-args: OPT_LEVELS="O0 O2"
+          - name: icpx OpenMP offload -O0
+            targets: build/test_main_omp
+            make-args: USE_OMP_ICPX=1 OMP_OPT=-O0
+          - name: icpx OpenMP offload -O2
+            targets: build/test_main_omp
+            make-args: USE_OMP_ICPX=1 OMP_OPT=-O2
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-oneapi
+      - name: Build
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          make -j$(nproc) CXX=icpx AOT_DEVICE=pvc ${{ matrix.make-args }} ${{ matrix.targets }}

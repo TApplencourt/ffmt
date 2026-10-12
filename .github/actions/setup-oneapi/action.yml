@@ -1,0 +1,23 @@
+name: setup-oneapi
+description: >
+  icpx from Intel's oneAPI apt repo, plus a current ocloc for
+  ahead-of-time builds. Steps using icpx must first
+  `source /opt/intel/oneapi/setvars.sh`.
+inputs:
+  oneapi-version:
+    description: oneAPI DPC++/C++ compiler version
+    default: '2025.2'
+runs:
+  using: composite
+  steps:
+    - name: Install icpx + ocloc
+      shell: bash
+      run: |
+        # ocloc from Intel's Ubuntu 24.04 graphics PPA: noble's own is
+        # 23.43, older than the SPIR-V current icpx emits.
+        wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+          | sudo tee /etc/apt/sources.list.d/oneAPI.list
+        sudo add-apt-repository -y ppa:kobuk-team/intel-graphics
+        sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-${{ inputs.oneapi-version }} intel-ocloc

@@ -87,7 +87,10 @@ else ifdef USE_OMP_ICPX
     CXX           := icpx
   endif
   OMP_OPT         ?= -O0
-  BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=spir64 $(OMP_OPT)
+  # AOT_DEVICE=pvc (any `ocloc -device` name): compile the SPIR-V to that
+  # device's ISA at build time, so IGC's codegen is checked without a GPU.
+  OMP_TARGETS     := $(if $(AOT_DEVICE),spir64_gen -Xopenmp-target-backend "-device $(AOT_DEVICE)",spir64)
+  BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=$(OMP_TARGETS) $(OMP_OPT)
   # Same SPIRV-O0 string-literal-through-pointer bug the SYCL path hits.
   ifeq ($(OMP_OPT),-O0)
     BACKEND_FLAGS += -DFFMT_SPIRV_O0
@@ -101,7 +104,8 @@ else
   ifeq ($(origin CXX),default)
     CXX           := icpx
   endif
-  BACKEND_FLAGS   := -fsycl
+  # AOT_DEVICE: see USE_OMP_ICPX above.
+  BACKEND_FLAGS   := -fsycl $(if $(AOT_DEVICE),-fsycl-targets=spir64_gen -Xsycl-target-backend "-device $(AOT_DEVICE)")
   OPT_LEVELS      := O0 O1 O2 O3
   BUFFER_PATH     :=
   # FFMT_SPIRV_O0 gates tests broken by an icpx-SYCL-on-SPIR64 bug at -O0:
