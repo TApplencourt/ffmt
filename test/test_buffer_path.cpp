@@ -103,6 +103,12 @@ SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:.3}]\n", "静夜思"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:.4}]\n", "静夜思"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:─^7}]\n", "😀"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>5}]\n", "\xff\xe2\x94"));
+// Overlong '/', a UTF-16 surrogate, and > U+10FFFF: each byte is invalid.
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xc0\xaf"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xed\xa0\x80"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xf4\x90\x80\x80"));
+// A spec with no width or precision: copied without measuring.
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:s}] [{:<}]\n", "静夜思", "hôpital"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>{}.{}}]\n", "静夜思", 8, 5));
 #undef _S
 

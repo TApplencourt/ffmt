@@ -973,23 +973,25 @@ FMT_HD constexpr int display_width_of(uint32_t cp) {
 
 inline constexpr uint32_t invalid_code_point = ~uint32_t(0);
 
-// Decode the UTF-8 code point at s into cp and return its byte length. Never
-// reads past a NUL. An invalid sequence (bad lead or tail byte, overlong,
-// surrogate, > U+10FFFF) is one byte with cp = invalid_code_point, which
-// {fmt} also counts as width 1.
+// Decode the multi-byte UTF-8 sequence at s (lead byte >= 0x80; callers
+// handle ASCII) into cp and return its byte length. Never reads past a NUL.
+// An invalid sequence (bad lead or tail byte, overlong, surrogate,
+// > U+10FFFF) is one byte with cp = invalid_code_point, which {fmt} also
+// counts as width 1. No lookup tables: on GPUs a runtime-indexed local
+// array can land in local memory.
 FMT_HD constexpr int utf8_decode(const char *s, uint32_t &cp) {
   auto b = [s](int k) { return static_cast<unsigned char>(s[k]); };
   unsigned char c = b(0);
-  int n = c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
+  int n = (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
   cp = invalid_code_point;
   if (n == 0) return 1;
-  uint32_t v = n == 1 ? c : c & (0x7f >> n);
+  uint32_t v = c & (0x7f >> n);
   for (int k = 1; k < n; k++) {
     if ((b(k) & 0xC0) != 0x80) return 1;
     v = (v << 6) | (b(k) & 0x3f);
   }
-  constexpr uint32_t mins[] = {0, 0, 0x80, 0x800, 0x10000};
-  if (v < mins[n] || (v >> 11) == 0x1b || v > 0x10FFFF) return 1;
+  uint32_t min = n == 2 ? 0x80 : n == 3 ? 0x800 : 0x10000; // shortest form
+  if (v < min || (v >> 11) == 0x1b || v > 0x10FFFF) return 1;
   cp = v;
   return n;
 }
@@ -1123,9 +1125,12 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
 
   // Nothing else in a spec is non-ASCII, so a non-ASCII byte here must start
   // a valid UTF-8 fill.
-  uint32_t cp = 0;
-  size_t n = i < e ? static_cast<size_t>(utf8_decode(data + i, cp)) : 0;
-  if (n && cp == invalid_code_point) consteval_error::invalid_format_spec();
+  size_t n = i < e ? 1 : 0;
+  if (n && static_cast<unsigned char>(data[i]) >= 0x80) {
+    uint32_t cp = 0;
+    n = static_cast<size_t>(utf8_decode(data + i, cp));
+    if (cp == invalid_code_point) consteval_error::invalid_format_spec();
+  }
   if (n && i + n < e && is_align_char(data[i + n])) {
     if (data[i] == '{' || data[i] == '}') consteval_error::invalid_format_spec();
     for (size_t k = 0; k < n; k++) s.fill.data[k] = data[i + k];
