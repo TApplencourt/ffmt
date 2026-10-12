@@ -189,7 +189,7 @@ this repo does exactly that for portability across icpx/gcc/clang.
 
 Two emit paths share the same front-end:
 
-- **Buffer path** (ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
+- **Buffer path** (plain host builds, ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
   output into a fixed-size buffer, then emits it with a single
   `printf("%s", buf)`. Supports the full `std::format` spec.
 - **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format

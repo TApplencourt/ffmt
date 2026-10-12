@@ -24,26 +24,18 @@
 // 0 = SPIRV path   (compile-time printf format string, emit via FFMT_EMIT_PRINTF
 //                   with live args). The SPIRV path only handles printf-compatible
 //                   specs; the buffer path handles the full feature set.
-// Default: buffer for AdaptiveCpp and clang-OpenMP-CUDA, SPIRV otherwise.
+// Default: SPIRV only for the SPIR-V backends (DPC++ / icpx -fsycl, and
+// icpx -fiopenmp -fopenmp-targets=spir64), whose printf needs a literal
+// format string; buffer everywhere else (host, AdaptiveCpp, clang-OpenMP
+// NVPTX, clang-CUDA).
 // User may #define before include to override (the host test rig does this
 // to exercise both paths through libc printf).
 #if !defined(FFMT_BUFFER_PATH)
-  #if FFMT_COMPILER_ACPP
-    #define FFMT_BUFFER_PATH 1
-  // clang OpenMP target offload to NVPTX: plain printf accepts our buffer
-  // verbatim, and we'd rather have full {:b}/{:^}/dragonbox spec coverage.
-  // icpx-OpenMP (also __clang__) goes via the SPIRV path below.
-  #elif defined(__clang__) && defined(_OPENMP) \
-        && !defined(__INTEL_LLVM_COMPILER) && !defined(SYCL_LANGUAGE_VERSION)
-    #define FFMT_BUFFER_PATH 1
-  // clang-CUDA (`clang++ -x cuda`). Same NVPTX device printf as the
-  // clang-OMP-CUDA path. nvcc / nvc++ also define __CUDACC__ but their
-  // device IR emit fails inside the print_string consteval ctor —
-  // unsupported in practice, see README support table.
-  #elif defined(__CUDACC__)
-    #define FFMT_BUFFER_PATH 1
-  #else
+  #if !FFMT_COMPILER_ACPP && (defined(SYCL_LANGUAGE_VERSION) \
+                              || (defined(__INTEL_LLVM_COMPILER) && defined(_OPENMP)))
     #define FFMT_BUFFER_PATH 0
+  #else
+    #define FFMT_BUFFER_PATH 1
   #endif
 #endif
 
