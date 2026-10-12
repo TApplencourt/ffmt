@@ -1,0 +1,19 @@
+name: setup-cuda
+description: >
+  The CUDA toolkit pieces clang needs to build for NVPTX: headers,
+  libdevice, ptxas, nvlink, cudart. Sets CUDA_PATH. No GPU or driver.
+inputs:
+  version:
+    description: CUDA toolkit version
+    default: '12.6.3'
+runs:
+  using: composite
+  steps:
+    - uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
+      with:
+        cuda: ${{ inputs.version }}
+        method: network
+        sub-packages: '["nvcc", "cudart-dev"]'
+        # clang's __clang_cuda_runtime_wrapper.h force-includes
+        # curand_mtgp32_kernel.h, even when cuRAND isn't used.
+        non-cuda-sub-packages: '["libcurand-dev"]'
