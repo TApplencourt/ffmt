@@ -846,14 +846,14 @@ struct placeholder_info {
   int index = -1; // -1 = auto ({}), >=0 = positional ({N})
 };
 
-// find_placeholder's result, with std::optional's bool/*/-> interface. Not
-// std::optional itself: libstdc++'s accessors assert through a host-only
-// function (__glibcxx_assert_fail), which clang-CUDA rejects in device code.
+// find_placeholder's result, used like std::optional (if (ph), ph->...).
+// Not std::optional itself: libstdc++'s accessors assert through a
+// host-only function (__glibcxx_assert_fail), which clang-CUDA rejects in
+// device code.
 struct found_placeholder {
-  placeholder_info info;
+  placeholder_info info; // default when !found
   bool found = false;
   constexpr explicit operator bool() const { return found; }
-  constexpr const placeholder_info &operator*() const { return info; }
   constexpr const placeholder_info *operator->() const { return &info; }
 };
 
@@ -1253,7 +1253,7 @@ consteval void validate_format(const char *s, int len) {
     if (s[i] != '{' && s[i] != '}') continue;
     if (i + 1 < len && s[i + 1] == s[i]) { i++; continue; } // "{{" or "}}"
     if (s[i] == '}') consteval_error::unmatched_closing_brace();
-    auto ph = *find_placeholder(s, len, i); // s[i] is an unescaped '{'
+    auto ph = find_placeholder(s, len, i).info; // s[i] is an unescaped '{'
     int close = static_cast<int>(ph.close);
     if (close >= len || s[close] != '}') consteval_error::invalid_placeholder();
     (ph.index < 0 ? automatic : manual) = true;
@@ -1314,7 +1314,7 @@ struct print_string {
     int auto_idx = 0;
     for (auto ph = find_placeholder(s, len, 0); ph;
          ph = find_placeholder(s, len, static_cast<int>(ph->close) + 1)) {
-      const placeholder_info &info = *ph;
+      const placeholder_info &info = ph.info;
       if (ph_count >= MAX_PH)
         consteval_error::too_many_placeholders_max_16();
       ph_entry &e = phs[ph_count++];
@@ -1500,8 +1500,8 @@ template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
   static constexpr auto ph =
       find_placeholder(Fmt.data, static_cast<int>(flen(Fmt)), static_cast<int>(Pos));
   static constexpr bool found = ph.found;
-  // ph.info is a default info when !found, which keeps the members below well
-  // formed; the walkers never use them then.
+  // A default info when !found keeps the members below well formed; the
+  // walkers never use them then.
   static constexpr placeholder_info info = ph.info;
   static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
   static constexpr format_spec spec =
