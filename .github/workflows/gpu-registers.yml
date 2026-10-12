@@ -20,8 +20,6 @@ jobs:
     env:
       # Pinned: register counts move with the compiler and ptxas versions.
       LLVM_VERSION: 20
-      CUDA_VERSION: 12-6
-      CUDA_PATH: /usr/local/cuda-12.6
       CUDA_ARCH: sm_80
       CXX: clang++-20
       # A file's max registers may grow by this much before failing; any
@@ -31,20 +29,17 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Install clang + CUDA (headers, libdevice, ptxas)
-        run: |
-          wget -q https://apt.llvm.org/llvm.sh
-          sudo bash llvm.sh "$LLVM_VERSION"
-          wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
-          sudo dpkg -i cuda-keyring_1.1-1_all.deb
-          sudo apt-get update
-          # libcurand-dev: clang's __clang_cuda_runtime_wrapper.h includes
-          # curand_mtgp32_kernel.h.
-          sudo apt-get install -y --no-install-recommends \
-            cuda-nvcc-$CUDA_VERSION cuda-cudart-dev-$CUDA_VERSION \
-            libcurand-dev-$CUDA_VERSION
-          $CXX --version | head -1
-          "$CUDA_PATH/bin/ptxas" --version | tail -1
+      - name: Install clang
+        run: wget -q https://apt.llvm.org/llvm.sh && sudo bash llvm.sh "$LLVM_VERSION"
+      - name: Install CUDA (headers, libdevice, ptxas; sets CUDA_PATH)
+        uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
+        with:
+          cuda: '12.6.3'
+          method: network
+          sub-packages: '["nvcc", "cudart-dev"]'
+          # clang's __clang_cuda_runtime_wrapper.h force-includes
+          # curand_mtgp32_kernel.h, even when cuRAND isn't used.
+          non-cuda-sub-packages: '["libcurand-dev"]'
       - name: Fetch {fmt}
         # Host side of the tests only; the same headers serve base and head.
         run: make third_party/fmt/include/fmt/format.h
