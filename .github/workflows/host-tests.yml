@@ -92,40 +92,34 @@ jobs:
         run: |
           git worktree add ../base ${{ steps.base.outputs.ref }}
           # Run `make coverage` (exists in every revision since coverage was
-          # added) just to produce the .profdata + cov_* binaries, then export
-          # JSON ourselves. Inlining this means CI doesn't break on revs that
-          # predate `coverage-json`.
+          # added) just to produce the cov_* binaries; the union script
+          # below runs and exports them itself, so it works on any rev.
           # `CXX=$CXX` on the command line is required: older revs used
           # `CXX := icpx`, which the env-supplied `CXX` doesn't override —
           # command-line assignments do.
           make -C ../base CXX=$CXX -j$(nproc) coverage
-          COV=$($CXX -print-prog-name=llvm-cov)
           # Coverage binary names have changed across revs (cov_dpc_all/
           # cov_acpp_all → cov_specifiers/cov_buffer). Glob and let the
-          # workflow be name-agnostic.
-          mapfile -t BINS < <(find ../base/build -maxdepth 1 -type f -executable -name 'cov_*')
-          OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
-          "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
-            -instr-profile=../base/build/coverage.profdata \
-            -sources ../base/include/ffmt/base.hpp -summary-only --format=text \
-            2>/dev/null > base.json
+          # workflow be name-agnostic. The script is this branch's copy, so
+          # base and head are measured the same way.
+          cd ../base
+          mapfile -t BINS < <(find build -maxdepth 1 -type f -executable -name 'cov_*')
+          python3 "$GITHUB_WORKSPACE/.github/scripts/coverage_union.py" \
+            "$($CXX -print-prog-name=llvm-cov)" "$($CXX -print-prog-name=llvm-profdata)" \
+            include/ffmt/base.hpp "${BINS[@]}" > "$GITHUB_WORKSPACE/base.json"
       - name: Coverage on this branch
         run: |
           make -j$(nproc) coverage
-          COV=$($CXX -print-prog-name=llvm-cov)
           mapfile -t BINS < <(find build -maxdepth 1 -type f -executable -name 'cov_*')
-          OBJ_ARGS=(); for b in "${BINS[@]:1}"; do OBJ_ARGS+=(-object "$b"); done
-          "$COV" export "${BINS[0]}" "${OBJ_ARGS[@]}" \
-            -instr-profile=build/coverage.profdata \
-            -sources include/ffmt/base.hpp -summary-only --format=text \
-            2>/dev/null > head.json
+          python3 .github/scripts/coverage_union.py \
+            "$($CXX -print-prog-name=llvm-cov)" "$($CXX -print-prog-name=llvm-profdata)" \
+            include/ffmt/base.hpp "${BINS[@]}" > head.json
       - name: Compare
         run: |
-          pct() { jq -r '.data[0].files[]
-                        | select(.filename | endswith("ffmt/base.hpp"))
-                        | .summary.regions.percent' "$1"; }
-          base=$(pct base.json)
-          head=$(pct head.json)
+          # Union over the coverage binaries (see coverage_union.py): a
+          # region counts as covered if either path's build covers it.
+          base=$(jq -r .percent base.json)
+          head=$(jq -r .percent head.json)
           printf 'Regions coverage — base: %.4f%%  head: %.4f%%\n' "$base" "$head"
           # 0.01pp slack: identical builds occasionally wobble at the 5th
           # decimal (rounding when the region count differs by an
