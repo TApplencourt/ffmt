@@ -13,19 +13,22 @@ on:
 
 jobs:
   nvptx:
-    name: ${{ matrix.name }}
+    name: ${{ matrix.name }} -- ${{ matrix.mode }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: clang CUDA
+            mode: compile and link
             targets: build/test_main_cuda examples
             make-args: USE_CUDA_CLANG=1
-          - name: clang OpenMP offload NVPTX -O0 (compile only)
+          - name: clang OpenMP offload NVPTX -O0
+            mode: compile only
             targets: compile-omp
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O0
-          - name: clang OpenMP offload NVPTX -O2 (compile only)
+          - name: clang OpenMP offload NVPTX -O2
+            mode: compile only
             targets: compile-omp
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O2
     steps:
@@ -37,19 +40,22 @@ jobs:
   intel:
     # Ahead-of-time for PVC: icpx emits SPIR-V and ocloc (IGC) compiles it
     # to the device's ISA at build time, so IGC's codegen is checked too.
-    name: ${{ matrix.name }} (AOT pvc)
+    name: ${{ matrix.name }} (AOT pvc) -- ${{ matrix.mode }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: icpx SYCL
+            mode: compile and link
             targets: build examples
             make-args: OPT_LEVELS="O0 O2"
           - name: icpx OpenMP offload -O0
+            mode: compile and link
             targets: build/test_main_omp examples
             make-args: USE_OMP_ICPX=1 OMP_OPT=-O0
           - name: icpx OpenMP offload -O2
+            mode: compile and link
             targets: build/test_main_omp examples
             make-args: USE_OMP_ICPX=1 OMP_OPT=-O2
     steps:
