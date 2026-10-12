@@ -202,4 +202,148 @@ RUN(PRINT("{:{}d}\n", 42, static_cast<unsigned>(8)));   // resolve_int_arg<unsig
 RUN(PRINT("{:{}d}\n", 42, static_cast<int8_t>(8)));     // resolve_int_arg<int8_t>
 RUN(PRINT("{:{}d}\n", 42, static_cast<uint8_t>(8)));    // resolve_int_arg<uint8_t>
 
+// ── Writes near the buffer cap ──────────────────────────────────────────────
+// Each case starts with 120 filler chars so the next write straddles the
+// 128-byte cap. Before the fix these wrote past fmt_buf::data (up to 23 bytes
+// for 64 binary digits) — invisible in the truncated output, so they only
+// fail under -fsanitize=address. Keep running the host suite with ASan.
+#define FILL120 "........................................................................................................................"
+RUN(PRINT("{}{:b}\n", FILL120, ~0ull));                       // write_uint_raw, base 2
+RUN(PRINT("{}{:o}\n", FILL120, ~0ull));                       // write_uint_raw, base 8
+RUN(PRINT("{}{:#X}\n", FILL120, ~0ull));                      // prefix + base 16
+RUN(PRINT("{}{}\n", FILL120, ~0ull));                         // write_arg_default
+RUN(PRINT("{}{}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
+RUN(PRINT("{}{:p}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
+RUN(PRINT("{}{:a}\n", FILL120, 1e300));                       // hex-float exponent digits
+RUN(PRINT("{}{}{}\n", FILL120, FILL120, 12345));              // already full
+// println keeps its '\n' even when the line is truncated; before the fix the
+// next "Test N" header was glued onto the truncated line.
+RUN(PRINTLN("{}{}", FILL120, FILL120));
+#undef FILL120
+
+// ── Null char* ──────────────────────────────────────────────────────────────
+// A null const char* is undefined in std::format/{fmt}; on a GPU it is an illegal
+// access. The buffer path prints glibc's "(null)" instead of faulting.
+#ifdef FFMT_STD_PATH
+RUN(printf("(null)\n"));
+RUN(printf("[    (null)]\n"));
+RUN(printf("[(nu]\n"));
+#else
+RUN(PRINT("{}\n", static_cast<const char*>(nullptr)));
+RUN(PRINT("[{:>10}]\n", static_cast<const char*>(nullptr)));
+RUN(PRINT("[{:.3}]\n", static_cast<const char*>(nullptr)));
+#endif
+
+// ── escape_percent_inplace (host-only unit test) ───────────────────────────
+// The ACPP device emit escapes % → %% in place. When the escaped text no
+// longer fits, it must keep the longest fitting prefix (never half of a %%
+// pair) and keep println's trailing '\n'. Before the fix the right-to-left
+// copy overran unread source bytes and the output came out as "%%%%…".
+#if !defined(_OPENMP) && !defined(__CUDACC__) && \
+    !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
+{
+  auto make_input = [](int n, bool nl) {
+    std::string in;
+    for (int i = 0; i < n; i++) in += (i % 10 == 9) ? '%' : char('a' + i % 10);
+    if (nl) in += '\n';
+    return in;
+  };
+  for (int n : {5, 100, 116, 117, 118, 128}) {
+    for (bool nl : {false, true}) {
+      std::string in = make_input(n, nl);
+#ifdef FFMT_STD_PATH
+      // Reference: escape char by char while the result fits in the cap.
+      std::string body = nl ? in.substr(0, in.size() - 1) : in, want;
+      for (char c : body) {
+        std::string e = (c == '%') ? "%%" : std::string(1, c);
+        if (want.size() + e.size() > FFMT_BUFFER_SIZE) break;
+        want += e;
+      }
+      if (nl) want += '\n';
+      RUN(printf("[%s]\n", want.c_str()));
+#else
+      ffmt::detail::fmt_buf b;
+      for (char c : in) b.data[b.len++] = c;
+      ffmt::detail::buffer_path::escape_percent_inplace(b);
+      b.data[b.len] = '\0';
+      RUN(printf("[%s]\n", b.data));
+#endif
+    }
+  }
+}
+#endif
+
+// ── Float formatting fixes ──────────────────────────────────────────────────
+// '+' on NaN. Buffer path only: on the specifiers path the sign of a NaN is
+// up to the printf implementation (glibc: "+nan", macOS libc: "nan").
+RUN(PRINT("[{:+}]\n", std::numeric_limits<float>::quiet_NaN()));
+
+// Hex float: precision rounds half up like {fmt} (and may carry into the
+// leading digit); '0' pads after the "0x".
+RUN(PRINT("{:.0a}\n", 1.5));
+RUN(PRINT("{:.0a}\n", 1.96875));
+RUN(PRINT("{:.1a}\n", 1.03125));
+RUN(PRINT("{:.1a}\n", 1.09375));
+RUN(PRINT("{:.3a}\n", 1.0 / 3.0));
+RUN(PRINT("{:.20a}\n", 1.0 / 3.0));
+RUN(PRINT("{:.2a}\n", 0.0));
+RUN(PRINT("{:#.0a}\n", 1.0));
+RUN(PRINT("{:.3A}\n", -0.1f));
+// Subnormal hex, where the standard libraries disagree with each other and
+// with {fmt}: a float is printed as the equivalent double.
+RUN(PRINT("{:a}\n", 1e-45f));                           // FLT_TRUE_MIN
+RUN(PRINT("{:a}\n", 4.9406564584124654e-324));         // DBL_TRUE_MIN
+RUN(PRINT("{:a}\n", 1.1754942e-38f));                   // largest float subnormal
+RUN(PRINT("{:a}\n", -2.2250738585072009e-308));        // largest double subnormal
+RUN(PRINT("{:.3a}\n", 4.9406564584124654e-324));
+RUN(PRINT("{:.1a}\n", 1.3e-44f));
+RUN(PRINT("[{:012a}]\n", -1.0));
+RUN(PRINT("[{:+012a}]\n", 1.0));
+// '0' is ignored for inf/nan.
+RUN(PRINT("[{:010}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010f}]\n", -std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010e}]\n", std::numeric_limits<double>::quiet_NaN()));
+// Huge dynamic precision: used to write ~1000 bytes past the buffer.
+RUN(PRINT("{:.{}f}\n", 1.5, 1000));
+RUN(PRINT("{:.{}e}\n", 1.0 / 3.0, 5000));
+RUN(PRINT("{:.{}g}\n", 0.1, 400));
+
+// ── Differential sweep against {fmt} (host only) ───────────────────────────
+// Deterministic pseudo-random doubles/floats (raw bit patterns, so every
+// exponent and subnormals are hit) plus short decimals that land on rounding
+// ties. Far denser than the hand-picked cases above; this is what would have
+// caught the >2^53 precision bugs.
+#if !defined(_OPENMP) && !defined(__CUDACC__) && \
+    !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
+{
+  uint64_t st = 0x9E3779B97F4A7C15ULL;
+  auto rnd = [&st]() { st ^= st << 13; st ^= st >> 7; st ^= st << 17; return st; };
+  auto finite_bits = [&]<typename F, typename Bits>(size_t n) { // random finite F
+    std::vector<F> v;
+    while (v.size() < n)
+      if (F x = __builtin_bit_cast(F, static_cast<Bits>(rnd())); x - x == 0) v.push_back(x);
+    return v;
+  };
+  auto dv = finite_bits.operator()<double, uint64_t>(400);
+  auto fv = finite_bits.operator()<float, uint32_t>(300);
+  for (int i = 0; i < 200; i++) {                       // k / 10^j and k / 2^j
+    double k = static_cast<double>(rnd() % 100000);
+    dv.push_back(k / std::pow(10.0, static_cast<double>(rnd() % 8)));
+    dv.push_back(std::ldexp(k + 0.5, -static_cast<int>(rnd() % 12)));
+  }
+#define SWEEP(vec, fmt) RUN(for (auto v : vec) PRINT(fmt "\n", v))
+  SWEEP(dv, "{}");      SWEEP(dv, "{:f}");    SWEEP(dv, "{:.0f}");
+  SWEEP(dv, "{:.3f}");  SWEEP(dv, "{:.17f}"); SWEEP(dv, "{:e}");
+  SWEEP(dv, "{:.0e}");  SWEEP(dv, "{:.16e}"); SWEEP(dv, "{:.30e}");
+  SWEEP(dv, "{:g}");    SWEEP(dv, "{:.1g}");  SWEEP(dv, "{:.17g}");
+  SWEEP(dv, "{:#g}");   SWEEP(dv, "{:a}");    SWEEP(dv, "{:.0a}");
+  SWEEP(dv, "{:.5a}");  SWEEP(dv, "{:#.3a}"); SWEEP(dv, "{:+15}");
+  SWEEP(dv, "{:#}");    SWEEP(dv, "{:.5}");
+  SWEEP(fv, "{}");      SWEEP(fv, "{:12}");   SWEEP(fv, "{:e}");
+  SWEEP(fv, "{:.10f}"); SWEEP(fv, "{:g}");    SWEEP(fv, "{:a}");
+  SWEEP(fv, "{:.2a}");  SWEEP(fv, "{:#}");
+#undef SWEEP
+}
+#endif
+
 #endif

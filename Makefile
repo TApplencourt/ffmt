@@ -10,6 +10,19 @@ CXXFLAGS := -std=c++20 -Wall -Werror -fno-fast-math -Iinclude
 # flags above (e.g. EXTRA_CXXFLAGS="-fsanitize=address,undefined").
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 
+# Nanosecond clock for the per-test timings. Not `date +%s%N`: BSD/macOS
+# date may not support %N.
+NOW_NS := perl -MTime::HiRes=time -e 'printf("%d\n", time() * 1e9)'
+
+# Test reference: {fmt}, pinned so every machine diffs against the same
+# output (the system std::format varies: libc++ and libstdc++ disagree on
+# some corners). Point FMT_DIR at an existing checkout to skip the fetch.
+FMT_REPO ?= https://github.com/fmtlib/fmt.git
+FMT_REF  ?= 35c58f084e7cd79b51997439cff68346f4c724c0
+FMT_DIR  ?= third_party/fmt
+FMT_HDR  := $(FMT_DIR)/include/fmt/format.h
+CXXFLAGS += -isystem $(FMT_DIR)/include -DFMT_HEADER_ONLY
+
 # Opt level for host build (test-host + coverage). Overridable from CI
 # so the matrix can exercise -O0 / -O2 (or -O3, etc.). Don't put this
 # in CXXFLAGS — the SYCL build has its own per-test opt loop.
@@ -113,7 +126,7 @@ ALL_BINS := $(TEST_BINS)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-omp test-cuda readme-examples test-host test-negative coverage clean
+.PHONY: all build test test-format test-omp test-cuda readme-examples test-host test-fast-math test-negative coverage clean
 
 # USE_OMP_CLANG / USE_OMP_ICPX / USE_CUDA_CLANG share the SYCL header but
 # not the SYCL examples (those `#include <sycl/sycl.hpp>`). Default to the
@@ -129,13 +142,32 @@ endif
 
 # ── Build directory ─────────────────────────────────────────
 
-build/:
+# Order-only prereq is a stamp file, not `build/`: GNU Make 3.81 (the
+# macOS default) strips the trailing slash and resolves `build/` to the
+# phony `build` target below, dragging every SYCL binary into test-host.
+build/.dir:
 	mkdir -p build
+	touch $@
+
+# Rewritten only when the compiler or flags change, and a prerequisite of
+# every test binary: `CXX=g++ make ...` after `CXX=icpx make ...` (or another
+# HOST_OPT / EXTRA_CXXFLAGS) rebuilds instead of silently rerunning the old
+# binaries.
+FLAGS_STAMP := build/.flags
+FLAGS_NOW = $(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $(HOST_OPT) $(OMP_OPT)
+$(FLAGS_STAMP): FORCE | build/.dir
+	@echo '$(FLAGS_NOW)' | cmp -s - $@ || echo '$(FLAGS_NOW)' > $@
+.PHONY: FORCE
+FORCE:
+
+$(FMT_HDR):
+	git clone --quiet $(FMT_REPO) $(FMT_DIR)
+	git -C $(FMT_DIR) checkout --quiet $(FMT_REF)
 
 # ── Test binaries (one binary per test × opt level) ─────────
 
 define TEST_template
-build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp | build/
+build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
 	@TIMEFORMAT="  compile test_$(1)_$(2): %Rs"; time \
 	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
@@ -145,15 +177,15 @@ $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,
 
 # README examples (SYCL-only — they #include <sycl/sycl.hpp>; skipped
 # under USE_OMP_CLANG / USE_OMP_ICPX where BACKEND_FLAGS is OMP-only).
-build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp | build/
+build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
 	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
 
 readme-examples: build/readme1_sycl build/readme2_sycl
-	@t0=$$(date +%s%N); \
+	@t0=$$($(NOW_NS)); \
 	./build/readme1_sycl >/dev/null && ./build/readme2_sycl >/dev/null; rc=$$?; \
-	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "readme-examples: PASS ($${ms}ms)"; \
 	else echo "readme-examples: FAIL ($${ms}ms)"; false; fi
 
@@ -170,9 +202,9 @@ test-format: $(TEST_BINS)
 	@fail=0; \
 	for t in $(TEST_NAMES); do \
 	  for opt in $(OPT_LEVELS); do \
-	    t0=$$(date +%s%N); \
+	    t0=$$($(NOW_NS)); \
 	    ./build/test_$${t}_$$opt; rc=$$?; \
-	    ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	    ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	    if [ $$rc -eq 0 ]; then echo "test_$$t -$$opt: PASS ($${ms}ms)"; \
 	    else echo "test_$$t -$$opt: FAIL ($${ms}ms)"; fail=1; fi; \
 	  done; \
@@ -184,30 +216,40 @@ test-format: $(TEST_BINS)
 # compiled THREE times, all of which must fail to compile:
 #   FFMT_BUFFER_PATH=0  → ffmt specifiers path
 #   FFMT_BUFFER_PATH=1  → ffmt buffer path
-#   NEG_CHECK_STD       → std::format (C++20: basic_format_string ctor is
-#                         consteval and rejects ill-formed strings there).
-# The std::format build guards against "wrong" negative tests: a
-# restriction we invent that std::format would actually accept.
-NEG_SRCS := $(wildcard $(TEST_DIR)/negative/*.cpp)
+#   NEG_CHECK_FMT       → fmt::format (checks format strings at compile time
+#                         in C++20).
+# The {fmt} build guards against "wrong" negative tests: a restriction we
+# invent that {fmt}, our output reference, would actually accept.
+# test/negative/control/accept_valid.cpp must instead compile in every
+# variant, and each test must compile with -DNEG_SYNTAX_CHECK (the format
+# call reduced to its arguments) — otherwise a broken harness or a typo in a
+# test would make it "pass".
+NEG_NAMES := $(basename $(notdir $(wildcard $(TEST_DIR)/negative/*.cpp)))
+NEG_CONTROL := $(TEST_DIR)/negative/control/accept_valid.cpp
+NEG_FLAGS_specifiers := -DFFMT_BUFFER_PATH=0
+NEG_FLAGS_buffer     := -DFFMT_BUFFER_PATH=1
+NEG_FLAGS_fmt        := -DNEG_CHECK_FMT
 
-test-negative:
-	@fail=0; \
-	for src in $(NEG_SRCS); do \
-	  name=$$(basename $$src .cpp); \
-	  for variant in specifiers buffer std; do \
-	    case $$variant in \
-	      specifiers) flags="-DFFMT_BUFFER_PATH=0";; \
-	      buffer)     flags="-DFFMT_BUFFER_PATH=1";; \
-	      std)        flags="-DNEG_CHECK_STD";; \
-	    esac; \
-	    t0=$$(date +%s%N); \
-	    $(CXX) $(CXXFLAGS) $$flags -c $$src -o /dev/null >/dev/null 2>&1; rc=$$?; \
-	    ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
-	    if [ $$rc -ne 0 ]; then echo "negative/$$name [$$variant]: PASS ($${ms}ms — compile rejected)"; \
-	    else echo "negative/$$name [$$variant]: FAIL ($${ms}ms — compile unexpectedly succeeded)"; fail=1; fi; \
-	  done; \
-	done; \
-	exit $$fail
+# One make target per compile, so `make -j test-negative` runs them in
+# parallel. They are never files, so they always run.
+neg-control/%: $(FMT_HDR)
+	@if $(CXX) $(CXXFLAGS) $(NEG_FLAGS_$*) -c $(NEG_CONTROL) -o /dev/null; then \
+	  echo "negative/control [$*]: PASS (valid call compiles)"; \
+	else echo "negative/control [$*]: FAIL (harness cannot compile a valid call)"; exit 1; fi
+
+define NEG_template
+neg/$(1)/syntax: $(FMT_HDR)
+	@$$(CXX) $$(CXXFLAGS) -DNEG_SYNTAX_CHECK -c $(TEST_DIR)/negative/$(1).cpp -o /dev/null || \
+	  { echo "negative/$(1): FAIL (the test file itself does not compile)"; exit 1; }
+neg/$(1)/%: neg/$(1)/syntax
+	@if $$(CXX) $$(CXXFLAGS) $$(NEG_FLAGS_$$*) -c $(TEST_DIR)/negative/$(1).cpp -o /dev/null >/dev/null 2>&1; then \
+	  echo "negative/$(1) [$$*]: FAIL (compile unexpectedly succeeded)"; exit 1; \
+	else echo "negative/$(1) [$$*]: PASS (compile rejected)"; fi
+endef
+$(foreach n,$(NEG_NAMES),$(eval $(call NEG_template,$(n))))
+
+test-negative: $(foreach v,specifiers buffer fmt,neg-control/$(v)) \
+               $(foreach n,$(NEG_NAMES),$(foreach v,specifiers buffer fmt,neg/$(n)/$(v)))
 
 # ── OMP test rig (opt-in: USE_OMP_CLANG=1 or USE_OMP_ICPX=1) ──────
 # Builds test_main_omp + per-test sources into one binary, then runs
@@ -226,7 +268,7 @@ ifdef USE_OMP_ICPX
 endif
 
 build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) | build/
+                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
@@ -234,9 +276,9 @@ build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/bas
 	  $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp)
 
 test-omp: build/test_main_omp
-	@t0=$$(date +%s%N); \
+	@t0=$$($(NOW_NS)); \
 	./build/test_main_omp; rc=$$?; \
-	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "test_main_omp: PASS ($${ms}ms)"; \
 	else echo "test_main_omp: FAIL ($${ms}ms)"; false; fi
 
@@ -248,7 +290,7 @@ test-omp: build/test_main_omp
 TEST_NAMES_CUDA := integers floats strings layout misc formatter buffer_path
 
 build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) | build/
+                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_cuda: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
@@ -256,9 +298,9 @@ build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/ba
 	  $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp)
 
 test-cuda: build/test_main_cuda
-	@t0=$$(date +%s%N); \
+	@t0=$$($(NOW_NS)); \
 	./build/test_main_cuda; rc=$$?; \
-	ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "test_main_cuda: PASS ($${ms}ms)"; \
 	else echo "test_main_cuda: FAIL ($${ms}ms)"; false; fi
 
@@ -282,16 +324,16 @@ define HOST_TEMPLATE
 $(1)_OBJS_SPECIFIERS := $$(foreach t,$$(COV_TESTS),build/$(1)_specifiers_$$(t).o)
 $(1)_OBJS_BUFFER     := $$(foreach t,$$(COV_TESTS) $$(COV_TESTS_BUFFER_ONLY),build/$(1)_buffer_$$(t).o)
 
-build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+build/$(1)_specifiers_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp | build/
+build/$(1)_buffer_%.o: $$(TEST_DIR)/test_%.cpp $$(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 -DTEST_NO_MAIN $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=0 $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp | build/
+build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
 
 build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
@@ -306,11 +348,28 @@ $(eval $(call HOST_TEMPLATE,test_main_host,))
 test-host: build/test_main_host_specifiers build/test_main_host_buffer
 	@fail=0; \
 	for variant in specifiers buffer; do \
-	  t0=$$(date +%s%N); \
+	  t0=$$($(NOW_NS)); \
 	  ./build/test_main_host_$$variant; rc=$$?; \
-	  ms=$$(( ($$(date +%s%N) - t0) / 1000000 )); \
+	  ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	  if [ $$rc -eq 0 ]; then echo "test_main_host_$$variant: PASS ($${ms}ms)"; \
 	  else echo "test_main_host_$$variant: FAIL ($${ms}ms)"; fail=1; fi; \
+	done; \
+	exit $$fail
+
+# ── Host tests under -ffast-math ──
+# DAZ (denormals-are-zero, on by default with icpx and with -ffast-math on
+# x86) makes a subnormal compare equal to 0.0. test_fast_math.cpp checks
+# that subnormals still print exactly on both paths.
+FAST_MATH_CXXFLAGS := $(filter-out -fno-fast-math,$(CXXFLAGS)) -ffast-math
+
+build/test_fast_math_%: $(TEST_DIR)/test_fast_math.cpp $(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+	$(CXX) $(FAST_MATH_CXXFLAGS) -DFFMT_BUFFER_PATH=$(if $(filter buffer,$*),1,0) $(HOST_OPT) $< -o $@
+
+test-fast-math: build/test_fast_math_specifiers build/test_fast_math_buffer
+	@fail=0; \
+	for variant in specifiers buffer; do \
+	  if ./build/test_fast_math_$$variant; then echo "test_fast_math_$$variant: PASS"; \
+	  else echo "test_fast_math_$$variant: FAIL"; fail=1; fi; \
 	done; \
 	exit $$fail
 

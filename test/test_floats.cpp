@@ -199,4 +199,88 @@ RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
 #endif
 
 
+// ── Exact digits beyond 2^53 ────────────────────────────────────────────────
+// The buffer path used to compute round(val·10^prec) in a double/uint64,
+// which is exact only while that product stays below 2^53: {:f} of 1e15
+// printed "0.000000" and {:.20f} of 0.1 lost its trailing "555". Every case
+// here has val·10^prec >= 2^53 (or a hard rounding tie) and compares against
+// std::format's exact digits.
+RUN(PRINT("{:f}\n", 1e15));
+RUN(PRINT("{:f}\n", 1e22));
+RUN(PRINT("{:f}\n", 123456789012345678.0));
+RUN(PRINT("{:.3f}\n", 9007199254740993.0));             // 2^53 + 1 → rounds to even
+RUN(PRINT("{:.20f}\n", 0.1));
+RUN(PRINT("{:.30f}\n", 1.0 / 3.0));
+RUN(PRINT("{:.17f}\n", 0.30000000000000004));
+RUN(PRINT("{:.10f}\n", 1e-5));
+RUN(PRINT("{:.60f}\n", 5e-60));
+RUN(PRINT("{:f}\n", 1.7976931348623157e308));          // 309 integer digits
+RUN(PRINT("{:.17e}\n", 0.1));
+RUN(PRINT("{:.20e}\n", 1e23));                          // 1e23 is not a double
+RUN(PRINT("{:.16e}\n", 2.2250738585072014e-308));       // DBL_MIN
+RUN(PRINT("{:e}\n", 4.9406564584124654e-324));         // smallest subnormal
+RUN(PRINT("{:.25g}\n", 1e24));
+RUN(PRINT("{:.17g}\n", 0.1));
+RUN(PRINT("{:.40g}\n", 1.0 / 3.0));
+RUN(PRINT("{:g}\n", 1.7976931348623157e308));
+// Round half to even on exact binary ties, and carries that change the
+// exponent or add an integer digit.
+RUN(PRINT("{:.1f}\n", 0.25));
+RUN(PRINT("{:.1f}\n", 0.35));                           // 0.35 is just below the tie
+RUN(PRINT("{:.2f}\n", 1.125));
+RUN(PRINT("{:.0f}\n", 3.5));
+RUN(PRINT("{:.0f}\n", 1e16 + 2));
+RUN(PRINT("{:.2f}\n", 999.996));
+RUN(PRINT("{:.0e}\n", 9.5));
+RUN(PRINT("{:.3e}\n", 9.9995));
+RUN(PRINT("{:.2e}\n", 1.125e10));
+RUN(PRINT("{:g}\n", 9.9999995));
+RUN(PRINT("{:g}\n", 999999.5));
+RUN(PRINT("{:g}\n", 0.000099999995));
+RUN(PRINT("{:.3g}\n", 0.00009995));
+// Precision on float args: digits come from the float's exact value.
+RUN(PRINT("{:.10f}\n", 0.1f));
+RUN(PRINT("{:.12e}\n", 3.14159f));
+RUN(PRINT("{:f}\n", 3.4028234663852886e38f));          // FLT_MAX
+
+
+
+// A float with no type ("{}", "{:10}", "{:#}") gets {fmt}'s shortest form on
+// the buffer path. On the specifiers path it prints like {:g}: printf has no
+// shortest conversion and Intel GPU printf supports neither `*` widths nor %s
+// on computed strings (README, Backend differences). Where the two differ the
+// specifiers path is checked against a fixed value instead of {fmt}.
+#if FFMT_BUFFER_PATH || !defined(FFMT_STD_PATH)
+#define OR_ON_SPECIFIERS(g_out, fmt_str, v) PRINT(fmt_str, v)
+#else
+#define OR_ON_SPECIFIERS(g_out, fmt_str, v) printf("%s\n", g_out)
+#endif
+RUN(OR_ON_SPECIFIERS("1.15292e+18", "{}\n", 1152921504606846976.0));
+RUN(OR_ON_SPECIFIERS("1.23457e+17", "{}\n", 123456789012345678.0));
+RUN(OR_ON_SPECIFIERS("9.22337e+18", "{}\n", 9.223372036854775807e18));
+RUN(OR_ON_SPECIFIERS("4.72237e+21", "{}\n", 4.722366482869645e21));
+RUN(OR_ON_SPECIFIERS("-1.07431e+12", "{}\n", -1074311135232.0f));
+RUN(OR_ON_SPECIFIERS("1.07374e+09", "{}\n", 16777217.0f * 64));
+RUN(OR_ON_SPECIFIERS("1.23457e+06", "{}\n", 1234567.0));
+RUN(PRINT("{}\n", 1e16));
+RUN(OR_ON_SPECIFIERS("1.23457e+07", "{}\n", 12345678.0f));
+RUN(OR_ON_SPECIFIERS("[     3.14159]", "[{:12}]\n", 3.14159265));
+RUN(PRINT("[{:<12}]\n", 0.1));
+RUN(PRINT("[{:+}]\n", 1e100));
+RUN(PRINT("[{:012}]\n", -2.5e-7));
+RUN(PRINT("[{:10}]\n", 0.1f));
+RUN(OR_ON_SPECIFIERS("[1.00000]", "[{:#}]\n", 1.0));
+RUN(OR_ON_SPECIFIERS("[1.00000e+20]", "[{:#}]\n", 1e20));
+RUN(OR_ON_SPECIFIERS("[0.500000]", "[{:#}]\n", 0.5));
+RUN(PRINT("[{:>12}]\n", -0.0));
+RUN(PRINT("[{:<+10}]\n", 1.5e-300));
+RUN(OR_ON_SPECIFIERS("[1.00000e-07]", "[{:#}]\n", 1e-7f));
+RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
+#undef OR_ON_SPECIFIERS
+
+// Precision above 127 (stored in 8 bits, it wrapped negative).
+RUN(PRINT("{:.200f}\n", 0.1));
+RUN(PRINT("{:.150e}\n", 1.0 / 3.0));
+
 #endif
