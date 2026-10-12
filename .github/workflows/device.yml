@@ -1,8 +1,9 @@
 name: device
 
-# Does it compile for every device? One job per supported GPU route in the
-# README table, building the full test suite. Compile and link only: there
-# is no GPU to run on.
+# Does it compile for every device, and what does it cost there? One build
+# job per supported GPU route in the README table, building the full test
+# suite (compile and link only: there is no GPU to run on), then the CUDA
+# register report.
 
 on:
   push:
@@ -57,3 +58,63 @@ jobs:
         run: |
           source /opt/intel/oneapi/setvars.sh
           make -j$(nproc) CXX=icpx AOT_DEVICE=pvc ${{ matrix.make-args }} ${{ matrix.targets }}
+
+  registers:
+    # What does it cost on the GPU? Register / spill / stack usage of every
+    # CUDA test kernel, compared with the base. ptxas does the register
+    # allocation at compile time and reports per kernel; see
+    # .github/scripts/register_report.py. After nvptx, so a compile error is
+    # reported once, by the build.
+    name: CUDA registers non-regression
+    needs: nvptx
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash # -eo pipefail, so `| tee` keeps the script's exit code
+    env:
+      # Pinned through setup-cuda: register counts move with the compiler
+      # and ptxas versions.
+      CXX: clang++-20
+      CUDA_ARCH: sm_80
+      # A file's max registers may grow by this much before failing; any
+      # growth in spill bytes fails.
+      REG_SLACK_PCT: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-cuda
+      - name: Fetch {fmt}
+        # Host side of the tests only; the same headers serve base and head.
+        run: make third_party/fmt/include/fmt/format.h
+      - name: Pick base ref
+        id: base
+        run: |
+          # Same rule as the coverage job: PRs compare against the merge base,
+          # pushes against origin/main.
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            echo "ref=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Measure this branch
+        run: |
+          FMT_INCLUDE=$PWD/third_party/fmt/include \
+            python3 .github/scripts/register_report.py measure . head.json
+      - name: Measure base
+        run: |
+          git worktree add ../base ${{ steps.base.outputs.ref }}
+          FMT_INCLUDE=$PWD/third_party/fmt/include \
+            python3 .github/scripts/register_report.py measure ../base base.json
+      - name: Compare
+        run: |
+          python3 .github/scripts/register_report.py compare base.json head.json \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Upload measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuda-registers
+          path: |
+            base.json
+            head.json
