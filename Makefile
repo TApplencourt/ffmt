@@ -326,15 +326,18 @@ test-omp: build/test_main_omp
 
 # Compile only, no link: every OpenMP test source and example, same flags
 # as build/test_main_omp. Device CI uses it for clang OpenMP NVPTX, since
-# apt.llvm.org ships no NVPTX OpenMP device runtime to link against.
+# apt.llvm.org ships no NVPTX OpenMP device runtime. clang also links that
+# runtime's bitcode (libomptarget-nvptx.bc) into the device code at compile
+# time; -nogpulib skips it, leaving its calls unresolved for the link.
 COMPILE_OMP := $(foreach t,main_omp $(TEST_NAMES_OMP),build/omp_$(t).o) \
                build/readme1_omp.o build/readme2_omp.o
+COMPILE_OMP_FLAGS := $(if $(USE_OMP_CLANG),-nogpulib)
 
 build/omp_%.o: $(TEST_DIR)/test_%.cpp $(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
-	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $(COMPILE_OMP_FLAGS) -DTEST_NO_MAIN -c $< -o $@
 
 build/readme%_omp.o: examples/readme%_omp.cpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir
-	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $(COMPILE_OMP_FLAGS) -c $< -o $@
 
 compile-omp: $(COMPILE_OMP)
 
