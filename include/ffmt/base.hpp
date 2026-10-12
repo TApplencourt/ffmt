@@ -846,6 +846,17 @@ struct placeholder_info {
   int index = -1; // -1 = auto ({}), >=0 = positional ({N})
 };
 
+// find_placeholder's result, with std::optional's bool/*/-> interface. Not
+// std::optional itself: libstdc++'s accessors assert through a host-only
+// function (__glibcxx_assert_fail), which clang-CUDA rejects in device code.
+struct found_placeholder {
+  placeholder_info info;
+  bool found = false;
+  constexpr explicit operator bool() const { return found; }
+  constexpr const placeholder_info &operator*() const { return info; }
+  constexpr const placeholder_info *operator->() const { return &info; }
+};
+
 // ============================================================
 // Literal segment: unescape {{ → {, }} → } (and optionally % → %%)
 // ============================================================
@@ -1007,18 +1018,20 @@ constexpr bool is_float_format(char c) {
 // the old `throw "literal"` pattern (all our messages were static strings
 // anyway) but doesn't require -fcxx-exceptions — matters under e.g.
 // -fopenmp-targets=spir64 which disables exceptions on the device side.
+// FMT_HD: these are reached (at compile time only) from code that also runs
+// on the device, and clang-CUDA rejects references to host functions there.
 namespace consteval_error {
-[[noreturn]] void too_many_placeholders_max_16();
-[[noreturn]] void format_argument_index_out_of_range();
-[[noreturn]] void dynamic_width_argument_index_out_of_range();
-[[noreturn]] void dynamic_precision_argument_index_out_of_range();
-[[noreturn]] void format_spec_type_incompatible_with_argument_type();
-[[noreturn]] void invalid_format_spec();
-[[noreturn]] void invalid_placeholder();
-[[noreturn]] void unmatched_closing_brace();
-[[noreturn]] void cannot_mix_automatic_and_manual_indexing();
-[[noreturn]] void width_or_precision_above_32767();
-[[noreturn]] void dynamic_width_or_precision_must_be_an_integer();
+[[noreturn]] FMT_HD void too_many_placeholders_max_16();
+[[noreturn]] FMT_HD void format_argument_index_out_of_range();
+[[noreturn]] FMT_HD void dynamic_width_argument_index_out_of_range();
+[[noreturn]] FMT_HD void dynamic_precision_argument_index_out_of_range();
+[[noreturn]] FMT_HD void format_spec_type_incompatible_with_argument_type();
+[[noreturn]] FMT_HD void invalid_format_spec();
+[[noreturn]] FMT_HD void invalid_placeholder();
+[[noreturn]] FMT_HD void unmatched_closing_brace();
+[[noreturn]] FMT_HD void cannot_mix_automatic_and_manual_indexing();
+[[noreturn]] FMT_HD void width_or_precision_above_32767();
+[[noreturn]] FMT_HD void dynamic_width_or_precision_must_be_an_integer();
 }
 
 // Fill: one UTF-8 code point (1-4 bytes), as in {fmt}'s "{:─^9}".
@@ -1066,7 +1079,7 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
 // of custom formatters on the buffer path.
 
 // Find the first {} or {:spec} or {N} or {N:spec} placeholder in s[from..len).
-constexpr std::optional<placeholder_info> find_placeholder(const char *s, int len, int from) {
+constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
   int i = from;
   while (i < len) {
     if (s[i] == '{') {
@@ -1095,8 +1108,9 @@ constexpr std::optional<placeholder_info> find_placeholder(const char *s, int le
       }
       int close = j;
       if (!has_spec) spec_beg = close;
-      return placeholder_info{static_cast<size_t>(i), static_cast<size_t>(close),
-                              static_cast<size_t>(spec_beg), has_spec, index};
+      return {placeholder_info{static_cast<size_t>(i), static_cast<size_t>(close),
+                               static_cast<size_t>(spec_beg), has_spec, index},
+              true};
     } else if (s[i] == '}') {
       if (i + 1 < len && s[i + 1] == '}') { i += 2; continue; }
       i++;
@@ -1104,7 +1118,7 @@ constexpr std::optional<placeholder_info> find_placeholder(const char *s, int le
       i++;
     }
   }
-  return std::nullopt;
+  return {};
 }
 
 // Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
@@ -1485,10 +1499,10 @@ template <typename U, format_spec Spec> struct conversion {
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
   static constexpr auto ph =
       find_placeholder(Fmt.data, static_cast<int>(flen(Fmt)), static_cast<int>(Pos));
-  static constexpr bool found = ph.has_value();
-  // A default info when !found keeps the members below well formed; the
-  // walkers never use them then.
-  static constexpr placeholder_info info = ph.value_or(placeholder_info{});
+  static constexpr bool found = ph.found;
+  // ph.info is a default info when !found, which keeps the members below well
+  // formed; the walkers never use them then.
+  static constexpr placeholder_info info = ph.info;
   static constexpr size_t index = info.index < 0 ? AutoIdx : static_cast<size_t>(info.index);
   static constexpr format_spec spec =
       parse_spec(Fmt.data, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
