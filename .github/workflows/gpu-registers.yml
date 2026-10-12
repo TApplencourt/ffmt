@@ -53,15 +53,17 @@ jobs:
           else
             echo "ref=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
           fi
+      # This branch first: its compile errors are the ones that matter, and
+      # they show even when the base doesn't compile.
+      - name: Measure this branch
+        run: |
+          FMT_INCLUDE=$PWD/third_party/fmt/include \
+            python3 .github/scripts/register_report.py measure . head.json
       - name: Measure base
         run: |
           git worktree add ../base ${{ steps.base.outputs.ref }}
           FMT_INCLUDE=$PWD/third_party/fmt/include \
             python3 .github/scripts/register_report.py measure ../base base.json
-      - name: Measure this branch
-        run: |
-          FMT_INCLUDE=$PWD/third_party/fmt/include \
-            python3 .github/scripts/register_report.py measure . head.json
       - name: Compare
         run: |
           python3 .github/scripts/register_report.py compare base.json head.json \
