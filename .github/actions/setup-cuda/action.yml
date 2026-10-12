@@ -6,7 +6,7 @@ description: >
 inputs:
   llvm-version:
     description: clang major version; the compiler is clang++-<version>
-    default: '20'
+    default: '22' # first release that fully supports CUDA 12.6 (up to 12.8)
   cuda-version:
     description: CUDA toolkit version
     default: '12.6.3'

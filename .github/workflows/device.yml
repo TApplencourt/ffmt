@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-cuda
       - name: Build
-        run: make -j$(nproc) CXX=clang++-20 ${{ matrix.make-args }} ${{ matrix.targets }}
+        run: make -j$(nproc) CXX=clang++-22 ${{ matrix.make-args }} ${{ matrix.targets }}
 
   intel:
     # Ahead-of-time for PVC: icpx emits SPIR-V and ocloc (IGC) compiles it
