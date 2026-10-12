@@ -38,8 +38,11 @@ jobs:
           wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update
+          # curand-dev: clang's __clang_cuda_runtime_wrapper.h includes
+          # curand_mtgp32_kernel.h.
           sudo apt-get install -y --no-install-recommends \
-            cuda-nvcc-$CUDA_VERSION cuda-cudart-dev-$CUDA_VERSION
+            cuda-nvcc-$CUDA_VERSION cuda-cudart-dev-$CUDA_VERSION \
+            cuda-curand-dev-$CUDA_VERSION
           $CXX --version | head -1
           "$CUDA_PATH/bin/ptxas" --version | tail -1
       - name: Fetch {fmt}
