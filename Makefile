@@ -140,7 +140,7 @@ ALL_BINS := $(TEST_BINS)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-omp test-cuda examples readme-examples test-host test-fast-math test-negative coverage clean
+.PHONY: all build test test-format test-omp compile-omp test-cuda examples readme-examples test-host test-fast-math test-negative coverage clean
 
 # USE_OMP_CLANG / USE_OMP_ICPX / USE_CUDA_CLANG share the SYCL header but
 # not the SYCL examples (those `#include <sycl/sycl.hpp>`). Default to the
@@ -323,6 +323,20 @@ test-omp: build/test_main_omp
 	ms=$$(( ($$($(NOW_NS)) - t0) / 1000000 )); \
 	if [ $$rc -eq 0 ]; then echo "test_main_omp: PASS ($${ms}ms)"; \
 	else echo "test_main_omp: FAIL ($${ms}ms)"; false; fi
+
+# Compile only, no link: every OpenMP test source and example, same flags
+# as build/test_main_omp. Device CI uses it for clang OpenMP NVPTX, since
+# apt.llvm.org ships no NVPTX OpenMP device runtime to link against.
+COMPILE_OMP := $(foreach t,main_omp $(TEST_NAMES_OMP),build/omp_$(t).o) \
+               build/readme1_omp.o build/readme2_omp.o
+
+build/omp_%.o: $(TEST_DIR)/test_%.cpp $(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -c $< -o $@
+
+build/readme%_omp.o: examples/readme%_omp.cpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -c $< -o $@
+
+compile-omp: $(COMPILE_OMP)
 
 # ── CUDA test rig (opt-in: USE_CUDA_CLANG=1) ──────────────────────
 # Same shape and same aggregating main as test-omp; BACKEND_FLAGS already

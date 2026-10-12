@@ -2,7 +2,9 @@ name: device
 
 # Does it compile for every device? One job per supported GPU route in the
 # README table, building every test and example of that route. Compile and
-# link only: there is no GPU to run on.
+# link only: there is no GPU to run on. clang OpenMP NVPTX compiles without
+# linking: apt.llvm.org ships no NVPTX OpenMP device runtime (only the host
+# libomptarget), so only LLVM's own runtime goes unlinked.
 
 on:
   push:
@@ -20,11 +22,11 @@ jobs:
           - name: clang CUDA
             targets: build/test_main_cuda examples
             make-args: USE_CUDA_CLANG=1
-          - name: clang OpenMP offload NVPTX -O0
-            targets: build/test_main_omp examples
+          - name: clang OpenMP offload NVPTX -O0 (compile only)
+            targets: compile-omp
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O0
-          - name: clang OpenMP offload NVPTX -O2
-            targets: build/test_main_omp examples
+          - name: clang OpenMP offload NVPTX -O2 (compile only)
+            targets: compile-omp
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O2
     steps:
       - uses: actions/checkout@v6
