@@ -21,7 +21,13 @@ FMT_REPO ?= https://github.com/fmtlib/fmt.git
 FMT_REF  ?= 35c58f084e7cd79b51997439cff68346f4c724c0
 FMT_DIR  ?= third_party/fmt
 FMT_HDR  := $(FMT_DIR)/include/fmt/format.h
-CXXFLAGS += -isystem $(FMT_DIR)/include -DFMT_HEADER_ONLY
+# Not header-only: its implementation is compiled once into a host object
+# (FMT_OBJ below), so offload device passes never parse it. Header-only
+# {fmt} trips llvm/llvm-project#52699 under OpenMP offloading
+# (-fopenmp-targets / --offload-arch): "explicit specialization of 'do_put'
+# after instantiation" in format-inl.h.
+CXXFLAGS += -isystem $(FMT_DIR)/include
+FMT_OBJ  := build/fmt.o
 
 # Opt level for host build (test-host + coverage). Overridable from CI
 # so the matrix can exercise -O0 / -O2 (or -O3, etc.). Don't put this
@@ -164,13 +170,17 @@ $(FMT_HDR):
 	git clone --quiet $(FMT_REPO) $(FMT_DIR)
 	git -C $(FMT_DIR) checkout --quiet $(FMT_REF)
 
+# Host only (no BACKEND_FLAGS) and without -Werror: third-party code.
+$(FMT_OBJ): $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+	$(CXX) $(filter-out -Werror,$(CXXFLAGS)) $(HOST_OPT) -c $(FMT_DIR)/src/format.cc -o $@
+
 # ── Test binaries (one binary per test × opt level) ─────────
 
 define TEST_template
-build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
-	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@"
+build/test_$(1)_$(2): $(TEST_DIR)/test_$(1).cpp $(TEST_HDRS) include/ffmt/base.hpp $(FMT_OBJ) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+	@echo "$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< $(FMT_OBJ) -o $$@"
 	@TIMEFORMAT="  compile test_$(1)_$(2): %Rs"; time \
-	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< -o $$@
+	$$(CXX) $$(CXXFLAGS) $$(BACKEND_FLAGS) -$(2) $$(BUFFER_PATH) $$(WA_$(2)) $$< $(FMT_OBJ) -o $$@
 endef
 
 $(foreach t,$(TEST_NAMES),$(foreach o,$(OPT_LEVELS),$(eval $(call TEST_template,$(t),$(o)))))
@@ -268,12 +278,12 @@ ifdef USE_OMP_ICPX
 endif
 
 build/test_main_omp: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+                     $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) $(FMT_OBJ) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_omp: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
 	  $(TEST_DIR)/test_main_omp.cpp \
-	  $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp)
+	  $(foreach t,$(TEST_NAMES_OMP),$(TEST_DIR)/test_$(t).cpp) $(FMT_OBJ)
 
 test-omp: build/test_main_omp
 	@t0=$$($(NOW_NS)); \
@@ -290,12 +300,12 @@ test-omp: build/test_main_omp
 TEST_NAMES_CUDA := integers floats strings layout misc formatter buffer_path
 
 build/test_main_cuda: $(TEST_DIR)/test_main_omp.cpp $(TEST_HDRS) include/ffmt/base.hpp \
-                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+                      $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) $(FMT_OBJ) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ test_main_omp.cpp + per-test sources"
 	@TIMEFORMAT="  compile test_main_cuda: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -DTEST_NO_MAIN -o $@ \
 	  $(TEST_DIR)/test_main_omp.cpp \
-	  $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp)
+	  $(foreach t,$(TEST_NAMES_CUDA),$(TEST_DIR)/test_$(t).cpp) -x none $(FMT_OBJ)
 
 test-cuda: build/test_main_cuda
 	@t0=$$($(NOW_NS)); \
@@ -336,10 +346,10 @@ build/$(1)_specifiers_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/captu
 build/$(1)_buffer_main.o: $$(TEST_DIR)/test_main_host.cpp $$(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
 	$$(CXX) $$(CXXFLAGS) -DFFMT_BUFFER_PATH=1 $(HOST_OPT) $(2) -c $$< -o $$@
 
-build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS)
+build/$(1)_specifiers: build/$(1)_specifiers_main.o $$($(1)_OBJS_SPECIFIERS) $(FMT_OBJ)
 	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
 
-build/$(1)_buffer: build/$(1)_buffer_main.o $$($(1)_OBJS_BUFFER)
+build/$(1)_buffer: build/$(1)_buffer_main.o $$($(1)_OBJS_BUFFER) $(FMT_OBJ)
 	$$(CXX) $$(CXXFLAGS) $(2) $$^ -o $$@
 endef
 
@@ -362,8 +372,8 @@ test-host: build/test_main_host_specifiers build/test_main_host_buffer
 # that subnormals still print exactly on both paths.
 FAST_MATH_CXXFLAGS := $(filter-out -fno-fast-math,$(CXXFLAGS)) -ffast-math
 
-build/test_fast_math_%: $(TEST_DIR)/test_fast_math.cpp $(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
-	$(CXX) $(FAST_MATH_CXXFLAGS) -DFFMT_BUFFER_PATH=$(if $(filter buffer,$*),1,0) $(HOST_OPT) $< -o $@
+build/test_fast_math_%: $(TEST_DIR)/test_fast_math.cpp $(TEST_DIR)/capture.hpp include/ffmt/base.hpp $(FMT_OBJ) $(FLAGS_STAMP) | build/.dir $(FMT_HDR)
+	$(CXX) $(FAST_MATH_CXXFLAGS) -DFFMT_BUFFER_PATH=$(if $(filter buffer,$*),1,0) $(HOST_OPT) $< $(FMT_OBJ) -o $@
 
 test-fast-math: build/test_fast_math_specifiers build/test_fast_math_buffer
 	@fail=0; \
