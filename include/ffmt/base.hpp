@@ -929,6 +929,71 @@ constexpr bool is_type_char(char c) {
 
 constexpr bool is_align_char(char c) { return c == '<' || c == '>' || c == '^'; }
 
+// ── UTF-8 display width, as {fmt} computes it ───────────────────────────
+// Code points of display width 2: Unicode East_Asian_Width W/F plus emoji,
+// copied from {fmt}'s wide_cp_data so padding and string precision match.
+struct wide_cp_range { uint32_t first, last; };
+inline constexpr wide_cp_range wide_cp_ranges[] = {
+    {0x1100, 0x115f}, {0x231a, 0x231b}, {0x2329, 0x232a}, {0x23e9, 0x23ec}, {0x23f0, 0x23f0},
+    {0x23f3, 0x23f3}, {0x25fd, 0x25fe}, {0x2614, 0x2615}, {0x2630, 0x2637}, {0x2648, 0x2653},
+    {0x267f, 0x267f}, {0x268a, 0x268f}, {0x2693, 0x2693}, {0x26a1, 0x26a1}, {0x26aa, 0x26ab},
+    {0x26bd, 0x26be}, {0x26c4, 0x26c5}, {0x26ce, 0x26ce}, {0x26d4, 0x26d4}, {0x26ea, 0x26ea},
+    {0x26f2, 0x26f3}, {0x26f5, 0x26f5}, {0x26fa, 0x26fa}, {0x26fd, 0x26fd}, {0x2705, 0x2705},
+    {0x270a, 0x270b}, {0x2728, 0x2728}, {0x274c, 0x274c}, {0x274e, 0x274e}, {0x2753, 0x2755},
+    {0x2757, 0x2757}, {0x2795, 0x2797}, {0x27b0, 0x27b0}, {0x27bf, 0x27bf}, {0x2b1b, 0x2b1c},
+    {0x2b50, 0x2b50}, {0x2b55, 0x2b55}, {0x2e80, 0x2e99}, {0x2e9b, 0x2ef3}, {0x2f00, 0x2fd5},
+    {0x2ff0, 0x303e}, {0x3041, 0x3096}, {0x3099, 0x30ff}, {0x3105, 0x312f}, {0x3131, 0x318e},
+    {0x3190, 0x31e5}, {0x31ef, 0x321e}, {0x3220, 0x3247}, {0x3250, 0xa48c}, {0xa490, 0xa4c6},
+    {0xa960, 0xa97c}, {0xac00, 0xd7a3}, {0xf900, 0xfaff}, {0xfe10, 0xfe19}, {0xfe30, 0xfe52},
+    {0xfe54, 0xfe66}, {0xfe68, 0xfe6b}, {0xff01, 0xff60}, {0xffe0, 0xffe6}, {0x16fe0, 0x16fe4},
+    {0x16ff0, 0x16ff1}, {0x17000, 0x187f7}, {0x18800, 0x18cd5}, {0x18cff, 0x18d08},
+    {0x1aff0, 0x1aff3}, {0x1aff5, 0x1affb}, {0x1affd, 0x1affe}, {0x1b000, 0x1b122},
+    {0x1b132, 0x1b132}, {0x1b150, 0x1b152}, {0x1b155, 0x1b155}, {0x1b164, 0x1b167},
+    {0x1b170, 0x1b2fb}, {0x1d300, 0x1d356}, {0x1d360, 0x1d376}, {0x1f004, 0x1f004},
+    {0x1f0cf, 0x1f0cf}, {0x1f18e, 0x1f18e}, {0x1f191, 0x1f19a}, {0x1f200, 0x1f202},
+    {0x1f210, 0x1f23b}, {0x1f240, 0x1f248}, {0x1f250, 0x1f251}, {0x1f260, 0x1f265},
+    {0x1f300, 0x1f64f}, {0x1f680, 0x1f6c5}, {0x1f6cc, 0x1f6cc}, {0x1f6d0, 0x1f6d2},
+    {0x1f6d5, 0x1f6d7}, {0x1f6dc, 0x1f6df}, {0x1f6eb, 0x1f6ec}, {0x1f6f4, 0x1f6fc},
+    {0x1f7e0, 0x1f7eb}, {0x1f7f0, 0x1f7f0}, {0x1f900, 0x1f9ff}, {0x1fa70, 0x1fa7c},
+    {0x1fa80, 0x1fa89}, {0x1fa8f, 0x1fac6}, {0x1face, 0x1fadc}, {0x1fadf, 0x1fae9},
+    {0x1faf0, 0x1faf8}, {0x20000, 0x2fffd}, {0x30000, 0x3fffd},
+};
+
+FMT_HD constexpr int display_width_of(uint32_t cp) {
+  if (cp < 0x1100) return 1;
+  int lo = 0, hi = static_cast<int>(sizeof(wide_cp_ranges) / sizeof(wide_cp_ranges[0]));
+  while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (cp < wide_cp_ranges[mid].first) hi = mid;
+    else if (cp > wide_cp_ranges[mid].last) lo = mid + 1;
+    else return 2;
+  }
+  return 1;
+}
+
+inline constexpr uint32_t invalid_code_point = ~uint32_t(0);
+
+// Decode the UTF-8 code point at s into cp and return its byte length. Never
+// reads past a NUL. An invalid sequence (bad lead or tail byte, overlong,
+// surrogate, > U+10FFFF) is one byte with cp = invalid_code_point, which
+// {fmt} also counts as width 1.
+FMT_HD constexpr int utf8_decode(const char *s, uint32_t &cp) {
+  auto b = [s](int k) { return static_cast<unsigned char>(s[k]); };
+  unsigned char c = b(0);
+  int n = c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
+  cp = invalid_code_point;
+  if (n == 0) return 1;
+  uint32_t v = n == 1 ? c : c & (0x7f >> n);
+  for (int k = 1; k < n; k++) {
+    if ((b(k) & 0xC0) != 0x80) return 1;
+    v = (v << 6) | (b(k) & 0x3f);
+  }
+  constexpr uint32_t mins[] = {0, 0, 0x80, 0x800, 0x10000};
+  if (v < mins[n] || (v >> 11) == 0x1b || v > 0x10FFFF) return 1;
+  cp = v;
+  return n;
+}
+
 constexpr bool is_float_format(char c) {
   return c == 'f' || c == 'F' || c == 'e' || c == 'E' || c == 'g' || c == 'G' || c == 'a' ||
          c == 'A';
@@ -954,9 +1019,15 @@ namespace consteval_error {
 [[noreturn]] void dynamic_width_or_precision_must_be_an_integer();
 }
 
+// Fill: one UTF-8 code point (1-4 bytes), as in {fmt}'s "{:─^9}".
+struct fill_char {
+  char data[4] = {' '};
+  uint8_t size = 1;
+};
+
 // Parsed format spec: [[fill]align][sign][#][0][width][.precision][type]
 struct format_spec {
-  char fill = '\0';
+  fill_char fill{}; // only set together with align
   char align = '\0';
   char sign = '\0';
   char type = '\0';
@@ -968,7 +1039,6 @@ struct format_spec {
   int8_t prec_arg = -1;  // >=0: dynamic precision from arg N, -1: static
   uint8_t dyn_count = 0; // number of auto-indexed dynamic args consumed
 
-  constexpr char fill_or(char def = ' ') const { return fill ? fill : def; }
   constexpr char align_or(char def = '>') const { return align ? align : def; }
 };
 
@@ -1051,9 +1121,16 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
     return n;
   };
 
-  if (i + 1 < e && is_align_char(data[i + 1])) {
+  // Nothing else in a spec is non-ASCII, so a non-ASCII byte here must start
+  // a valid UTF-8 fill.
+  uint32_t cp = 0;
+  size_t n = i < e ? static_cast<size_t>(utf8_decode(data + i, cp)) : 0;
+  if (n && cp == invalid_code_point) consteval_error::invalid_format_spec();
+  if (n && i + n < e && is_align_char(data[i + n])) {
     if (data[i] == '{' || data[i] == '}') consteval_error::invalid_format_spec();
-    s.fill = data[i]; s.align = data[i + 1]; i += 2;
+    for (size_t k = 0; k < n; k++) s.fill.data[k] = data[i + k];
+    s.fill.size = static_cast<uint8_t>(n);
+    s.align = data[i + n]; i += n + 1;
   } else if (i < e && is_align_char(data[i])) {
     s.align = data[i]; i++;
   }
@@ -1126,7 +1203,7 @@ consteval bool spec_compatible_with_arg(const format_spec &spec) {
   if ((spec.precision >= 0 || spec.prec_arg >= 0) && !(std::floating_point<U> || is_str))
     return false;
   if constexpr (!sycl_printable<U>) // custom formatter: only "{}" / "{:}"
-    return !spec.fill && !spec.align && !spec.sign && !spec.alt && !spec.zero_pad &&
+    return !spec.align && !spec.sign && !spec.alt && !spec.zero_pad &&
            !spec.width && spec.precision < 0 && spec.width_arg < 0 && spec.prec_arg < 0 && !t;
   if (t == '\0') return true;
   if constexpr (is_str) {
@@ -1248,6 +1325,14 @@ struct print_string {
 #define FFMT_BUFFER_SIZE 128
 #endif
 
+// 1: string width/precision count display columns like {fmt} (UTF-8 decode
+// plus an ~800 B wide-character table, emitted whenever a string arg has a
+// spec). 0: count bytes, like printf; no decoder or table in the binary.
+// Mirrors {fmt}'s FMT_UNICODE. Fills are UTF-8-aware either way.
+#ifndef FFMT_UNICODE
+#define FFMT_UNICODE 1
+#endif
+
 // Output of one print on the buffer path. The 32 bytes past cap let
 // dragonbox write directly into data[len] (len is clamped to cap afterwards)
 // and leave room for println's '\n' and the terminator.
@@ -1262,6 +1347,11 @@ struct fmt_buf {
   FMT_HD void push_n(char c, int n) {
     for (int i = 0; i < n && len < cap; i++)
       data[len++] = c;
+  }
+  // Whole code points only, so truncation never splits a multi-byte fill.
+  FMT_HD void push_n(const fill_char &f, int n) {
+    for (int i = 0; i < n && len + f.size <= cap; i++)
+      push_data(f.data, f.size);
   }
   FMT_HD void push_data(const char *s, int n) {
     for (int i = 0; i < n && len < cap; i++)
@@ -1380,7 +1470,7 @@ template <typename U, format_spec Spec> struct conversion {
   // What printf cannot express (these need the buffer path).
   static constexpr bool supported =
       type != 'b' && type != 'B' && type != 'a' && type != 'A' && Spec.align != '^' &&
-      (!Spec.fill || Spec.fill == ' ') && Spec.width_arg < 0 && Spec.prec_arg < 0 &&
+      Spec.fill.size == 1 && Spec.fill.data[0] == ' ' && Spec.width_arg < 0 && Spec.prec_arg < 0 &&
       !(std::signed_integral<U> && (type == 'x' || type == 'X' || type == 'o')) &&
       !(Spec.alt && (type == 'x' || type == 'X'));
   static auto arg(U v) { return printf_cast<type, wide>(v); }
@@ -1522,9 +1612,35 @@ template <typename T> FMT_HD inline void write_decimal(fmt_buf &out, T val) {
 }
 
 
-FMT_HD inline void apply_padding_data(fmt_buf &out, const char *data, int len,
-                               char fill, char align, int width) {
-  int pad = width > len ? width - len : 0;
+// Byte length of NUL-terminated s, stopping before its display width would
+// exceed max_cols (-1: no limit, else string precision); the width goes to
+// cols. ASCII, the common case, costs one compare per byte and never decodes.
+// With FFMT_UNICODE=0 every byte is one column.
+FMT_HD inline int str_width(const char *s, int max_cols, int &cols) {
+  int i = 0, w = 0;
+  while (s[i] && (max_cols < 0 || w < max_cols)) {
+#if FFMT_UNICODE
+    if (static_cast<unsigned char>(s[i]) >= 0x80) {
+      uint32_t cp;
+      int n = utf8_decode(s + i, cp);
+      int cw = display_width_of(cp);
+      if (max_cols >= 0 && w + cw > max_cols) break;
+      i += n;
+      w += cw;
+      continue;
+    }
+#endif
+    i++;
+    w++;
+  }
+  cols = w;
+  return i;
+}
+
+// len is in bytes, cols (data's display width) is what width counts.
+FMT_HD inline void apply_padding_data(fmt_buf &out, const char *data, int len, int cols,
+                               const fill_char &fill, char align, int width) {
+  int pad = width > cols ? width - cols : 0;
   if (pad == 0) { out.push_data(data, len); }
   else if (align == '<') { out.push_data(data, len); out.push_n(fill, pad); }
   else if (align == '^') { out.push_n(fill, pad / 2); out.push_data(data, len); out.push_n(fill, pad - pad / 2); }
@@ -1538,14 +1654,14 @@ FMT_HD inline void apply_padding_data(fmt_buf &out, const char *data, int len,
 // loops keep running past the buffer cap (matching push_n's silent-truncate).
 FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
                          char sign_ch, const char *prefix, int prefix_n, int zfill,
-                         char fill, char align, int width) {
+                         const fill_char &fill, char align, int width) {
   int content_len = out.len - content_start;
   int sign_n = sign_ch ? 1 : 0;
   int total = sign_n + prefix_n + zfill + content_len;
   int pad = width > total ? width - total : 0;
   int lpad = (align == '>') ? pad : (align == '^') ? pad / 2 : 0;
   int rpad = pad - lpad;
-  int prepend = lpad + sign_n + prefix_n + zfill;
+  int prepend = lpad * fill.size + sign_n + prefix_n + zfill;
 
   if (prepend > 0) {
     int end = fmt_buf::cap;
@@ -1556,7 +1672,8 @@ FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
     for (int i = kept - 1; i >= 0; i--)
       out.data[content_start + prepend + i] = out.data[content_start + i];
     int p = content_start;
-    for (int i = 0; i < lpad && p < end; i++) out.data[p++] = fill;
+    for (int i = 0; i < lpad && p + fill.size <= end; i++)
+      for (int k = 0; k < fill.size; k++) out.data[p++] = fill.data[k];
     if (sign_ch && p < end) out.data[p++] = sign_ch;
     for (int i = 0; i < prefix_n && p < end; i++) out.data[p++] = prefix[i];
     for (int i = 0; i < zfill && p < end; i++) out.data[p++] = '0';
@@ -1887,11 +2004,11 @@ FMT_HD inline void write_int_rt(fmt_buf &out, T arg, const format_spec &spec, ch
 
   int dlen = out.len - content_start;
   int content_w = (sc ? 1 : 0) + pfx_n + dlen;
-  bool zpad = spec.zero_pad && !spec.fill && !spec.align;
+  bool zpad = spec.zero_pad && !spec.align;
   int zfill = (zpad && width > content_w) ? width - content_w : 0;
 
   pad_in_place(out, content_start, sc, pfx, pfx_n, zfill,
-               spec.fill_or(), spec.align_or(), width);
+               spec.fill, spec.align_or(), width);
 }
 
 // write_float with runtime spec and etype — writes digits directly into out,
@@ -1947,11 +2064,11 @@ FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, 
   int dlen = out.len - content_start;
   int content_w = (sign_ch ? 1 : 0) + prefix_n + dlen;
   // '0' is ignored for inf/nan (and whenever an alignment is given).
-  bool zpad = spec.zero_pad && !spec.fill && !spec.align && finite;
+  bool zpad = spec.zero_pad && !spec.align && finite;
   int zfill = (zpad && dyn_w > content_w) ? dyn_w - content_w : 0;
 
   pad_in_place(out, content_start, sign_ch, prefix, prefix_n, zfill,
-               spec.fill_or(), spec.align_or(), dyn_w);
+               spec.fill, spec.align_or(), dyn_w);
 }
 
 template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) {
@@ -1995,7 +2112,7 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     if (spec.type == '\0' || spec.type == 's') {
       const char *bs = arg ? "true" : "false";
       int blen = arg ? 4 : 5;
-      apply_padding_data(out, bs, blen, spec.fill_or(), spec.align_or('<'), dyn_w);
+      apply_padding_data(out, bs, blen, blen, spec.fill, spec.align_or('<'), dyn_w);
       return;
     }
   }
@@ -2007,10 +2124,10 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
                 std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
     if (spec.type != 'p') { // {:p} prints the address: falls through below
       const char *str = arg ? arg : "(null)"; // UB in std::format; never fault on device
-      int slen = 0;
-      if (dyn_p >= 0) { for (; slen < dyn_p && str[slen]; slen++); }
-      else { while (str[slen]) slen++; }
-      apply_padding_data(out, str, slen, spec.fill_or(), spec.align_or('<'), dyn_w);
+      if (dyn_w <= 0 && dyn_p < 0) { out.push_str(str); return; }
+      int cols = 0;
+      int slen = str_width(str, dyn_p, cols);
+      apply_padding_data(out, str, slen, cols, spec.fill, spec.align_or('<'), dyn_w);
       return;
     }
   }
@@ -2019,14 +2136,14 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
     write_uint_raw<16>(out.data, out.len, fmt_buf::cap,
                        reinterpret_cast<std::uintptr_t>(arg));
     pad_in_place(out, content_start, '\0', "0x", 2, 0,
-                 spec.fill_or(), spec.align_or('>'), dyn_w);
+                 spec.fill, spec.align_or('>'), dyn_w);
   } else if constexpr (std::floating_point<U>) {
     write_float_rt(out, arg, spec, effective_type<U>(spec.type), dyn_w, dyn_p);
   } else if constexpr (std::integral<U>) {
     char etype = effective_type<U>(spec.type);
     if (etype == 'c') {
       char ch = static_cast<char>(arg);
-      apply_padding_data(out, &ch, 1, spec.fill_or(), spec.align_or('<'), dyn_w);
+      apply_padding_data(out, &ch, 1, 1, spec.fill, spec.align_or('<'), dyn_w);
     } else {
       write_int_rt(out, arg, spec, etype, dyn_w);
     }
