@@ -1,4 +1,9 @@
-name: host-tests
+name: host
+
+# Does it format correctly? Runs the test suite on the CPU and diffs both
+# paths (FFMT_BUFFER_PATH=0 and =1, through libc printf) against {fmt}:
+# compilers x opt levels under sanitizers, plain Ubuntu / macOS builds,
+# -ffast-math, negative-compile tests, and the coverage gate.
 
 on:
   push:
