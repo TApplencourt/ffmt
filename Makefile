@@ -34,6 +34,12 @@ FMT_OBJ  := build/fmt.o
 # in CXXFLAGS — the SYCL build has its own per-test opt loop.
 HOST_OPT ?= -O2
 
+# icpx OpenMP offload targets (USE_OMP_ICPX, and readme3_sycl_omp under
+# icpx -fsycl). AOT_DEVICE=pvc (any `ocloc -device` name) compiles the
+# SPIR-V to that device's ISA at build time, here and for -fsycl, so IGC's
+# codegen is checked without a GPU.
+ICPX_OMP_TARGETS := $(if $(AOT_DEVICE),spir64_gen -Xopenmp-target-backend "-device $(AOT_DEVICE)",spir64)
+
 ifdef USE_ACPP
   export PATH := $(HOME)/projet/p26.02/install/bin:$(PATH)
   CXX             := acpp
@@ -87,10 +93,8 @@ else ifdef USE_OMP_ICPX
     CXX           := icpx
   endif
   OMP_OPT         ?= -O0
-  # AOT_DEVICE=pvc (any `ocloc -device` name): compile the SPIR-V to that
-  # device's ISA at build time, so IGC's codegen is checked without a GPU.
-  OMP_TARGETS     := $(if $(AOT_DEVICE),spir64_gen -Xopenmp-target-backend "-device $(AOT_DEVICE)",spir64)
-  BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=$(OMP_TARGETS) $(OMP_OPT)
+  # AOT_DEVICE: see ICPX_OMP_TARGETS above.
+  BACKEND_FLAGS   := -fiopenmp -fopenmp-targets=$(ICPX_OMP_TARGETS) $(OMP_OPT)
   # Same SPIRV-O0 string-literal-through-pointer bug the SYCL path hits.
   ifeq ($(OMP_OPT),-O0)
     BACKEND_FLAGS += -DFFMT_SPIRV_O0
@@ -104,7 +108,7 @@ else
   ifeq ($(origin CXX),default)
     CXX           := icpx
   endif
-  # AOT_DEVICE: see USE_OMP_ICPX above.
+  # AOT_DEVICE: see ICPX_OMP_TARGETS above.
   BACKEND_FLAGS   := -fsycl $(if $(AOT_DEVICE),-fsycl-targets=spir64_gen -Xsycl-target-backend "-device $(AOT_DEVICE)")
   OPT_LEVELS      := O0 O1 O2 O3
   BUFFER_PATH     :=
@@ -136,7 +140,7 @@ ALL_BINS := $(TEST_BINS)
 COV_TESTS             := integers floats strings layout misc formatter
 COV_TESTS_BUFFER_ONLY := buffer_path
 
-.PHONY: all build test test-format test-omp test-cuda readme-examples test-host test-fast-math test-negative coverage clean
+.PHONY: all build test test-format test-omp test-cuda examples readme-examples test-host test-fast-math test-negative coverage clean
 
 # USE_OMP_CLANG / USE_OMP_ICPX / USE_CUDA_CLANG share the SYCL header but
 # not the SYCL examples (those `#include <sycl/sycl.hpp>`). Default to the
@@ -195,6 +199,30 @@ build/readme%_sycl: examples/readme%_sycl.cpp include/ffmt/base.hpp $(FLAGS_STAM
 	@echo "$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@"
 	@TIMEFORMAT="  compile readme$*_sycl: %Rs"; time \
 	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
+
+# Every example of the selected backend, compile only: `make examples`
+# (device CI builds these next to the tests).
+build/readme%_omp: examples/readme%_omp.cpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
+
+build/readme%_cuda: examples/readme%_cuda.cu include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) $< -o $@
+
+# Explicit, so build/readme%_omp above doesn't match it (stem "3_sycl").
+build/readme3_sycl_omp: examples/readme3_sycl_omp.cpp include/ffmt/base.hpp $(FLAGS_STAMP) | build/.dir
+	$(CXX) $(CXXFLAGS) $(BACKEND_FLAGS) -fiopenmp -fopenmp-targets=$(ICPX_OMP_TARGETS) $< -o $@
+
+ifdef USE_CUDA_CLANG
+  EXAMPLES := build/readme1_cuda build/readme2_cuda
+else ifneq ($(USE_OMP_CLANG)$(USE_OMP_ICPX),)
+  EXAMPLES := build/readme1_omp build/readme2_omp
+else ifdef USE_ACPP
+  EXAMPLES := build/readme1_sycl build/readme2_sycl
+else
+  EXAMPLES := build/readme1_sycl build/readme2_sycl build/readme3_sycl_omp
+endif
+
+examples: $(EXAMPLES)
 
 readme-examples: build/readme1_sycl build/readme2_sycl
 	@t0=$$($(NOW_NS)); \

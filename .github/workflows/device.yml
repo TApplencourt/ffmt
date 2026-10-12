@@ -1,8 +1,8 @@
 name: device
 
 # Does it compile for every device? One job per supported GPU route in the
-# README table, building the full test suite. Compile and link only: there
-# is no GPU to run on.
+# README table, building every test and example of that route. Compile and
+# link only: there is no GPU to run on.
 
 on:
   push:
@@ -18,13 +18,13 @@ jobs:
       matrix:
         include:
           - name: clang CUDA
-            targets: build/test_main_cuda
+            targets: build/test_main_cuda examples
             make-args: USE_CUDA_CLANG=1
           - name: clang OpenMP offload NVPTX -O0
-            targets: build/test_main_omp
+            targets: build/test_main_omp examples
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O0
           - name: clang OpenMP offload NVPTX -O2
-            targets: build/test_main_omp
+            targets: build/test_main_omp examples
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O2
     steps:
       - uses: actions/checkout@v6
@@ -42,13 +42,13 @@ jobs:
       matrix:
         include:
           - name: icpx SYCL
-            targets: build build/readme1_sycl build/readme2_sycl
+            targets: build examples
             make-args: OPT_LEVELS="O0 O2"
           - name: icpx OpenMP offload -O0
-            targets: build/test_main_omp
+            targets: build/test_main_omp examples
             make-args: USE_OMP_ICPX=1 OMP_OPT=-O0
           - name: icpx OpenMP offload -O2
-            targets: build/test_main_omp
+            targets: build/test_main_omp examples
             make-args: USE_OMP_ICPX=1 OMP_OPT=-O2
     steps:
       - uses: actions/checkout@v6
