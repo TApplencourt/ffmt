@@ -294,7 +294,7 @@ CXX=clang++ make test-omp USE_OMP_CLANG=1  # clang-OMP-CUDA, -O0 default
 CXX=clang++ make test-omp USE_OMP_CLANG=1 OMP_OPT=-O2  # full coverage
 make test-omp USE_OMP_ICPX=1               # icpx-OMP-SPIR64
 make test-host                             # host-only (libc printf, no device)
-make coverage                              # llvm-cov report
+make coverage                              # base.hpp region coverage, both paths (as CI)
 ```
 
 Output is TAP-style: each test gets one line of `ok N - file`,
