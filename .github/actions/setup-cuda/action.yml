@@ -1,25 +1,17 @@
 name: setup-cuda
 description: >
-  clang (with the OpenMP offload runtime) plus the CUDA pieces clang needs
-  to build for NVPTX: headers, libdevice, ptxas, nvlink, cudart. Sets
-  CUDA_PATH. No GPU or driver.
+  The CUDA toolkit pieces clang needs to build for NVPTX: headers,
+  libdevice, ptxas, nvlink, cudart. Sets CUDA_PATH. No GPU or driver.
 inputs:
-  llvm-version:
-    description: clang major version; the compiler is clang++-<version>
-    default: '22' # first release that fully supports CUDA 12.6 (up to 12.8)
-  cuda-version:
+  version:
     description: CUDA toolkit version
     default: '12.6.3'
 runs:
   using: composite
   steps:
-    - name: Install clang
-      shell: bash
-      run: wget -q https://apt.llvm.org/llvm.sh && sudo bash llvm.sh "${{ inputs.llvm-version }}" all
-    - name: Install CUDA
-      uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
+    - uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
       with:
-        cuda: ${{ inputs.cuda-version }}
+        cuda: ${{ inputs.version }}
         method: network
         sub-packages: '["nvcc", "cudart-dev"]'
         # clang's __clang_cuda_runtime_wrapper.h force-includes

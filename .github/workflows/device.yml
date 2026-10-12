@@ -33,6 +33,7 @@ jobs:
             make-args: USE_OMP_CLANG=1 OMP_OPT=-O2
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-clang
       - uses: ./.github/actions/setup-cuda
       - name: Build
         run: make -j$(nproc) CXX=clang++-22 ${{ matrix.make-args }} ${{ matrix.targets }}
