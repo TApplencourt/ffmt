@@ -189,7 +189,7 @@ this repo does exactly that for portability across icpx/gcc/clang.
 
 Two emit paths share the same front-end:
 
-- **Buffer path** (ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
+- **Buffer path** (plain host builds, ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
   output into a fixed-size buffer, then emits it with a single
   `printf("%s", buf)`. Supports the full `std::format` spec.
 - **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format
@@ -209,7 +209,7 @@ Features only available on the buffer path:
 - Binary format (`{:b}`, `{:B}`)
 - Hex float (`{:a}`, `{:A}`)
 - Center alignment (`{:^}`)
-- Custom fill characters (`{:*>10}`)
+- Custom fill characters (`{:*>10}`, or any UTF-8 code point: `{:─^10}`)
 - Signed integers with hex/oct (`{:x}` with `int`)
 - Alternate hex (`{:#x}` with signed int)
 - Dynamic width/precision (`{:{}}`, `{:.{}}`)
@@ -218,6 +218,13 @@ Features only available on the buffer path:
   printf has no shortest conversion and Intel GPU printf supports neither
   `*` widths nor `%s` on computed strings. Explicit `{:g}`/`{:e}`/`{:f}`
   match {fmt} on both paths.
+- Unicode-aware string width: the buffer path counts width and string
+  precision in display columns like {fmt} (1 per code point, 2 for East
+  Asian wide and emoji), so `{:^10}` with `"静夜思"` adds 4 fill. printf's
+  `%10s` / `%.3s` count bytes, so on the specifiers path non-ASCII string
+  arguments are under-padded (and precision can cut a code point). The
+  argument is only known at runtime, so this cannot be diagnosed at
+  compile time. ASCII strings match on both paths.
 
 ### Spec target: `{fmt}`
 
@@ -245,6 +252,22 @@ than that per `FFMT_PRINT` call is silently truncated. Override with:
 #define FFMT_BUFFER_SIZE 512
 #include <ffmt/base.hpp>
 ```
+
+### Buffer-path Unicode width
+
+By default the buffer path counts string width and precision in display
+columns, like {fmt} (see Backend differences). That brings in a UTF-8
+decoder and a ~800-byte table of wide characters wherever a string
+argument is formatted with a spec. To drop both from device code, count
+bytes instead (as printf does, and as {fmt}'s `FMT_UNICODE=0`):
+
+```cpp
+#define FFMT_UNICODE 0
+#include <ffmt/base.hpp>
+```
+
+ASCII output is identical either way; fill characters such as `{:─^10}`
+stay UTF-8-aware.
 
 ## Build
 

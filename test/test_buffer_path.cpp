@@ -86,6 +86,31 @@ SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:*<20s}\n", "hello"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:*>20s}\n", "hello"));
 SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:*^20s}\n", "hello"));
 #undef _S
+// Multi-byte UTF-8 fill (2, 3 and 4 bytes)
+RUN(PRINT("[{:─<6}]\n", 42));
+RUN(PRINT("[{:─>+8}]\n", 42));
+RUN(PRINT("[{:─^9.2f}]\n", 3.14159));
+RUN(PRINT("[{:😀>4c}]\n", 'x'));
+#define _S (FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0)
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:é^9}]\n", "abc"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("┌{0:─^{2}}┐\n│{1: ^{2}}│\n", "", "Hello", 9));
+// Width and string precision count display columns, like {fmt}: 1 per code
+// point, 2 for East Asian wide and emoji, 1 per invalid byte.
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:^10}]\n", "hôpital"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:*>8}]\n", "静夜思"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:*<8.3}]\n", "hôpital"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:.3}]\n", "静夜思"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:.4}]\n", "静夜思"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:─^7}]\n", "😀"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>5}]\n", "\xff\xe2\x94"));
+// Overlong '/', a UTF-16 surrogate, and > U+10FFFF: each byte is invalid.
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xc0\xaf"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xed\xa0\x80"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>6}]\n", "\xf4\x90\x80\x80"));
+// A spec with no width or precision: copied without measuring.
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:s}] [{:<}]\n", "静夜思", "hôpital"));
+SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("[{:>{}.{}}]\n", "静夜思", 8, 5));
+#undef _S
 
 // ── Layout (from test_layout.cpp) ──
 RUN(PRINT("{:^10d}\n", 42));
