@@ -10,7 +10,7 @@
 # Writes results/<backend>-<opt>.{log,json}. Exits nonzero if any test
 # failed; a skipped test is not a failure -- it names a known compiler bug
 # from the catalog in test/capture.hpp.
-set -u -o pipefail
+set -o pipefail
 
 BACKEND=${1:?usage: run.sh <backend> <opt>}
 OPT=${2:?usage: run.sh <backend> <opt>}
@@ -88,6 +88,7 @@ export LC_ALL=C
 
 case "$BACKEND" in
   icpx-sycl)
+    set --   # setvars.sh reads the caller's "$@" as its own arguments
     source "${ONEAPI_SETVARS:-/vast/users/bertoni/intel/oneapi/setvars.sh}"
     COMPILER=icpx
     DEVICE=pvc
@@ -95,6 +96,7 @@ case "$BACKEND" in
     ARGS="CXX=icpx AOT_DEVICE=pvc OPT_LEVELS=$OPT"
     ;;
   icpx-omp)
+    set --
     source "${ONEAPI_SETVARS:-/vast/users/bertoni/intel/oneapi/setvars.sh}"
     COMPILER=icpx
     DEVICE=pvc
