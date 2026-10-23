@@ -14,6 +14,9 @@ module load intel_compute_runtime/release/821.36
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /vast/users/bertoni/intel/oneapi/setvars.sh
 
+export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
+export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host
+
 mkdir -p results
 make clean
 
