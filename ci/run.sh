@@ -44,7 +44,6 @@ PREBUILT="$FFMT_SOFTWARE/$FFMT_MACHINE/install"
 
 case "$FFMT_MACHINE" in
   chiatta)
-    # Level Zero runtime for the Max 1550. Our own oneAPI, not the shared one.
     module load intel_compute_runtime/release/821.36 || true
     export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
     export CHIP_BE="${CHIP_BE:-level0}"
@@ -87,13 +86,16 @@ export OMP_TARGET_OFFLOAD=MANDATORY
 export LC_ALL=C
 
 case "$BACKEND" in
+  # JIT, not AOT. An AOT build runs under the 821.36 runtime but the
+  # kernel is not found in the image; JIT is unaffected. Set AOT_DEVICE=pvc
+  # to restore AOT once a newer runtime is available as a module.
   icpx-sycl)
     set --   # setvars.sh reads the caller's "$@" as its own arguments
     source "${ONEAPI_SETVARS:-/vast/users/bertoni/intel/oneapi/setvars.sh}"
     COMPILER=icpx
     DEVICE=pvc
     GOAL=test
-    ARGS="CXX=icpx AOT_DEVICE=pvc OPT_LEVELS=$OPT"
+    ARGS="CXX=icpx OPT_LEVELS=$OPT"
     ;;
   icpx-omp)
     set --
@@ -101,7 +103,7 @@ case "$BACKEND" in
     COMPILER=icpx
     DEVICE=pvc
     GOAL=test-omp
-    ARGS="CXX=icpx AOT_DEVICE=pvc USE_OMP_ICPX=1 OMP_OPT=-$OPT"
+    ARGS="CXX=icpx USE_OMP_ICPX=1 OMP_OPT=-$OPT"
     ;;
   # acpp takes the buffer path where icpx takes the specifiers path, so
   # running it on an Intel GPU compares both emit paths on one device.
