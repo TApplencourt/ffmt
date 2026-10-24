@@ -1,72 +1,79 @@
-# ffmt on real GPUs. .github/workflows/device.yml already checks that every
-# backend compiles -- it says so itself, "there is no GPU to run on". This
-# runs the same backends where a device exists.
+# ffmt on JLSE GPUs. The GitHub workflows check that every backend compiles
+# -- "there is no GPU to run on" -- so this runs them where a device exists.
 #
-# Each job is one call to ci/run.sh, which knows the Makefile variables for
-# each backend and writes results/<backend>-<opt>.json via ci/tapsum.py.
-#
-# JLSE hardware and queues:
-#   Intel PVC      chiatta
-#   NVIDIA GB300   gpu_gb300
-#   AMD MI300X     gpu_amd_mi300x
-#
-# Tags name the queue. If the runner lands on a login node rather than the
-# node itself, prefix the run.sh line with that queue's batch submission.
-# No HIP backend exists in the Makefile yet (issue #13 lists it as a TODO),
-# so AMD runs AdaptiveCpp's generic target.
+# Each job is one ci/run.sh invocation on a batch runner, with the queue
+# naming the hardware. ci/tapsum.py writes results/<backend>-<opt>.json and
+# the table job collects them.
 
-stages: [test, report]
+stages:
+  - test
+  - publish
 
-default:
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.jlse-batch:
+  stage: test
+  tags: [batch]
   artifacts:
-    when: always          # a failing run still produces a usable row
-    paths: [results/]
+    when: always          # a failed run still produces a usable row
+    expire_in: 1 month
+    paths:
+      - results/
 
-intel:sycl:
-  stage: test
-  tags: [chiatta]
+chiatta:sycl:
+  extends: .jlse-batch
   parallel:
     matrix: [{OPT: [O0, O2]}]
-  script: [ci/run.sh icpx-sycl $OPT]
-
-intel:omp:
-  stage: test
-  tags: [chiatta]
-  parallel:
-    matrix: [{OPT: [O0, O2]}]
-  script: [ci/run.sh icpx-omp $OPT]
-
-intel:acpp:
-  stage: test
-  tags: [chiatta]
   variables:
-    ACPP_DEVICE: pvc
-  script: [ci/run.sh acpp O2]
+    # Best guess at the variable the jlsebatch runners read: ALCF's Aurora
+    # template uses ANL_AURORA_SCHEDULER_PARAMETERS, so set the JLSE-prefixed
+    # and bare names together until one is confirmed. Cobalt syntax, not PBS.
+    ANL_JLSE_SCHEDULER_PARAMETERS: "-q chiatta -t 1:00:0 -n 1"
+    SCHEDULER_PARAMETERS: "-q chiatta -t 1:00:0 -n 1"
+  script:
+    - ci/run.sh sycl $OPT
 
-nvidia:cuda:
-  stage: test
-  tags: [gpu_gb300]
-  script: [ci/run.sh clang-cuda O2]
-
-nvidia:omp:
-  stage: test
-  tags: [gpu_gb300]
-  parallel:
-    matrix: [{OPT: [O0, O2]}]
-  script: [ci/run.sh clang-omp-nvptx $OPT]
-
-amd:acpp:
-  stage: test
-  tags: [gpu_amd_mi300x]
-  variables:
-    ACPP_DEVICE: mi300x
-  script: [ci/run.sh acpp O2]
+# Nothing below runs yet: ci/run.sh only knows the sycl route, and the
+# Makefile has no HIP backend (issue #13). Left here so the queues and
+# names are written down.
+#
+# gb300:cuda:
+#   extends: .jlse-batch
+#   variables:
+#     SCHEDULER_PARAMETERS: "-q gpu_gb300 -t 1:00:0 -n 1"
+#   script:
+#     - ci/run.sh cuda O2
+#
+# gb300:omp-nvptx:
+#   extends: .jlse-batch
+#   parallel:
+#     matrix: [{OPT: [O0, O2]}]
+#   variables:
+#     SCHEDULER_PARAMETERS: "-q gpu_gb300 -t 1:00:0 -n 1"
+#   script:
+#     - ci/run.sh omp-nvptx $OPT
+#
+# mi300x:omp-amdgpu:
+#   extends: .jlse-batch
+#   parallel:
+#     matrix: [{OPT: [O0, O2]}]
+#   variables:
+#     SCHEDULER_PARAMETERS: "-q gpu_amd_mi300x -t 1:00:0 -n 1"
+#   script:
+#     - ci/run.sh omp-amdgpu $OPT
 
 table:
-  stage: report
-  tags: [chiatta]
+  stage: publish
+  tags: [shell]           # no GPU needed
   when: always            # the table is most useful when something failed
-  script: [ci/mktable.py results/*.json | tee results/table.md]
+  script:
+    - ci/mktable.py results/*.json | tee results/table.md
   artifacts:
     when: always
-    paths: [results/table.md]
+    expire_in: 1 month
+    paths:
+      - results/table.md
