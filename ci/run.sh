@@ -38,7 +38,7 @@ case "$BACKEND" in
     ;;
   cuda)
     module load cuda/12.3.0
-    export PATH=/soft/compilers/llvm/release-22.1.8/bin:$PATH
+    module load llvm/release-22.1.8
     DEVICE=${OFFLOAD_ARCH:=sm_80}
     CXX=clang++
     GOAL=test-cuda
@@ -46,7 +46,7 @@ case "$BACKEND" in
     ;;
   omp-nvptx)
     module load cuda/12.3.0
-    export PATH=/soft/compilers/llvm/release-22.1.8/bin:$PATH
+    module load llvm/release-22.1.8
     DEVICE=${OFFLOAD_ARCH:=sm_80}
     CXX=clang++
     GOAL=test-omp
