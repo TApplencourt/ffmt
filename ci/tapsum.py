@@ -32,7 +32,7 @@ RESULT = re.compile(r"^(ok|not ok|skipped) (\d+) - (\S+)(?: # (.*))?$")
 BINARY = re.compile(r"^(\S+): (PASS|FAIL) \((\d+)ms\)$")
 # `make: *** [Makefile:213: build/test_main_omp] Error 1` -- a binary that
 # never got built, so its tests could not run and are absent from the TAP.
-MAKE_FAIL = re.compile(r"^make(?:\[\d+\])?: \*\*\* \[[^:]+: (\S+)\] Error")
+MAKE_FAIL = re.compile(r"^make(?:\[\d+\])?: \*\*\* \[.*?: (\S+)\] Error")
 # Every target make tried to link, so the ones that failed can be given as
 # a fraction rather than a bare count.
 LINK_LINE = re.compile(r" -o (build/\S+)\s*$")
