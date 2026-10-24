@@ -41,34 +41,23 @@ chiatta:sycl:
   script:
     - ci/run.sh sycl $OPT
 
-# Nothing below runs yet: ci/run.sh only knows the sycl route, and the
-# Makefile has no HIP backend (issue #13). Left here so the queues and
-# names are written down.
-#
-# gb300:cuda:
-#   extends: .jlse-batch
-#   variables:
-#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
-#   script:
-#     - ci/run.sh cuda O2
-#
-# gb300:omp-nvptx:
-#   extends: .jlse-batch
-#   parallel:
-#     matrix: [{OPT: [O0, O2]}]
-#   variables:
-#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
-#   script:
-#     - ci/run.sh omp-nvptx $OPT
-#
-# mi300x:omp-amdgpu:
-#   extends: .jlse-batch
-#   parallel:
-#     matrix: [{OPT: [O0, O2]}]
-#   variables:
-#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
-#   script:
-#     - ci/run.sh omp-amdgpu $OPT
+gb300:omp-nvptx:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
+  script:
+    - ci/run.sh omp-nvptx $OPT
+
+mi300x:omp-amdgpu:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+  script:
+    - ci/run.sh omp-amdgpu $OPT
 
 table:
   stage: publish
