@@ -52,6 +52,8 @@ chiatta:omp-spirv:
 
 a100:cuda:
   extends: .jlse-batch
+  # gpu_a100 allows 2 jobs per user; run the A100 jobs one at a time.
+  resource_group: a100
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
   script:
@@ -59,6 +61,7 @@ a100:cuda:
 
 a100:omp-nvptx:
   extends: .jlse-batch
+  resource_group: a100
   parallel:
     matrix: [{OPT: [O0, O2]}]
   variables:

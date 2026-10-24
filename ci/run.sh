@@ -69,7 +69,7 @@ mkdir -p results
 make clean
 
 # TAP goes to stderr, hence 2>&1.
-make -j"$(nproc)" CXX="$CXX" $ARGS "$GOAL" 2>&1 \
+make -j CXX="$CXX" $ARGS "$GOAL" 2>&1 \
   | tee "results/$BACKEND-$OPT.log" \
   | ci/tapsum.py --backend "$BACKEND" --opt "$OPT" --device "$DEVICE" --compiler "$CXX" \
       --commit "${CI_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null)}" \
