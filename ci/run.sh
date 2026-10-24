@@ -26,8 +26,10 @@ case "$BACKEND" in
     GOAL=test
     ARGS="OPT_LEVELS=$OPT"
     ;;
+  # No UMD on LD_LIBRARY_PATH here, unlike the sycl route above: any of
+  # 803.45, 821.36 or 1032.21 segfaults this at -O0, while the system
+  # runtime passes. -O2 passes either way.
   omp-spirv)
-    export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:${LD_LIBRARY_PATH:-}
     set --
     source /vast/users/bertoni/intel/oneapi/setvars.sh
     export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
