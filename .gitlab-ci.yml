@@ -16,8 +16,8 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 .jlse-batch:
+  extends: .jlse-batch-runner
   stage: test
-  tags: [batch]
   artifacts:
     when: always          # a failed run still produces a usable row
     expire_in: 1 month
@@ -68,7 +68,6 @@ chiatta:sycl:
 
 table:
   stage: publish
-  tags: [shell]           # no GPU needed
   when: always            # the table is most useful when something failed
   script:
     - ci/mktable.py results/*.json | tee results/table.md
