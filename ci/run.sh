@@ -70,11 +70,17 @@ export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host
 mkdir -p results
 make clean
 
+# How many targets this backend has. The log only names the ones make
+# reaches, so a compiler that crashes on the first would make the build
+# denominator 1 instead of the real count.
+TARGETS=$(make -n CXX="$CXX" $ARGS "$GOAL" 2>/dev/null | grep -cE " -o build/")
+
 # TAP goes to stderr, hence 2>&1.
 make -j CXX="$CXX" $ARGS "$GOAL" 2>&1 \
   | tee "results/$BACKEND-$OPT.log" \
   | ci/tapsum.py --backend "$BACKEND" --opt "$OPT" --device "$DEVICE" --compiler "$CXX" \
       --commit "${CI_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null)}" \
+      --expected-builds "$TARGETS" \
   > "results/$BACKEND-$OPT.json"
 RC=$?
 

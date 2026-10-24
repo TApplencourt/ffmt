@@ -30,10 +30,19 @@ from collections import Counter
 RESULT = re.compile(r"^(ok|not ok|skipped) (\d+) - (\S+)(?: # (.*))?$")
 # The Makefile's run macro: `test_floats_O2: PASS (123ms)`
 BINARY = re.compile(r"^(\S+): (PASS|FAIL) \((\d+)ms\)$")
+# `make: *** [Makefile:213: build/test_main_omp] Error 1` -- a binary that
+# never got built, so its tests could not run and are absent from the TAP.
+MAKE_FAIL = re.compile(r"^make(?:\[\d+\])?: \*\*\* \[[^:]+: (\S+)\] Error")
+# Every target make tried to link, so the ones that failed can be given as
+# a fraction rather than a bare count.
+LINK_LINE = re.compile(r" -o (build/\S+)\s*$")
+# The first compiler error, kept as the note for why a build failed.
+COMPILE_ERROR = re.compile(r"(error: .*)$")
 
 
 def parse(lines):
-    tests, binaries = [], []
+    tests, binaries, unbuilt, attempted = [], [], [], []
+    error = None
     for line in lines:
         line = line.rstrip("\n")
         m = RESULT.match(line)
@@ -47,7 +56,19 @@ def parse(lines):
             name, verdict, ms = m.groups()
             binaries.append({"binary": name, "verdict": verdict,
                              "wall_ms": int(ms)})
-    return tests, binaries
+            continue
+        m = MAKE_FAIL.match(line)
+        if m:
+            unbuilt.append(m.group(1))
+            continue
+        m = LINK_LINE.search(line)
+        if m and m.group(1) not in attempted:
+            attempted.append(m.group(1))
+        if error is None:
+            m = COMPILE_ERROR.search(line)
+            if m:
+                error = m.group(1)
+    return tests, binaries, unbuilt, attempted, error
 
 
 def version_of(compiler):
@@ -78,11 +99,16 @@ def main():
     ap.add_argument("--commit", default="", help="git sha under test")
     ap.add_argument("--extra", action="append", default=[], metavar="K=V",
                     help="any other field to record; repeatable")
+    ap.add_argument("--expected-builds", type=int, default=0,
+                    help="how many targets this backend has, from `make -n`. "
+                         "The log only names targets make reached, so a "
+                         "compiler that crashes on the first one would "
+                         "otherwise shrink the denominator to 1.")
     ap.add_argument("--per-test", action="store_true",
                     help="include the full per-assertion list, not just counts")
     args = ap.parse_args()
 
-    tests, binaries = parse(sys.stdin)
+    tests, binaries, unbuilt, attempted, error = parse(sys.stdin)
 
     counts = Counter(t["status"] for t in tests)
     ok, failed, skipped = counts["ok"], counts["not ok"], counts["skipped"]
@@ -107,6 +133,18 @@ def main():
         "skip_reasons": dict(Counter(t["reason"] for t in tests
                                      if t["status"] == "skipped" and t["reason"])),
         "failures": sorted({t["file"] for t in tests if t["status"] == "not ok"}),
+        # Targets make could not build. Their tests are absent from the TAP
+        # above rather than counted as failures, so a row with unbuilt
+        # targets is reporting on less than the whole suite -- the table
+        # says so rather than showing a pass rate over what survived.
+        "unbuilt": unbuilt,
+        "attempted_builds": max(args.expected_builds, len(attempted)),
+        # Of the targets make tried to link, how many it could not. A route
+        # whose compiler crashes reports 1.0 here and no tests at all; a
+        # route where one test file fails to compile reports the fraction.
+        "build_fail_rate": ((len(unbuilt) / max(args.expected_builds, len(attempted)))
+                            if (args.expected_builds or attempted) else None),
+        "build_error": error,
         "binaries": binaries,
     }
     for kv in args.extra:
@@ -118,9 +156,9 @@ def main():
     json.dump(row, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
 
-    # Nonzero only on a real failure: a run that skipped everything still
-    # produced a usable row, and the caller decides what to do about it.
-    return 1 if failed else 0
+    # Nonzero on a failed test or a target that would not build; a run that
+    # only skipped tests still produced a usable row.
+    return 1 if (failed or unbuilt) else 0
 
 
 if __name__ == "__main__":

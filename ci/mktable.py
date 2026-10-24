@@ -61,18 +61,30 @@ def main():
         print("**Rows come from different commits:** "
               + ", ".join(f"`{c[:12]}`" for c in sorted(commits)) + "\n")
 
-    print("| backend | opt | device | pass | fail | skip | pass rate |")
-    print("|---|---|---|---|---|---|---|")
+    print("| backend | opt | device | built | pass | fail | skip | pass rate |")
+    print("|---|---|---|---|---|---|---|---|")
     for (backend, opt) in sorted(by_cell):
         row = by_cell[(backend, opt)]
         if row is None:
-            print(f"| {backend} | {opt} | — | — | — | — | **no result** |")
+            print(f"| {backend} | {opt} | — | — | — | — | — | **no result** |")
             continue
+
+        # Built: how many targets linked, out of those make tried. A route
+        # whose compiler crashes shows 0/N here and no tests at all, which
+        # is a different thing from a route that built and then failed.
+        attempted = row.get("attempted_builds") or 0
+        unbuilt = len(row.get("unbuilt") or [])
+        built_s = f"{attempted - unbuilt}/{attempted}" if attempted else "—"
+        if unbuilt:
+            built_s = f"**{built_s}**"
+
         rate = row.get("pass_rate")
         rate_s = "—" if rate is None else f"{rate * 100:.0f}%"
         if row.get("failed"):
             rate_s = f"**{rate_s}**"
-        print(f"| {backend} | {opt} | {row.get('device') or '—'} "
+        elif unbuilt and not row.get("total"):
+            rate_s = "**build failed**"
+        print(f"| {backend} | {opt} | {row.get('device') or '—'} | {built_s} "
               f"| {row.get('ok', 0)} | {row.get('failed', 0)} "
               f"| {row.get('skipped', 0)} | {rate_s} |")
 
@@ -87,7 +99,17 @@ def main():
         print("|---|---|---|---|")
         for (backend, opt), row in skips:
             for reason, count in sorted(row["skip_reasons"].items()):
-                print(f"| {backend} | {opt} | `{reason}` | {count} |")
+                # A reason may contain '|', which would split the cell.
+                print(f"| {backend} | {opt} | `{reason.replace('|', chr(92) + '|')}` | {count} |")
+
+    builds = [(cell, r) for cell, r in sorted(by_cell.items())
+              if r and r.get("unbuilt")]
+    if builds:
+        print("\n## Targets that would not build\n")
+        for (backend, opt), row in builds:
+            print(f"- **{backend} {opt}**: " + ", ".join(row["unbuilt"]))
+            if row.get("build_error"):
+                print(f"  - `{row['build_error']}`")
 
     fails = [(cell, r) for cell, r in sorted(by_cell.items())
              if r and r.get("failures")]
