@@ -35,11 +35,9 @@ chiatta:sycl:
   parallel:
     matrix: [{OPT: [O0, O2]}]
   variables:
-    # Best guess at the variable the jlsebatch runners read: ALCF's Aurora
-    # template uses ANL_AURORA_SCHEDULER_PARAMETERS, so set the JLSE-prefixed
-    # and bare names together until one is confirmed. Cobalt syntax, not PBS.
-    ANL_JLSE_SCHEDULER_PARAMETERS: "-q chiatta -t 1:00:0 -n 1"
-    SCHEDULER_PARAMETERS: "-q chiatta -t 1:00:0 -n 1"
+    # runners.yml has per-queue templates (.ice-runner, .v100-runner, ...)
+    # but none for chiatta, so set the queue here.
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
   script:
     - ci/run.sh sycl $OPT
 
@@ -50,7 +48,7 @@ chiatta:sycl:
 # gb300:cuda:
 #   extends: .jlse-batch
 #   variables:
-#     SCHEDULER_PARAMETERS: "-q gpu_gb300 -t 1:00:0 -n 1"
+#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
 #   script:
 #     - ci/run.sh cuda O2
 #
@@ -59,7 +57,7 @@ chiatta:sycl:
 #   parallel:
 #     matrix: [{OPT: [O0, O2]}]
 #   variables:
-#     SCHEDULER_PARAMETERS: "-q gpu_gb300 -t 1:00:0 -n 1"
+#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
 #   script:
 #     - ci/run.sh omp-nvptx $OPT
 #
@@ -68,7 +66,7 @@ chiatta:sycl:
 #   parallel:
 #     matrix: [{OPT: [O0, O2]}]
 #   variables:
-#     SCHEDULER_PARAMETERS: "-q gpu_amd_mi300x -t 1:00:0 -n 1"
+#     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
 #   script:
 #     - ci/run.sh omp-amdgpu $OPT
 
