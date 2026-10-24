@@ -2,7 +2,8 @@
 # Build and run one ffmt backend, and summarise its TAP output as JSON.
 #
 #   ci/run.sh sycl O2
-#   backends: sycl (chiatta), omp-nvptx (gb300), omp-amdgpu (mi300x)
+#   backends: sycl, omp-spirv (chiatta); cuda, omp-nvptx (a100);
+#             omp-amdgpu (mi300x)
 #
 # Writes results/<backend>-<opt>.{log,json}.
 set -o pipefail
@@ -25,9 +26,26 @@ case "$BACKEND" in
     GOAL=test
     ARGS="OPT_LEVELS=$OPT"
     ;;
+  omp-spirv)
+    export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:${LD_LIBRARY_PATH:-}
+    set --
+    source /vast/users/bertoni/intel/oneapi/setvars.sh
+    export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
+    DEVICE=pvc
+    CXX=icpx
+    GOAL=test-omp
+    ARGS="USE_OMP_ICPX=1 OMP_OPT=-$OPT"
+    ;;
+  cuda)
+    module load cuda/12.9.1
+    DEVICE=${OFFLOAD_ARCH:=sm_80}
+    CXX=clang++
+    GOAL=test-cuda
+    ARGS="USE_CUDA_CLANG=1 OFFLOAD_ARCH=$DEVICE"
+    ;;
   omp-nvptx)
     module load cuda/12.9.1
-    DEVICE=${OFFLOAD_ARCH:=sm_100}
+    DEVICE=${OFFLOAD_ARCH:=sm_80}
     CXX=clang++
     GOAL=test-omp
     ARGS="USE_OMP_CLANG=1 OFFLOAD_ARCH=$DEVICE OMP_OPT=-$OPT"

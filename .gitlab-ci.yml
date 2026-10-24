@@ -41,12 +41,28 @@ chiatta:sycl:
   script:
     - ci/run.sh sycl $OPT
 
-gb300:omp-nvptx:
+chiatta:omp-spirv:
   extends: .jlse-batch
   parallel:
     matrix: [{OPT: [O0, O2]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gb300"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+  script:
+    - ci/run.sh omp-spirv $OPT
+
+a100:cuda:
+  extends: .jlse-batch
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+  script:
+    - ci/run.sh cuda O2
+
+a100:omp-nvptx:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
   script:
     - ci/run.sh omp-nvptx $OPT
 
