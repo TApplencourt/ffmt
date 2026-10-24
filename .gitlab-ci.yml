@@ -5,6 +5,12 @@
 # naming the hardware. ci/tapsum.py writes results/<backend>-<opt>.json and
 # the table job collects them.
 
+include:
+  - project: 'ci-resources/defaults'
+    ref: main
+    file:
+      - '/runners.yml'
+
 stages:
   - test
   - publish
@@ -16,7 +22,7 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 .jlse-batch:
-  extends: .jlse-batch-runner
+  extends: .batch-runner
   stage: test
   artifacts:
     when: always          # a failed run still produces a usable row
@@ -68,6 +74,7 @@ chiatta:sycl:
 
 table:
   stage: publish
+  extends: .shell-runner
   when: always            # the table is most useful when something failed
   script:
     - ci/mktable.py results/*.json | tee results/table.md
