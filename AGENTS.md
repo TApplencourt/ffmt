@@ -50,7 +50,7 @@ explicitly instead (`static_cast`, `std::to_underlying`).
 ## Code
 
 - **Single header.** All the library is `include/ffmt/base.hpp`. Do not
-  split it or add headers.
+  add a new `.hpp` file or split this one: new code goes in `base.hpp`.
 - **Small code matters.** Prefer the smallest change that is correct;
   delete code when you can. Device code size and compile time are
   constraints, not afterthoughts. No new dependencies.
