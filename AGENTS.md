@@ -6,7 +6,8 @@ documentation; this file is about how to change the code.
 ## Goal
 
 ffmt aims to print exactly what `fmt::println` / `fmt::format` prints, from
-device code (SYCL, OpenMP target, CUDA). {fmt} is the oracle: the tests
+device code for any target (PTX, GenASM, SPIR-V, ...) and any programming
+model (SYCL, OpenMP target, CUDA, ...). {fmt} is the oracle: the tests
 compare ffmt against it, both the output and which format strings compile.
 
 - The oracle is the **pinned {fmt}** (`FMT_REF` in the `Makefile`), not
