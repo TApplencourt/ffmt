@@ -116,22 +116,20 @@ format used: 'id: {0}, v2dp={1:6.2f}, v={1:8.5f}' -> id: 3, v2dp= 12.57, v=12.56
 ## API
 
 ```cpp
-ffmt::print<"format string">(args...);    // no trailing newline
-ffmt::println<"format string">(args...);  // appends \n
-
-// Convenience macros (avoid angle-bracket syntax)
-FFMT_PRINT("format string", args...);    // primitives only
-FFMT_PRINTLN("format string", args...);  // primitives only
-
-// Use these when at least one arg is a custom type (sycl::id, sycl::range,
-// or your own formatter<T> specialization). Also accepts plain primitives.
-FFMT_PRINTF("format string", args...);
-FFMT_PRINTLNF("format string", args...);
+FFMT_PRINT("format string", args...);    // no trailing newline
+FFMT_PRINTLN("format string", args...);  // appends \n
 ```
+
+The macros expand to `ffmt::print` / `ffmt::println`, whose call shape
+depends on the formatting path (see [Backend differences](#backend-differences)):
+`ffmt::println<"format string">(args...)` on the specifiers path,
+`ffmt::println("format string", args...)` on the buffer path. The macros
+work on both. Arguments can be primitives or any type with a
+`ffmt::formatter<T>` specialization.
 
 ## Custom types
 
-`FFMT_PRINTF` / `FFMT_PRINTLNF` accept any type for which a
+`FFMT_PRINT` / `FFMT_PRINTLN` accept any type for which a
 `ffmt::formatter<T>` specialization is in scope. The library
 ships built-in formatters for the following SYCL types:
 
@@ -156,13 +154,12 @@ struct vec3 { float x, y, z; };
 template <>
 struct ffmt::formatter<vec3> {
   static constexpr auto format(vec3 v) {
-    return formatted<detail::fixed_string{"({}, {}, {})"},
-                     float, float, float>{ {v.x, v.y, v.z} };
+    return formatted<"({}, {}, {})", float, float, float>{{v.x, v.y, v.z}};
   }
 };
 
 // Now usable directly:
-FFMT_PRINTLNF("position = {}", vec3{1.0f, 2.0f, 3.0f});
+FFMT_PRINTLN("position = {}", vec3{1.0f, 2.0f, 3.0f});
 // → position = (1, 2, 3)
 ```
 
