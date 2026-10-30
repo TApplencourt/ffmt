@@ -128,8 +128,23 @@ make                             # icpx -fsycl on the device, -O0..-O3
 ```
 
 Valgrind has no target: run it on `build/test_main_host_*`. Other backends
-(`USE_ACPP`, `USE_OMP_CLANG`, `USE_OMP_ICPX`, `test-cuda`) are listed in
+(`USE_ACPP`, `USE_OMP_CLANG`, `USE_OMP_ICPX`, `USE_CUDA_CLANG`) are listed in
 README "Tests".
 
 Host tests are not enough for device-facing changes: say which backends you
 actually ran, and which you did not.
+
+## CI
+
+Check the CI result of your change, and never relax it to make it pass: do
+not skip, loosen or delete a check, lower the coverage gate, or widen a
+`SKIP_IF`.
+
+- `.github/workflows/host.yml`: host tests on both paths (g++ and clang++,
+  opt levels, sanitizers, plain Ubuntu / macOS), `-ffast-math`, negative
+  tests, and a coverage non-regression gate: region coverage of `base.hpp`
+  must not drop below the base branch.
+- `.github/workflows/device.yml`: compiles every test and example for each
+  GPU route (clang CUDA, clang OpenMP NVPTX, icpx SYCL and OpenMP, AOT for
+  PVC). The CI has no GPU, so nothing runs there; it still catches device
+  compile errors (PTX, SPIR-V, GenASM) that the host build cannot see.
