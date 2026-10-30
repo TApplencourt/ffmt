@@ -1,6 +1,11 @@
 #ifndef TEST_INC
 #define TEST_NAME integers
 #define TEST_INC "test_integers.cpp"
+#include <utility> // std::to_underlying, __cpp_lib_to_underlying
+// Enums are rejected (test/negative/reject_*_enum.cpp); converting them
+// explicitly is the supported way to print one.
+enum class status : int { warning = -3 };
+enum color { red, green };
 #include "test_select_body.inc"
 #else
 
@@ -44,5 +49,14 @@ RUN(PRINT("{:5d}\n", static_cast<uint8_t>(200)));
 // padded to 44).
 RUN(PRINT("[{:300}]\n", 1));
 RUN(PRINT("[{:<1000}]\n", -7));
+
+// Enums, converted explicitly to their underlying integer.
+RUN(PRINT("{}\n", static_cast<int>(status::warning)));
+RUN(PRINT("{:+05}\n", static_cast<int>(status::warning)));
+RUN(PRINT("{}\n", static_cast<int>(green)));
+#ifdef __cpp_lib_to_underlying // C++23
+RUN(PRINT("{}\n", std::to_underlying(status::warning)));
+RUN(PRINT("{:x}\n", std::to_underlying(green)));
+#endif
 
 #endif
