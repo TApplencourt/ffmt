@@ -1,0 +1,91 @@
+# ffmt on JLSE GPUs. The GitHub workflows check that every backend compiles
+# -- "there is no GPU to run on" -- so this runs them where a device exists.
+#
+# Each job is one ci/run.sh invocation on a batch runner, with the queue
+# naming the hardware. ci/tapsum.py writes results/<backend>-<opt>.json and
+# the table job collects them.
+
+include:
+  - project: 'ci-resources/defaults'
+    ref: main
+    file:
+      - '/runners.yml'
+
+stages:
+  - test
+  - publish
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.jlse-batch:
+  extends: .batch-runner
+  stage: test
+  artifacts:
+    when: always          # a failed run still produces a usable row
+    expire_in: 1 month
+    paths:
+      - results/
+
+chiatta:sycl:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    # runners.yml has per-queue templates (.ice-runner, .v100-runner, ...)
+    # but none for chiatta, so set the queue here.
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+  script:
+    - ci/run.sh sycl $OPT
+
+chiatta:omp-spirv:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+  script:
+    - ci/run.sh omp-spirv $OPT
+
+a100:cuda:
+  extends: .jlse-batch
+  # gpu_a100 allows 2 jobs per user; run the A100 jobs one at a time.
+  resource_group: a100
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+  script:
+    - ci/run.sh cuda O2
+
+a100:omp-nvptx:
+  extends: .jlse-batch
+  resource_group: a100
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+  script:
+    - ci/run.sh omp-nvptx $OPT
+
+mi300x:omp-amdgpu:
+  extends: .jlse-batch
+  parallel:
+    matrix: [{OPT: [O0, O2]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+  script:
+    - ci/run.sh omp-amdgpu $OPT
+
+table:
+  stage: publish
+  extends: .shell-runner
+  when: always            # the table is most useful when something failed
+  script:
+    - ci/mktable.py results/*.json | tee results/table.md
+  artifacts:
+    when: always
+    expire_in: 1 month
+    paths:
+      - results/table.md
