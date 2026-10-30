@@ -136,15 +136,8 @@ actually ran, and which you did not.
 
 ## CI
 
-Check the CI result of your change, and never relax it to make it pass: do
-not skip, loosen or delete a check, lower the coverage gate, or widen a
-`SKIP_IF`.
-
-- `.github/workflows/host.yml`: host tests on both paths (g++ and clang++,
-  opt levels, sanitizers, plain Ubuntu / macOS), `-ffast-math`, negative
-  tests, and a coverage non-regression gate: region coverage of `base.hpp`
-  must not drop below the base branch.
-- `.github/workflows/device.yml`: compiles every test and example for each
-  GPU route (clang CUDA, clang OpenMP NVPTX, icpx SYCL and OpenMP, AOT for
-  PVC). The CI has no GPU, so nothing runs there; it still catches device
-  compile errors (PTX, SPIR-V, GenASM) that the host build cannot see.
+Never relax the CI to make it pass: do not skip, loosen or delete a check,
+lower the coverage gate (region coverage of `base.hpp` must not drop), or
+widen a `SKIP_IF` just to avoid implementing a fix. The device workflow only
+compiles (the CI has no GPU): green there means the device code builds, not
+that it runs correctly.
