@@ -1681,14 +1681,18 @@ FMT_HD inline void pad_in_place(fmt_buf &out, int content_start,
 //   E >= 0: the value is the integer M·2^E (<= 309 digits), kept in base 1e9.
 //   E <  0: the integer part M >> k (k = -E) fits a uint64; the fraction
 //           r/2^k is kept in binary and each r *= 10 step yields one digit.
-// One 35-limb array (140 B) covers both: 2^1024 < 10^315 = 35 base-1e9 limbs,
-// and r·10 < 2^(k+4) <= 2^1078 fits in 34 binary limbs.
+// The array lives in local memory on GPUs, so it is sized for the argument
+// type (see write_float_rt). Trailing zero bits of M are dropped first:
+//   double: 2^1024 < 10^315 = 35 base-1e9 limbs, and r·10 < 2^(k+4) with
+//           k <= 1074 fits in 34 binary limbs (140 B).
+//   float:  2^128 < 10^39, 5 base-1e9 limbs, and a float is a multiple of
+//           2^-149, so k <= 149 and r·10 fits in 5 binary limbs (20 B).
 
 // Exact decimal digits of a positive finite double, most significant first.
 // next() walks the integer digits, then the fraction digits (0 forever once
 // the expansion ends). int_digits == 0 when the value is below 1.
+template <int LIMBS>
 struct exact_decimal {
-  static constexpr int LIMBS = 35;
   static constexpr uint32_t BASE = 1000000000u;
   uint32_t a[LIMBS];
   int n = 0;           // limbs in use
@@ -1705,6 +1709,8 @@ struct exact_decimal {
     int e;
     if (be == 0) e = -1074;
     else { m |= 1ULL << 52; e = be - 1075; }
+    if (m == 0) e = -1; // zero: an empty one-limb fraction
+    else for (; e < 0 && !(m & 1); m >>= 1) e++;
     if (e >= 0) {
       for (uint64_t t = m; t; t /= BASE) a[n++] = static_cast<uint32_t>(t % BASE);
       while (e > 0) { // multiply by 2^e, at most 2^32 per pass
@@ -1811,7 +1817,8 @@ struct digit_writer {
 
 // Puts the decimal point (if prec > 0 or alt) and `prec` more digits of x,
 // rounded half to even. Returns true when the carry ran off the front.
-FMT_HD inline bool put_fraction(fmt_buf &out, digit_writer &w, exact_decimal &x,
+template <int LIMBS>
+FMT_HD inline bool put_fraction(fmt_buf &out, digit_writer &w, exact_decimal<LIMBS> &x,
                                 int prec, bool alt) {
   if (prec > 0 || alt) out.push('.');
   // The expansion is finite: once it runs out the rest is zeros and nothing
@@ -1824,9 +1831,10 @@ FMT_HD inline bool put_fraction(fmt_buf &out, digit_writer &w, exact_decimal &x,
 }
 
 // Fixed notation with `prec` fraction digits, for a non-negative finite val.
+template <int LIMBS>
 FMT_HD inline void fmt_fixed(fmt_buf &out, double val, int prec, bool alt = false) {
   digit_writer w(out);
-  exact_decimal x(val);
+  exact_decimal<LIMBS> x(val);
   if (x.int_digits == 0) w.put(0);
   for (int i = 0; i < x.int_digits; i++) w.put(x.next());
   if (put_fraction(out, w, x, prec, alt)) {
@@ -1840,9 +1848,10 @@ FMT_HD inline void fmt_fixed(fmt_buf &out, double val, int prec, bool alt = fals
 
 // Scientific notation d.ddd…e±XX with `prec` fraction digits, for a
 // non-negative finite val. Returns the decimal exponent after rounding.
+template <int LIMBS>
 FMT_HD inline int fmt_sci(fmt_buf &out, double val, int prec, bool upper, bool alt = false) {
   digit_writer w(out);
-  exact_decimal x(val);
+  exact_decimal<LIMBS> x(val);
   int exp = x.int_digits - 1; // exponent of the next digit
   int d = 0;
   if (x.rest_nonzero())
@@ -1893,14 +1902,15 @@ FMT_HD inline void trim_trailing_zeros(fmt_buf &buf, int start = 0) {
 // g/G per [format.string.std]: with P = prec (0 → 1) and X the exponent the
 // 'e' form would have at precision P-1, use fixed with P-1-X digits when
 // P > X >= -4, else scientific; trailing zeros are dropped unless alt.
+template <int LIMBS>
 FMT_HD inline void fmt_g(fmt_buf &out, double val, int prec, bool upper, bool alt) {
   if (prec == 0)
     prec = 1;
   int start = out.len;
-  int x = fmt_sci(out, val, prec - 1, upper, alt);
+  int x = fmt_sci<LIMBS>(out, val, prec - 1, upper, alt);
   if (x >= -4 && x < prec) {
     out.len = start;
-    fmt_fixed(out, val, prec - 1 - x, alt);
+    fmt_fixed<LIMBS>(out, val, prec - 1 - x, alt);
   }
   if (!alt)
     trim_trailing_zeros(out, start);
@@ -2045,9 +2055,10 @@ FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, 
   } else {
     int prec = dyn_p >= 0 ? dyn_p : 6;
     double dv = widen_exact(val);
-    if (etype == 'f' || etype == 'F') fmt_fixed(out, dv, prec, spec.alt);
-    else if (etype == 'e' || etype == 'E') fmt_sci(out, dv, prec, upper, spec.alt);
-    else fmt_g(out, dv, prec, upper, spec.alt); // g, G, or none + precision
+    constexpr int limbs = sizeof(T) <= sizeof(float) ? 5 : 35; // see exact_decimal
+    if (etype == 'f' || etype == 'F') fmt_fixed<limbs>(out, dv, prec, spec.alt);
+    else if (etype == 'e' || etype == 'E') fmt_sci<limbs>(out, dv, prec, upper, spec.alt);
+    else fmt_g<limbs>(out, dv, prec, upper, spec.alt); // g, G, or none + precision
   }
 
   int dlen = out.len - content_start;
