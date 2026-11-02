@@ -1021,7 +1021,6 @@ constexpr bool is_float_format(char c) {
 // FMT_HD: these are reached (at compile time only) from code that also runs
 // on the device, and clang-CUDA rejects references to host functions there.
 namespace consteval_error {
-[[noreturn]] FMT_HD void too_many_placeholders_max_16();
 [[noreturn]] FMT_HD void format_argument_index_out_of_range();
 [[noreturn]] FMT_HD void dynamic_width_argument_index_out_of_range();
 [[noreturn]] FMT_HD void dynamic_precision_argument_index_out_of_range();
@@ -1060,14 +1059,15 @@ struct format_spec {
 // Parse a dynamic width/precision reference ({} or {N}) at data[i] == '{' and
 // advance i past its '}'. auto_idx >= 0 inside an automatically indexed
 // placeholder ({} consumes it) and -1 inside a manual one; mixing the two is
-// an error, as is anything else between the braces.
+// an error, as is anything else between the braces. Like parse_spec, also
+// runs on the device for already-validated strings, where errors cannot fire.
 constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &auto_idx) {
   int idx = -1;
   for (i++; i < len && data[i] >= '0' && data[i] <= '9'; i++)
     idx = (idx < 0 ? 0 : idx * 10) + (data[i] - '0');
-  if (i >= len || data[i] != '}') consteval_error::invalid_format_spec();
+  if (std::is_constant_evaluated() && (i >= len || data[i] != '}')) consteval_error::invalid_format_spec();
   i++;
-  if ((idx < 0) != (auto_idx >= 0)) consteval_error::cannot_mix_automatic_and_manual_indexing();
+  if (std::is_constant_evaluated() && (idx < 0) != (auto_idx >= 0)) consteval_error::cannot_mix_automatic_and_manual_indexing();
   return idx < 0 ? auto_idx++ : idx;
 }
 
@@ -1121,9 +1121,10 @@ constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
   return {};
 }
 
-// Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
-// Parse data[begin, end). Only ever evaluated at compile time, so a
-// malformed spec fails the build like it does with {fmt}.
+// Parse data[begin, end). Validation runs it at compile time, so a malformed
+// spec fails the build like it does with {fmt}; the buffer path runs it again
+// on the device, on validated strings. Errors only fire in constant
+// evaluation: consteval_error has no definition to call at run time.
 constexpr format_spec parse_spec(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
   format_spec s{};
@@ -1132,8 +1133,10 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
   int dyn_auto = dyn_auto_start;
   auto number = [&] { // width or precision digits
     int n = 0;
-    for (; i < e && data[i] >= '0' && data[i] <= '9'; i++)
-      if ((n = n * 10 + (data[i] - '0')) > 0x7fff) consteval_error::width_or_precision_above_32767();
+    for (; i < e && data[i] >= '0' && data[i] <= '9'; i++) {
+      n = n * 10 + (data[i] - '0');
+      if (std::is_constant_evaluated() && n > 0x7fff) consteval_error::width_or_precision_above_32767();
+    }
     return n;
   };
 
@@ -1143,10 +1146,11 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
   if (n && static_cast<unsigned char>(data[i]) >= 0x80) {
     uint32_t cp = 0;
     n = static_cast<size_t>(utf8_decode(data + i, cp));
-    if (cp == invalid_code_point) consteval_error::invalid_format_spec();
+    if (std::is_constant_evaluated() && cp == invalid_code_point) consteval_error::invalid_format_spec();
   }
   if (n && i + n < e && is_align_char(data[i + n])) {
-    if (data[i] == '{' || data[i] == '}') consteval_error::invalid_format_spec();
+    if (std::is_constant_evaluated() && (data[i] == '{' || data[i] == '}'))
+      consteval_error::invalid_format_spec();
     for (size_t k = 0; k < n; k++) s.fill.data[k] = data[i + k];
     s.fill.size = static_cast<uint8_t>(n);
     s.align = data[i + n]; i += n + 1;
@@ -1166,7 +1170,7 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
     else s.precision = static_cast<int16_t>(number());
   }
   if (i < e && is_type_char(data[i])) s.type = data[i++];
-  if (i != e) consteval_error::invalid_format_spec();
+  if (std::is_constant_evaluated() && i != e) consteval_error::invalid_format_spec();
   s.dyn_count = static_cast<uint8_t>(dyn_auto_start >= 0 ? dyn_auto - dyn_auto_start : 0);
   return s;
 }
@@ -1279,59 +1283,25 @@ consteval void validate_format(const char *s, int len) {
 
 #if FFMT_BUFFER_PATH
 // ============================================================
-// print_string — consteval-validated format string for ACPP
+// print_string — consteval-validated format string (buffer path)
 // ============================================================
 
-// Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
-struct ph_entry {
-  uint8_t open;
-  uint8_t close;
-  int8_t arg_idx;
-  bool has_spec;
-  format_spec spec;
-};
-
-// print_string — consteval-validated format string for print("...", args...) syntax.
-// Placeholders and specs are pre-parsed at compile time into phs[].
+// print_string — consteval-validated format string for print("...", args...)
+// syntax. Only a pointer to the literal: format_rt parses it again at run
+// time, as {fmt} does. A pre-parsed copy would sit in local memory (stack)
+// on every call, ~600 bytes on NVPTX.
 template <sycl_formattable... Args>
 struct print_string {
-  static constexpr int MAX_LEN = 256;
-  static constexpr int MAX_PH = 16;
-  char str[MAX_LEN]{};
+  const char *str;
   int len;
-  ph_entry phs[MAX_PH]{};
-  int ph_count = 0;
   bool needs_pct_escape = false;
 
   template <size_t N>
-  consteval print_string(const char (&s)[N]) : len(static_cast<int>(N - 1)) {
-    static_assert(N <= MAX_LEN, "format string too long");
-    // Open-coded copy: clang-CUDA's host-attribute check walks transitive
-    // callees even from consteval ctors, so std::copy_n's libstdc++
-    // __assign_one trips a "host-only function called from device" error.
-    for (size_t i = 0; i < N; i++) str[i] = s[i];
+  consteval print_string(const char (&s)[N]) : str(s), len(static_cast<int>(N - 1)) {
     validate_format<Args...>(s, len);
-    int auto_idx = 0;
-    for (auto ph = find_placeholder(s, len, 0); ph;
-         ph = find_placeholder(s, len, static_cast<int>(ph->close) + 1)) {
-      const placeholder_info &info = ph.info;
-      if (ph_count >= MAX_PH)
-        consteval_error::too_many_placeholders_max_16();
-      ph_entry &e = phs[ph_count++];
-      e.open = static_cast<uint8_t>(info.open);
-      e.close = static_cast<uint8_t>(info.close);
-      e.arg_idx = static_cast<int8_t>(info.index >= 0 ? info.index : auto_idx);
-      e.has_spec = info.has_spec && info.close > info.spec_beg;
-      e.spec = parse_spec(s, static_cast<int>(info.spec_beg), static_cast<int>(info.close),
-                             info.index < 0 ? auto_idx + 1 : -1);
-      if (info.index < 0) auto_idx += 1 + e.spec.dyn_count;
-    }
     needs_pct_escape = (type_can_produce_pct<Args>() || ...);
-    if (!needs_pct_escape) {
-      for (int i = 0; i < len; i++) {
-        if (str[i] == '%') { needs_pct_escape = true; break; }
-      }
-    }
+    for (int i = 0; i < len && !needs_pct_escape; i++)
+      needs_pct_escape = s[i] == '%';
   }
 };
 #endif // FFMT_BUFFER_PATH
@@ -2228,20 +2198,25 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
     }, args...);
 }
 
-// Top-level walker. Reuses the pre-parsed phs[] for the outer format string
-// (so spec handling for primitives is unchanged) and falls through to
-// dispatch_arg for both primitive and formatter args.
+// Top-level walker: parses the (compile-time validated) format string at
+// run time and dispatches each placeholder to dispatch_arg.
 template <sycl_formattable... Args, typename... A2>
 FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
   int pos = 0;
-  for (int i = 0; i < ps.ph_count; i++) {
-    const auto &e = ps.phs[i];
-    write_literal_segment(out, ps.str, pos, e.open);
-    dyn_args dyn{e.spec.width, e.spec.precision};
-    if (e.spec.width_arg >= 0) resolve_int_arg(e.spec.width_arg, dyn.w, args...);
-    if (e.spec.prec_arg >= 0)  resolve_int_arg(e.spec.prec_arg,  dyn.p, args...);
-    dispatch_arg(out, e.arg_idx, e.has_spec, e.spec, dyn, args...);
-    pos = e.close + 1;
+  int auto_idx = 0;
+  while (auto ph = find_placeholder(ps.str, ps.len, pos)) {
+    const placeholder_info &info = ph.info;
+    write_literal_segment(out, ps.str, pos, static_cast<int>(info.open));
+    int idx = info.index >= 0 ? info.index : auto_idx;
+    format_spec spec = parse_spec(ps.str, static_cast<int>(info.spec_beg),
+                                  static_cast<int>(info.close),
+                                  info.index < 0 ? auto_idx + 1 : -1);
+    if (info.index < 0) auto_idx += 1 + spec.dyn_count;
+    dyn_args dyn{spec.width, spec.precision};
+    if (spec.width_arg >= 0) resolve_int_arg(spec.width_arg, dyn.w, args...);
+    if (spec.prec_arg >= 0)  resolve_int_arg(spec.prec_arg,  dyn.p, args...);
+    dispatch_arg(out, idx, info.has_spec && info.close > info.spec_beg, spec, dyn, args...);
+    pos = static_cast<int>(info.close) + 1;
   }
   write_literal_segment(out, ps.str, pos, ps.len);
 }
