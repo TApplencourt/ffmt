@@ -1018,19 +1018,20 @@ constexpr bool is_float_format(char c) {
 // the old `throw "literal"` pattern (all our messages were static strings
 // anyway) but doesn't require -fcxx-exceptions — matters under e.g.
 // -fopenmp-targets=spir64 which disables exceptions on the device side.
-// FMT_HD: these are reached (at compile time only) from code that also runs
-// on the device, and clang-CUDA rejects references to host functions there.
+// Defined (empty) because parse_spec also runs on the device, where the calls
+// are reached only on validated strings, i.e. never; FMT_HD for clang-CUDA,
+// which rejects references to host functions from device code.
 namespace consteval_error {
-[[noreturn]] FMT_HD void format_argument_index_out_of_range();
-[[noreturn]] FMT_HD void dynamic_width_argument_index_out_of_range();
-[[noreturn]] FMT_HD void dynamic_precision_argument_index_out_of_range();
-[[noreturn]] FMT_HD void format_spec_type_incompatible_with_argument_type();
-[[noreturn]] FMT_HD void invalid_format_spec();
-[[noreturn]] FMT_HD void invalid_placeholder();
-[[noreturn]] FMT_HD void unmatched_closing_brace();
-[[noreturn]] FMT_HD void cannot_mix_automatic_and_manual_indexing();
-[[noreturn]] FMT_HD void width_or_precision_above_32767();
-[[noreturn]] FMT_HD void dynamic_width_or_precision_must_be_an_integer();
+FMT_HD inline void format_argument_index_out_of_range() {}
+FMT_HD inline void dynamic_width_argument_index_out_of_range() {}
+FMT_HD inline void dynamic_precision_argument_index_out_of_range() {}
+FMT_HD inline void format_spec_type_incompatible_with_argument_type() {}
+FMT_HD inline void invalid_format_spec() {}
+FMT_HD inline void invalid_placeholder() {}
+FMT_HD inline void unmatched_closing_brace() {}
+FMT_HD inline void cannot_mix_automatic_and_manual_indexing() {}
+FMT_HD inline void width_or_precision_above_32767() {}
+FMT_HD inline void dynamic_width_or_precision_must_be_an_integer() {}
 }
 
 // Fill: one UTF-8 code point (1-4 bytes), as in {fmt}'s "{:─^9}".
@@ -1065,9 +1066,9 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
   int idx = -1;
   for (i++; i < len && data[i] >= '0' && data[i] <= '9'; i++)
     idx = (idx < 0 ? 0 : idx * 10) + (data[i] - '0');
-  if (std::is_constant_evaluated() && (i >= len || data[i] != '}')) consteval_error::invalid_format_spec();
+  if (i >= len || data[i] != '}') consteval_error::invalid_format_spec();
   i++;
-  if (std::is_constant_evaluated() && (idx < 0) != (auto_idx >= 0)) consteval_error::cannot_mix_automatic_and_manual_indexing();
+  if ((idx < 0) != (auto_idx >= 0)) consteval_error::cannot_mix_automatic_and_manual_indexing();
   return idx < 0 ? auto_idx++ : idx;
 }
 
@@ -1123,8 +1124,7 @@ constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
 
 // Parse data[begin, end). Validation runs it at compile time, so a malformed
 // spec fails the build like it does with {fmt}; the buffer path runs it again
-// on the device, on validated strings. Errors only fire in constant
-// evaluation: consteval_error has no definition to call at run time.
+// on the device, on validated strings, where no error can fire.
 constexpr format_spec parse_spec(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
   format_spec s{};
@@ -1135,7 +1135,7 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
     int n = 0;
     for (; i < e && data[i] >= '0' && data[i] <= '9'; i++) {
       n = n * 10 + (data[i] - '0');
-      if (std::is_constant_evaluated() && n > 0x7fff) consteval_error::width_or_precision_above_32767();
+      if (n > 0x7fff) consteval_error::width_or_precision_above_32767();
     }
     return n;
   };
@@ -1146,10 +1146,10 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
   if (n && static_cast<unsigned char>(data[i]) >= 0x80) {
     uint32_t cp = 0;
     n = static_cast<size_t>(utf8_decode(data + i, cp));
-    if (std::is_constant_evaluated() && cp == invalid_code_point) consteval_error::invalid_format_spec();
+    if (cp == invalid_code_point) consteval_error::invalid_format_spec();
   }
   if (n && i + n < e && is_align_char(data[i + n])) {
-    if (std::is_constant_evaluated() && (data[i] == '{' || data[i] == '}'))
+    if (data[i] == '{' || data[i] == '}')
       consteval_error::invalid_format_spec();
     for (size_t k = 0; k < n; k++) s.fill.data[k] = data[i + k];
     s.fill.size = static_cast<uint8_t>(n);
@@ -1170,7 +1170,7 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
     else s.precision = static_cast<int16_t>(number());
   }
   if (i < e && is_type_char(data[i])) s.type = data[i++];
-  if (std::is_constant_evaluated() && i != e) consteval_error::invalid_format_spec();
+  if (i != e) consteval_error::invalid_format_spec();
   s.dyn_count = static_cast<uint8_t>(dyn_auto_start >= 0 ? dyn_auto - dyn_auto_start : 0);
   return s;
 }
