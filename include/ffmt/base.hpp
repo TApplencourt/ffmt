@@ -1702,7 +1702,13 @@ struct exact_decimal {
   int top_digits = 0;  // decimal digits in a[n-1] when k == 0
   int pos = 0;         // digits consumed by next()
 
-  FMT_HD explicit exact_decimal(double v) {
+  FMT_HD explicit exact_decimal(double v) { init(v); }
+
+  // Restart on v in place: fmt_g walks the digits twice, and a second
+  // exact_decimal would be a second array in local memory.
+  FMT_HD void init(double v) {
+    n = k = int_digits = top_digits = pos = 0;
+    ipart = 0;
     uint64_t bits = __builtin_bit_cast(uint64_t, v);
     int be = static_cast<int>((bits >> 52) & 0x7FF);
     uint64_t m = bits & 0x000FFFFFFFFFFFFFULL;
@@ -1832,9 +1838,8 @@ FMT_HD inline bool put_fraction(fmt_buf &out, digit_writer &w, exact_decimal<LIM
 
 // Fixed notation with `prec` fraction digits, for a non-negative finite val.
 template <int LIMBS>
-FMT_HD inline void fmt_fixed(fmt_buf &out, double val, int prec, bool alt = false) {
+FMT_HD inline void fmt_fixed(fmt_buf &out, exact_decimal<LIMBS> &x, int prec, bool alt = false) {
   digit_writer w(out);
-  exact_decimal<LIMBS> x(val);
   if (x.int_digits == 0) w.put(0);
   for (int i = 0; i < x.int_digits; i++) w.put(x.next());
   if (put_fraction(out, w, x, prec, alt)) {
@@ -1849,9 +1854,9 @@ FMT_HD inline void fmt_fixed(fmt_buf &out, double val, int prec, bool alt = fals
 // Scientific notation d.ddd…e±XX with `prec` fraction digits, for a
 // non-negative finite val. Returns the decimal exponent after rounding.
 template <int LIMBS>
-FMT_HD inline int fmt_sci(fmt_buf &out, double val, int prec, bool upper, bool alt = false) {
+FMT_HD inline int fmt_sci(fmt_buf &out, exact_decimal<LIMBS> &x, int prec, bool upper,
+                          bool alt = false) {
   digit_writer w(out);
-  exact_decimal<LIMBS> x(val);
   int exp = x.int_digits - 1; // exponent of the next digit
   int d = 0;
   if (x.rest_nonzero())
@@ -1903,14 +1908,16 @@ FMT_HD inline void trim_trailing_zeros(fmt_buf &buf, int start = 0) {
 // 'e' form would have at precision P-1, use fixed with P-1-X digits when
 // P > X >= -4, else scientific; trailing zeros are dropped unless alt.
 template <int LIMBS>
-FMT_HD inline void fmt_g(fmt_buf &out, double val, int prec, bool upper, bool alt) {
+FMT_HD inline void fmt_g(fmt_buf &out, exact_decimal<LIMBS> &x, double val, int prec,
+                         bool upper, bool alt) {
   if (prec == 0)
     prec = 1;
   int start = out.len;
-  int x = fmt_sci<LIMBS>(out, val, prec - 1, upper, alt);
-  if (x >= -4 && x < prec) {
+  int e = fmt_sci(out, x, prec - 1, upper, alt);
+  if (e >= -4 && e < prec) {
     out.len = start;
-    fmt_fixed<LIMBS>(out, val, prec - 1 - x, alt);
+    x.init(val);
+    fmt_fixed(out, x, prec - 1 - e, alt);
   }
   if (!alt)
     trim_trailing_zeros(out, start);
@@ -2055,10 +2062,11 @@ FMT_HD inline void write_float_rt(fmt_buf &out, T arg, const format_spec &spec, 
   } else {
     int prec = dyn_p >= 0 ? dyn_p : 6;
     double dv = widen_exact(val);
-    constexpr int limbs = sizeof(T) <= sizeof(float) ? 5 : 35; // see exact_decimal
-    if (etype == 'f' || etype == 'F') fmt_fixed<limbs>(out, dv, prec, spec.alt);
-    else if (etype == 'e' || etype == 'E') fmt_sci<limbs>(out, dv, prec, upper, spec.alt);
-    else fmt_g<limbs>(out, dv, prec, upper, spec.alt); // g, G, or none + precision
+    // One exact_decimal for all three: it is the largest local array here.
+    exact_decimal<sizeof(T) <= sizeof(float) ? 5 : 35> x(dv); // see exact_decimal
+    if (etype == 'f' || etype == 'F') fmt_fixed(out, x, prec, spec.alt);
+    else if (etype == 'e' || etype == 'E') fmt_sci(out, x, prec, upper, spec.alt);
+    else fmt_g(out, x, dv, prec, upper, spec.alt); // g, G, or none + precision
   }
 
   int dlen = out.len - content_start;
