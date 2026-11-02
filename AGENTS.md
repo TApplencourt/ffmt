@@ -92,10 +92,8 @@ A change must keep **both** paths building and matching {fmt}. A spec the
 specifiers path cannot express must be rejected there at compile time, not
 printed differently. The known exceptions are listed in the README:
 shortest float form and Unicode width on the specifiers path, and output
-truncated at `FFMT_BUFFER_SIZE` (default 128) on the buffer path. The
-buffer path also rejects, at compile time, format strings over 256
-characters or with more than 16 placeholders. Do not introduce new
-differences.
+truncated at `FFMT_BUFFER_SIZE` (default 128) on the buffer path. Do not
+introduce new differences.
 
 ## Tests
 
