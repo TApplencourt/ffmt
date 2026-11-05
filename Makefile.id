@@ -73,6 +73,7 @@ $(FMT_OBJ): $(SETUP) | $(OUT)/.dir $(FMT_HDR)
 $(LOGS)/config.txt: $(SETUP) | $(OUT)/.dir
 	@echo 'id=$(id) CXX=$(CXX) FFMT_FLAGS=$(FFMT_FLAGS) FFMT_MAIN=$(FFMT_MAIN)' | tee $@
 	@$(CXX) --version | head -1 | tee -a $@
+	@echo "commit=$$(git describe --always --dirty --abbrev=40)" | tee -a $@
 
 # Negative tests: each file in test/negative/ makes one format call that
 # must not compile. Every file is compiled three ways and each exit status

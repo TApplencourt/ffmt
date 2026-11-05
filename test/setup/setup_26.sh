@@ -1,8 +1,10 @@
-# Setup for id 26: host g++, specifiers path, ASan+UBSan, -O2, no fast-math.
+# Setup for id 26: host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS, FFMT_MAIN, FFMT_SYNTAX_FLAGS
 # and FFMT_FMT_FLAGS.
 
-export CXX=g++
+# ubuntu-24.04's GCC 13 (13.3.0), as on the GitHub runners; another GCC
+# version is another id.
+export CXX=g++-13
 # -fno-sanitize=bool: libstdc++'s std::basic_format_arg keeps a `bool
 # _M_bool` in a union initialised through `_M_none()`, so `_S_get<bool>`
 # loads a 0 byte that UBSan reports as an invalid bool. The load is in

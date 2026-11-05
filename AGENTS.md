@@ -123,7 +123,10 @@ Reuse the existing framework; do not add a new test harness.
   match: edit both.
 
 An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
-every compile flag) plus its row in `test/configs.json`. Ids 0 and 1 are the
+every compile flag) plus its row in `test/configs.json`. The row's
+`tested_commit` is the commit at which the id last ran and matched its
+`expected_fail` (`N/A` if it never has); `results/id-<id>/config.txt`
+records the commit of each run, so update the field when you run an id. Ids 0 and 1 are the
 host references (g++; specifiers path and buffer path); start a new id's
 `expected_fail` from the reference for its path. A new toolchain or machine
 gets a new id.

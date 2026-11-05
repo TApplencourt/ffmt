@@ -1,8 +1,10 @@
-# Setup for id 0: host g++, specifiers path, -O2, no fast-math.
+# Setup for id 0: host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS, FFMT_MAIN, FFMT_SYNTAX_FLAGS
 # and FFMT_FMT_FLAGS.
 
-export CXX=g++
+# ubuntu-24.04's GCC 13 (13.3.0), as on the GitHub runners; another GCC
+# version is another id.
+export CXX=g++-13
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -O2 -fno-fast-math -DFFMT_BUFFER_PATH=0"
 export FFMT_MAIN=test/test_main_host.cpp
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the

@@ -1,10 +1,12 @@
-# Setup for id 35: host clang++, buffer path, coverage instrumentation, -O2, no fast-math.
+# Setup for id 35: host clang++ 18 (ubuntu-24.04), buffer path, coverage instrumentation, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS, FFMT_MAIN, FFMT_SYNTAX_FLAGS
 # and FFMT_FMT_FLAGS.
 
 # For the coverage gate: .github/scripts/coverage_union.py runs the
 # binaries of both coverage ids and takes the union of their regions.
-export CXX=clang++
+# ubuntu-24.04's default clang (18), as on the GitHub runners; another
+# clang version is another id.
+export CXX=clang++-18
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -O2 -fno-fast-math -DFFMT_BUFFER_PATH=1 -fprofile-instr-generate -fcoverage-mapping"
 export FFMT_MAIN=test/test_main_host.cpp
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the

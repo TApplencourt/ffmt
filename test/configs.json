@@ -2,7 +2,8 @@
   {
     "id": 0,
     "setup": "test/setup/setup_0.sh",
-    "notes": "host g++, specifiers path, -O2, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -13,7 +14,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -101,14 +101,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 1,
     "setup": "test/setup/setup_1.sh",
-    "notes": "host g++, buffer path, -O2, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -165,6 +167,7 @@
     "id": 2,
     "setup": "test/setup/setup_2.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -175,7 +178,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -263,7 +265,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -271,6 +274,7 @@
     "id": 3,
     "setup": "test/setup/setup_3.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -281,7 +285,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -369,7 +372,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -377,6 +381,7 @@
     "id": 4,
     "setup": "test/setup/setup_4.sh",
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -433,6 +438,7 @@
     "id": 5,
     "setup": "test/setup/setup_5.sh",
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -489,6 +495,7 @@
     "id": 6,
     "setup": "test/setup/setup_6.sh",
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:nvptx_o2_ice",
@@ -546,6 +553,7 @@
     "id": 7,
     "setup": "test/setup/setup_7.sh",
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -602,6 +610,7 @@
     "id": 8,
     "setup": "test/setup/setup_8.sh",
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -658,6 +667,7 @@
     "id": 9,
     "setup": "test/setup/setup_9.sh",
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -714,6 +724,7 @@
     "id": 10,
     "setup": "test/setup/setup_10.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -724,7 +735,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -810,7 +820,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -818,6 +829,7 @@
     "id": 11,
     "setup": "test/setup/setup_11.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -828,7 +840,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -914,14 +925,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 12,
     "setup": "test/setup/setup_12.sh",
-    "notes": "host g++, specifiers path, -O2, fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -932,7 +945,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -1020,14 +1032,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 13,
     "setup": "test/setup/setup_13.sh",
-    "notes": "host g++, buffer path, -O2, fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1084,6 +1098,7 @@
     "id": 14,
     "setup": "test/setup/setup_14.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O0, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -1094,7 +1109,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -1180,7 +1194,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -1188,6 +1203,7 @@
     "id": 15,
     "setup": "test/setup/setup_15.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -1198,7 +1214,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -1284,7 +1299,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -1292,6 +1308,7 @@
     "id": 16,
     "setup": "test/setup/setup_16.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -1302,7 +1319,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -1390,7 +1406,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -1398,6 +1415,7 @@
     "id": 17,
     "setup": "test/setup/setup_17.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -1408,7 +1426,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -1496,7 +1513,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -1504,6 +1522,7 @@
     "id": 18,
     "setup": "test/setup/setup_18.sh",
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1560,6 +1579,7 @@
     "id": 19,
     "setup": "test/setup/setup_19.sh",
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O0, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1616,6 +1636,7 @@
     "id": 20,
     "setup": "test/setup/setup_20.sh",
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:nvptx_o2_ice",
@@ -1673,6 +1694,7 @@
     "id": 21,
     "setup": "test/setup/setup_21.sh",
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O0, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1729,6 +1751,7 @@
     "id": 22,
     "setup": "test/setup/setup_22.sh",
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O2, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1785,6 +1808,7 @@
     "id": 23,
     "setup": "test/setup/setup_23.sh",
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-22.1.8, -O0, fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1840,7 +1864,8 @@
   {
     "id": 24,
     "setup": "test/setup/setup_24.sh",
-    "notes": "host g++, specifiers path, ASan+UBSan, -O0, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -1851,7 +1876,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -1939,14 +1963,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 25,
     "setup": "test/setup/setup_25.sh",
-    "notes": "host g++, buffer path, ASan+UBSan, -O0, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2002,7 +2028,8 @@
   {
     "id": 26,
     "setup": "test/setup/setup_26.sh",
-    "notes": "host g++, specifiers path, ASan+UBSan, -O2, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2013,7 +2040,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -2101,14 +2127,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 27,
     "setup": "test/setup/setup_27.sh",
-    "notes": "host g++, buffer path, ASan+UBSan, -O2, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2164,7 +2192,8 @@
   {
     "id": 28,
     "setup": "test/setup/setup_28.sh",
-    "notes": "host clang++, specifiers path, ASan+UBSan, -O0, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2175,7 +2204,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -2263,14 +2291,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 29,
     "setup": "test/setup/setup_29.sh",
-    "notes": "host clang++, buffer path, ASan+UBSan, -O0, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2326,7 +2356,8 @@
   {
     "id": 30,
     "setup": "test/setup/setup_30.sh",
-    "notes": "host clang++, specifiers path, ASan+UBSan, -O2, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2337,7 +2368,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -2425,14 +2455,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 31,
     "setup": "test/setup/setup_31.sh",
-    "notes": "host clang++, buffer path, ASan+UBSan, -O2, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2489,6 +2521,7 @@
     "id": 32,
     "setup": "test/setup/setup_32.sh",
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2499,7 +2532,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -2587,7 +2619,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -2595,6 +2628,7 @@
     "id": 33,
     "setup": "test/setup/setup_33.sh",
     "notes": "macOS Apple clang (libc++), buffer path, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2650,7 +2684,8 @@
   {
     "id": 34,
     "setup": "test/setup/setup_34.sh",
-    "notes": "host clang++, specifiers path, coverage instrumentation, -O2, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, coverage instrumentation, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2661,7 +2696,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -2749,14 +2783,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 35,
     "setup": "test/setup/setup_35.sh",
-    "notes": "host clang++, buffer path, coverage instrumentation, -O2, no fast-math",
+    "notes": "host clang++ 18 (ubuntu-24.04), buffer path, coverage instrumentation, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2813,6 +2849,7 @@
     "id": 36,
     "setup": "test/setup/setup_36.sh",
     "notes": "GitHub clang-22 CUDA (sm_80), CUDA 12.6.3, -O2, no fast-math, build only (no GPU)",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2869,6 +2906,7 @@
     "id": 37,
     "setup": "test/setup/setup_37.sh",
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O0, no fast-math, compile only",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2925,6 +2963,7 @@
     "id": 38,
     "setup": "test/setup/setup_38.sh",
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O2, no fast-math, compile only",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:nvptx_o2_ice",
@@ -2982,6 +3021,7 @@
     "id": 39,
     "setup": "test/setup/setup_39.sh",
     "notes": "GitHub icpx SYCL, AOT for PVC, -O0, no fast-math, build only (no GPU)",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2992,7 +3032,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -3078,7 +3117,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -3086,6 +3126,7 @@
     "id": 40,
     "setup": "test/setup/setup_40.sh",
     "notes": "GitHub icpx SYCL, AOT for PVC, -O2, no fast-math, build only (no GPU)",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3096,7 +3137,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:to_underlying",
         "negative:reject_alt_on_pointer",
@@ -3182,7 +3222,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -3190,6 +3231,7 @@
     "id": 41,
     "setup": "test/setup/setup_41.sh",
     "notes": "GitHub icpx OpenMP offload, AOT for PVC, -O0, no fast-math, build only (no GPU)",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3200,7 +3242,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -3288,7 +3329,8 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
@@ -3296,6 +3338,7 @@
     "id": 42,
     "setup": "test/setup/setup_42.sh",
     "notes": "GitHub icpx OpenMP offload, AOT for PVC, -O2, no fast-math, build only (no GPU)",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3306,7 +3349,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -3394,14 +3436,16 @@
         "strings:27",
         "strings:29",
         "misc:42",
-        "misc:43"
+        "misc:43",
+        "null_string:3"
       ]
     }
   },
   {
     "id": 43,
     "setup": "test/setup/setup_43.sh",
-    "notes": "host g++, buffer path, C++23, -O2, no fast-math",
+    "notes": "host g++ 13 (ubuntu-24.04), buffer path, C++23, -O2, no fast-math",
+    "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -3457,6 +3501,7 @@
     "id": 44,
     "setup": "test/setup/setup_44.sh",
     "notes": "icpx SYCL (DPC++) on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
+    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3561,6 +3606,7 @@
     "id": 45,
     "setup": "test/setup/setup_45.sh",
     "notes": "icpx OpenMP offload to SPIR-V on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
+    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3661,6 +3707,170 @@
         "misc:43",
         "null_string:3"
       ]
+    }
+  },
+  {
+    "id": 46,
+    "setup": "test/setup/setup_46.sh",
+    "notes": "Aurora g++ 14.3 (module gcc/14.3.0), specifiers path, -O2, no fast-math",
+    "tested_commit": "N/A",
+    "expected_fail": {
+      "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:escape_percent_inplace",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:signed_radix",
+        "isolated:sycl_types",
+        "isolated:sycl_usm_string",
+        "isolated:to_underlying",
+        "negative:reject_alt_on_pointer",
+        "negative:reject_alt_on_string",
+        "negative:reject_auto_dynamic_in_manual",
+        "negative:reject_auto_then_manual_index",
+        "negative:reject_brace_as_fill",
+        "negative:reject_c_on_bool",
+        "negative:reject_c_on_float",
+        "negative:reject_float_dynamic_precision",
+        "negative:reject_float_dynamic_width",
+        "negative:reject_float_spec_on_int",
+        "negative:reject_garbage_after_arg_id",
+        "negative:reject_garbage_after_width",
+        "negative:reject_int_spec_on_float",
+        "negative:reject_invalid_utf8_fill",
+        "negative:reject_manual_dynamic_in_auto",
+        "negative:reject_manual_then_auto_index",
+        "negative:reject_non_numeric_arg_id",
+        "negative:reject_precision_on_bool",
+        "negative:reject_precision_on_char",
+        "negative:reject_precision_on_int",
+        "negative:reject_precision_on_pointer",
+        "negative:reject_s_on_float",
+        "negative:reject_s_on_int",
+        "negative:reject_scoped_enum",
+        "negative:reject_sign_on_char",
+        "negative:reject_sign_on_pointer",
+        "negative:reject_sign_on_string",
+        "negative:reject_sign_on_unsigned_minus",
+        "negative:reject_sign_on_unsigned_plus",
+        "negative:reject_sign_on_unsigned_plus_bool",
+        "negative:reject_sign_on_unsigned_space",
+        "negative:reject_spec_on_custom_formatter",
+        "negative:reject_stray_closing_brace",
+        "negative:reject_too_few_args",
+        "negative:reject_too_few_args_custom_formatter",
+        "negative:reject_two_types",
+        "negative:reject_unclosed_brace",
+        "negative:reject_unknown_type",
+        "negative:reject_unscoped_enum",
+        "negative:reject_unterminated_spec",
+        "negative:reject_zero_on_char",
+        "negative:reject_zero_on_pointer",
+        "negative:reject_zero_on_string"
+      ],
+      "runtime": [
+        "floats:104",
+        "floats:105",
+        "floats:106",
+        "floats:107",
+        "floats:110",
+        "floats:111",
+        "floats:114",
+        "floats:115",
+        "floats:116",
+        "floats:119",
+        "floats:120",
+        "floats:121",
+        "floats:124",
+        "floats:125",
+        "floats:126",
+        "floats:162",
+        "floats:163",
+        "floats:164",
+        "floats:165",
+        "floats:166",
+        "floats:167",
+        "floats:168",
+        "floats:170",
+        "floats:171",
+        "floats:176",
+        "floats:177",
+        "floats:178",
+        "floats:181",
+        "floats:190",
+        "floats:191",
+        "floats:192",
+        "floats:193",
+        "floats:195",
+        "floats:196",
+        "strings:26",
+        "strings:27",
+        "strings:29",
+        "misc:42",
+        "misc:43"
+      ]
+    }
+  },
+  {
+    "id": 47,
+    "setup": "test/setup/setup_47.sh",
+    "notes": "Aurora g++ 14.3 (module gcc/14.3.0), buffer path, -O2, no fast-math",
+    "tested_commit": "N/A",
+    "expected_fail": {
+      "compile": [
+        "isolated:sycl_types",
+        "isolated:sycl_usm_string",
+        "isolated:to_underlying",
+        "negative:reject_alt_on_pointer",
+        "negative:reject_alt_on_string",
+        "negative:reject_auto_dynamic_in_manual",
+        "negative:reject_auto_then_manual_index",
+        "negative:reject_brace_as_fill",
+        "negative:reject_c_on_bool",
+        "negative:reject_c_on_float",
+        "negative:reject_float_dynamic_precision",
+        "negative:reject_float_dynamic_width",
+        "negative:reject_float_spec_on_int",
+        "negative:reject_garbage_after_arg_id",
+        "negative:reject_garbage_after_width",
+        "negative:reject_int_spec_on_float",
+        "negative:reject_invalid_utf8_fill",
+        "negative:reject_manual_dynamic_in_auto",
+        "negative:reject_manual_then_auto_index",
+        "negative:reject_non_numeric_arg_id",
+        "negative:reject_precision_on_bool",
+        "negative:reject_precision_on_char",
+        "negative:reject_precision_on_int",
+        "negative:reject_precision_on_pointer",
+        "negative:reject_s_on_float",
+        "negative:reject_s_on_int",
+        "negative:reject_scoped_enum",
+        "negative:reject_sign_on_char",
+        "negative:reject_sign_on_pointer",
+        "negative:reject_sign_on_string",
+        "negative:reject_sign_on_unsigned_minus",
+        "negative:reject_sign_on_unsigned_plus",
+        "negative:reject_sign_on_unsigned_plus_bool",
+        "negative:reject_sign_on_unsigned_space",
+        "negative:reject_spec_on_custom_formatter",
+        "negative:reject_stray_closing_brace",
+        "negative:reject_too_few_args",
+        "negative:reject_too_few_args_custom_formatter",
+        "negative:reject_two_types",
+        "negative:reject_unclosed_brace",
+        "negative:reject_unknown_type",
+        "negative:reject_unscoped_enum",
+        "negative:reject_unterminated_spec",
+        "negative:reject_zero_on_char",
+        "negative:reject_zero_on_pointer",
+        "negative:reject_zero_on_string"
+      ],
+      "runtime": []
     }
   }
 ]
