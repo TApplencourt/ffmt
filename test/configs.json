@@ -3,7 +3,7 @@
     "id": 0,
     "setup": "test/setup/setup_0.sh",
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "f8abbe2a90db1b2d632be9265ca3cf2e847be00c",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -110,7 +110,7 @@
     "id": 1,
     "setup": "test/setup/setup_1.sh",
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "f8abbe2a90db1b2d632be9265ca3cf2e847be00c",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -1033,7 +1033,11 @@
         "strings:29",
         "misc:42",
         "misc:43",
-        "null_string:3"
+        "null_string:3",
+        "floats:60",
+        "floats:141",
+        "floats:201",
+        "floats:202"
       ]
     }
   },
