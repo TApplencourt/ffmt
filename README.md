@@ -15,10 +15,10 @@ The output matches `fmt::format` exactly, including where {fmt} and
 
 | Backend                  | Compiler                            | Status | Notes |
 |--------------------------|-------------------------------------|--------|-------|
-| SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug skips a handful of `%s` tests — auto-gated via `FFMT_SPIRV_O0`. |
+| SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug breaks a handful of `%s` tests. |
 | SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. Full `std::format` spec. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
-| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs are auto-gated via `FFMT_PTX_CLANG_O0`. Build with `OMP_OPT=-O2` for full coverage. |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs break tests; `-O2` is clean. |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
 | CUDA                     | `nvcc`                              | ❌ | Fails: `libnvvm` can't emit the `print_string` consteval ctor for device code. |
 | CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
@@ -227,7 +227,7 @@ Features only available on the buffer path:
 
 The output reference is [{fmt}](https://github.com/fmtlib/fmt): ffmt prints
 exactly what `fmt::format` prints, and the test suite diffs against a pinned
-`{fmt}` (`FMT_REF` in the Makefile, fetched into `third_party/fmt`, or point
+`{fmt}` (`FMT_REF` in `Makefile.id`, fetched into `third_party/fmt`, or point
 `FMT_DIR` at a checkout). The system `std::format` is not used as a
 reference because implementations disagree with each other and with
 `{fmt}`. Where `{fmt}` and `std::format` differ, ffmt follows `{fmt}`:
@@ -284,17 +284,26 @@ clang++ -x cuda --cuda-gpu-arch=sm_80 -std=c++20 my_kernel.cu -lcudart -o my_ker
 
 ## Tests
 
+Each test configuration has an id in [`test/configs.json`](test/configs.json):
+a compiler, its flags, a device, the modules to load, all set by
+`test/setup/setup_<id>.sh`. Ids 0 and 1 are the host references (g++, the
+specifiers path and the buffer path); every other id behaves like one of
+the two, apart from the failures it lists.
+
 ```bash
-make test                                  # SYCL backend (default: icpx)
-make test USE_ACPP=1                       # AdaptiveCpp backend
-CXX=clang++ make test-omp USE_OMP_CLANG=1  # clang-OMP-CUDA, -O0 default
-CXX=clang++ make test-omp USE_OMP_CLANG=1 OMP_OPT=-O2  # full coverage
-make test-omp USE_OMP_ICPX=1               # icpx-OMP-SPIR64
-make test-host                             # host-only (libc printf, no device)
-make coverage                              # base.hpp region coverage, both paths (as CI)
+test/run_id.sh 1              # build and run id 1; results in results/id-1/
+test/run_id.sh 39 build       # build only, for a device this machine lacks
+python3 test/check_id.py 1    # compare with id 1's expected failures
 ```
 
-Output is TAP-style: each test gets one line of `ok N - file`,
-`not ok N - file`, or `skipped N - file # reason`. Skip reasons identify
-a known compiler bug — see the catalog at the top of
-[`test/capture.hpp`](test/capture.hpp).
+Every id builds every test. `test/check_id.py` passes when the failures are
+exactly the ones listed under the id's `expected_fail`: `compile` for files
+that do not build, `runtime` for tests whose output differs from `{fmt}`.
+It reports anything else in either direction: an unexpected failure, or an
+expected one that did not happen.
+
+Output is TAP-style: one line per test, `ok N - file` or `not ok N - file`.
+
+CI runs the ids a GitHub runner can handle
+([`.github/workflows/test.yml`](.github/workflows/test.yml)) and the JLSE
+GPU ids ([`.gitlab-ci.yml`](.gitlab-ci.yml)).

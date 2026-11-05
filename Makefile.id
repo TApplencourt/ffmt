@@ -1,0 +1,173 @@
+# Build and run the ffmt tests for one row of test/configs.json.
+# Run it through the wrapper, which sources the setup script first:
+#
+#   test/run_id.sh 4          build and run id 4
+#   test/run_id.sh 4 build    build only
+#
+# This file knows only the id. Modules, compiler, every compile flag
+# (language standard and warnings included) and which main to use all come
+# from test/setup/setup_<id>.sh, which must export CXX, FFMT_FLAGS,
+# FFMT_MAIN, FFMT_SYNTAX_FLAGS and FFMT_FMT_FLAGS. This file adds only its
+# own mechanics: the include paths, -DFFMT_ID_<id> and -DTEST_NO_MAIN.
+#
+# Binaries go to build/id-<id>/; the config, build log and run log go to
+# results/id-<id>/.
+
+SHELL       := /bin/bash
+.SHELLFLAGS := -o pipefail -c
+
+ifndef id
+  $(error usage: make -f Makefile.id id=N [test|build])
+endif
+
+SETUP := test/setup/setup_$(id).sh
+OUT   := build/id-$(id)
+LOGS  := results/id-$(id)
+BIN   := $(OUT)/test
+
+.DEFAULT_GOAL := test
+.PHONY: test build
+
+# CXX, FFMT_FLAGS and FFMT_MAIN come from the setup script.
+ifndef FFMT_MAIN
+  $(error FFMT_MAIN is not set: run test/run_id.sh $(id), which sources $(SETUP))
+endif
+ifeq ($(origin CXX),default)
+  $(error $(SETUP) must export CXX)
+endif
+ifndef FFMT_SYNTAX_FLAGS
+  $(error $(SETUP) must export FFMT_SYNTAX_FLAGS)
+endif
+ifndef FFMT_FMT_FLAGS
+  $(error $(SETUP) must export FFMT_FMT_FLAGS)
+endif
+
+TESTS := integers floats strings layout misc formatter escape_percent
+SRCS  := $(TESTS:%=test/test_%.cpp)
+HDRS  := $(wildcard test/*.hpp test/*.inc) include/ffmt/base.hpp
+
+INCLUDES := -Iinclude -isystem third_party/fmt/include
+
+FMT_REPO ?= https://github.com/fmtlib/fmt.git
+FMT_REF  ?= 35c58f084e7cd79b51997439cff68346f4c724c0
+FMT_DIR  := third_party/fmt
+FMT_HDR  := $(FMT_DIR)/include/fmt/format.h
+FMT_OBJ  := $(OUT)/fmt.o
+
+$(FMT_HDR):
+	git clone --quiet $(FMT_REPO) $(FMT_DIR)
+	git -C $(FMT_DIR) checkout --quiet $(FMT_REF)
+
+$(OUT)/.dir:
+	mkdir -p $(OUT) $(LOGS)
+	touch $@
+
+# The reference the tests compare against: {fmt}, built for the host the
+# same way for every id (fixed standard, -O2, never fast-math, no -Werror on
+# third-party code) so that every id is compared against the same thing,
+# whatever its setup does to the tests.
+$(FMT_OBJ): $(SETUP) | $(OUT)/.dir $(FMT_HDR)
+	$(CXX) -std=c++20 $(INCLUDES) -fno-fast-math -O2 -c $(FMT_DIR)/src/format.cc -o $@
+
+# What was built and with which compiler, next to the logs.
+$(LOGS)/config.txt: $(SETUP) | $(OUT)/.dir
+	@echo 'id=$(id) CXX=$(CXX) FFMT_FLAGS=$(FFMT_FLAGS) FFMT_MAIN=$(FFMT_MAIN)' | tee $@
+	@$(CXX) --version | head -1 | tee -a $@
+
+# Negative tests: each file in test/negative/ makes one format call that
+# must not compile. Every file is compiled three ways and each exit status
+# recorded: with FFMT_SYNTAX_FLAGS (the call made a no-op), with
+# FFMT_FMT_FLAGS (the call made through {fmt}) and plainly (through ffmt).
+# Which statuses are expected is judged elsewhere, not here. The {fmt}
+# compile leaves out FFMT_FLAGS: {fmt}'s headers in an offload compile hit
+# llvm/llvm-project#52699, which is why fmt.o is a separate host object.
+# -Wno-unused-command-line-argument: with -c, clang warns that link flags
+# such as -lcudart are unused, and -Werror would turn that into a failure.
+# Each file is its own target, so make -j compiles them in parallel.
+NEG_SRCS    := test/negative/control/accept_valid.cpp $(wildcard test/negative/*.cpp)
+NEG_DONE    := $(foreach f,$(NEG_SRCS),$(LOGS)/negative/$(basename $(notdir $(f))).status)
+NEG_COMPILE  = $(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -Wno-unused-command-line-argument -c
+NEG_FMT      = $(CXX) $(INCLUDES) $(FFMT_FMT_FLAGS) -c
+
+define NEG_RECIPE
+	@mkdir -p $(@D)
+	@{ $(NEG_COMPILE) $(FFMT_SYNTAX_FLAGS) $< -o /dev/null >/dev/null 2>&1; echo "$$? syntax $*"; \
+	   $(NEG_FMT) $< -o /dev/null >/dev/null 2>&1; echo "$$? fmt $*"; \
+	   $(NEG_COMPILE) $< -o /dev/null >/dev/null 2>&1; echo "$$? ffmt $*"; } > $@
+endef
+
+$(LOGS)/negative/%.status: test/negative/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir $(FMT_HDR)
+	$(NEG_RECIPE)
+$(LOGS)/negative/%.status: test/negative/control/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir $(FMT_HDR)
+	$(NEG_RECIPE)
+
+.PHONY: negative
+negative: $(NEG_DONE)
+	@cat $(NEG_DONE) | tee $(LOGS)/negative.log
+
+# Isolated tests: each file in test/isolated/ holds cases some ids cannot
+# compile, so each is built on its own and a compile failure stays
+# contained. One status line per file and step goes to isolated.log, each
+# file's compiler output and TAP output to their own logs. Which statuses
+# are expected is judged elsewhere, not here. The builds are separate
+# targets and run in parallel under make -j.
+ISO_SRCS := $(wildcard test/isolated/*.cpp)
+ISO_DONE := $(patsubst test/isolated/%.cpp,$(LOGS)/isolated/%.build,$(ISO_SRCS))
+
+.PHONY: isolated
+
+ifdef FFMT_COMPILE_ONLY
+
+# For a toolchain that can compile for a device but not link for it (no
+# device runtime installed): compile each source to an object and stop.
+OBJS := $(patsubst test/%.cpp,$(OUT)/%.o,$(FFMT_MAIN) $(SRCS))
+
+$(OUT)/%.o: test/%.cpp $(HDRS) $(SETUP) $(LOGS)/config.txt | $(OUT)/.dir $(FMT_HDR)
+	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN -c $< -o $@ 2>&1 | tee $(LOGS)/build-$*.log
+
+$(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir $(FMT_HDR)
+	@mkdir -p $(@D)
+	@$(NEG_COMPILE) $< -o /dev/null >$(LOGS)/isolated-$*.build.log 2>&1; echo "$$? build $*" > $@
+
+isolated: $(ISO_DONE)
+	@cat $(ISO_DONE) | tee $(LOGS)/isolated.log
+
+build: $(OBJS) negative isolated
+
+test:
+	@echo "Makefile.id: id $(id) is compile-only; use test/run_id.sh $(id) build" >&2; exit 1
+
+else
+
+# `-x none` ends a `-x cuda` from FFMT_FLAGS before the object file.
+$(BIN): $(FFMT_MAIN) $(SRCS) $(HDRS) $(SETUP) $(FMT_OBJ) $(LOGS)/config.txt | $(OUT)/.dir
+	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN \
+	  $(FFMT_MAIN) $(SRCS) -x none $(FMT_OBJ) -o $@ 2>&1 | tee $(LOGS)/build.log
+
+$(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) $(FMT_OBJ) | $(OUT)/.dir
+	@mkdir -p $(@D) $(OUT)/isolated
+	@$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) $< -x none $(FMT_OBJ) -o $(OUT)/isolated/$* \
+	  >$(LOGS)/isolated-$*.build.log 2>&1; echo "$$? build $*" > $@
+
+# build only builds the isolated files; test also runs them.
+.PHONY: isolated-build
+isolated-build: $(ISO_DONE)
+	@cat $(ISO_DONE) | tee $(LOGS)/isolated.log
+
+build: $(BIN) negative isolated-build
+
+# The builds run in parallel; the programs run one after another, so that
+# two of them never share the GPU.
+isolated: $(ISO_DONE)
+	@for s in $(ISO_DONE); do n=$$(basename $$s .build); cat $$s; \
+	  if [ "$$(cut -d' ' -f1 $$s)" = 0 ]; then \
+	    ./$(OUT)/isolated/$$n >$(LOGS)/isolated-$$n.log 2>&1; echo "$$? run $$n"; \
+	  fi; \
+	done | tee $(LOGS)/isolated.log
+
+# Runs after isolated has finished, so again only one program on the GPU.
+# TAP goes to stderr, hence 2>&1.
+test: $(BIN) negative isolated
+	./$(BIN) 2>&1 | tee $(LOGS)/run.log
+
+endif

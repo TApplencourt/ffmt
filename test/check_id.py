@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Compare one id's results with its expected failures in test/configs.json.
+
+    python3 test/check_id.py 4          after test/run_id.sh 4
+    python3 test/check_id.py 39 build   after test/run_id.sh 39 build
+
+Reads results/id-<id>/ and prints every failure that is not expected and
+every expected failure that did not happen, then exits 1 if there is any.
+test/run_id.sh exits non-zero whenever a test fails, expected or not, so CI
+ignores its status and lets this script decide.
+
+Names: a test is <file>:<number> (floats:104, null_string:3); a file that
+does not compile is isolated:<name> or negative:<name>.
+"""
+import json
+import os
+import re
+import sys
+
+
+def stem(path):
+    return os.path.basename(path).replace("test_", "", 1).replace(".cpp", "")
+
+
+def tap_failures(path):
+    text = open(path, errors="replace").read()
+    return ["%s:%s" % (stem(m.group(2)), m.group(1))
+            for m in re.finditer(r"^not ok (\d+) - (\S+)", text, re.M)]
+
+
+def check(id_, goal):
+    row = {r["id"]: r for r in json.load(open("test/configs.json"))}[id_]
+    logs = "results/id-%d" % id_
+    ran = goal == "test"
+    problems = []
+    compile_fails, runtime_fails = set(), set()
+
+    if ran:
+        run_log = os.path.join(logs, "run.log")
+        if os.path.exists(run_log):
+            runtime_fails.update(tap_failures(run_log))
+        else:
+            problems.append("the main binary did not build or did not run")
+
+    isolated_log = os.path.join(logs, "isolated.log")
+    if not os.path.exists(isolated_log):
+        problems.append("no isolated.log: the isolated step did not run")
+    else:
+        for line in open(isolated_log):
+            status, step, name = line.split()
+            if step == "build" and status != "0":
+                compile_fails.add("isolated:" + stem(name))
+            elif step == "run" and status != "0":
+                fails = tap_failures(os.path.join(logs, "isolated-%s.log" % name))
+                runtime_fails.update(fails or [stem(name) + ":run"])  # died before reporting
+
+    negative_log = os.path.join(logs, "negative.log")
+    if not os.path.exists(negative_log):
+        problems.append("no negative.log: the negative step did not run")
+    else:
+        for line in open(negative_log):
+            status, kind, name = line.split()
+            compiled = status == "0"
+            if name == "accept_valid":
+                if not compiled:
+                    problems.append("the negative control does not compile (%s pass), "
+                                    "so the negative results mean nothing" % kind)
+            elif kind == "syntax" and not compiled:
+                problems.append("negative:%s is broken: it fails to compile even with "
+                                "the format call made a no-op" % name)
+            elif kind == "fmt" and compiled:
+                problems.append("negative:%s: {fmt} accepts it, so it is not a real "
+                                "restriction" % name)
+            elif kind == "ffmt" and not compiled:
+                compile_fails.add("negative:" + name)
+
+    expected = row["expected_fail"]
+    for what, actual, exp in (("compile", compile_fails, set(expected["compile"])),
+                              ("runtime", runtime_fails, set(expected["runtime"]))):
+        if what == "runtime" and not ran:
+            continue
+        for name in sorted(actual - exp):
+            problems.append("unexpected %s failure: %s" % (what, name))
+        for name in sorted(exp - actual):
+            problems.append("expected %s failure did not happen: %s" % (what, name))
+
+    if problems:
+        print("id %d: %d problem(s)" % (id_, len(problems)))
+        for p in problems:
+            print("  " + p)
+        return 1
+    print("id %d: as expected (%d compile, %d runtime expected failures)"
+          % (id_, len(compile_fails), len(runtime_fails) if ran else 0))
+    return 0
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    sys.exit(check(int(sys.argv[1]), sys.argv[2] if len(sys.argv) > 2 else "test"))

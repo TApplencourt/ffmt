@@ -10,7 +10,7 @@ device code for any target (PTX, GenASM, SPIR-V, ...) and any programming
 model (SYCL, OpenMP target, CUDA, ...). {fmt} is the oracle: the tests
 compare ffmt against it, both the output and which format strings compile.
 
-- The oracle is the **pinned {fmt}** (`FMT_REF` in the `Makefile`), not
+- The oracle is the **pinned {fmt}** (`FMT_REF` in `Makefile.id`), not
   `std::format` and not the {fmt} on your machine. Where {fmt} and
   `std::format` disagree, follow {fmt}.
 - Accept what {fmt} accepts, reject (at compile time) what {fmt} rejects,
@@ -18,8 +18,8 @@ compare ffmt against it, both the output and which format strings compile.
   The only exceptions are the backend limits documented in the README
   (see "Two formatting paths").
 - When unsure how {fmt} behaves, compile a small program against the pinned
-  {fmt} and check; do not answer from memory. `make` fetches it into
-  `third_party/fmt` on first use (or set `FMT_DIR` to a checkout).
+  {fmt} and check; do not answer from memory. `test/run_id.sh` fetches it
+  into `third_party/fmt` on first use (or set `FMT_DIR` to a checkout).
 
 ## Public API
 
@@ -103,41 +103,48 @@ Reuse the existing framework; do not add a new test harness.
 
 - `test/test_<name>.cpp`: each `RUN(PRINT(...))` line is printed by ffmt and
   by the pinned {fmt}, and the outputs are diffed. Add cases to the file
-  that fits (`TESTS` / `BUFFER_TESTS` in the `Makefile`); specs only the
-  buffer path supports go in `test/test_buffer_path.cpp`.
-- `test/negative/reject_*.cpp`: one `NEG_EXPECT_REJECTED(...)` per file;
-  it must fail to compile on both ffmt paths *and* with {fmt}. Picked up
-  automatically by `make test-negative`.
-- Compiler bugs are gated with `SKIP_IF(<gate>, ...)`. Existing gates:
-  `FFMT_SPIRV_O0`, `FFMT_PTX_CLANG_O0`; the `Makefile` passes them as `-D`
-  for the affected backend and opt level, and `test/capture.hpp` defaults
-  them to 0. Never change expected output to hide a bug. Keep the number of
-  gates small: reuse an existing one before adding a new one, and add a
-  reproducer to `implementation_limitation/` for a new one.
+  that fits. Every id compiles and runs every case.
+- `test/isolated/test_<name>.cpp`: cases that some ids cannot compile
+  (specs the specifiers path rejects, C++23, SYCL types, a compiler crash).
+  Each file is built as its own binary, so a compile failure stays
+  contained. A case goes here only if it does not compile somewhere; group
+  cases by the reason.
+- `test/negative/reject_*.cpp`: one `NEG_EXPECT_REJECTED(...)` per file.
+  Every id compiles it three ways: it must compile with the call made a
+  no-op, and fail to compile through ffmt *and* through {fmt}.
+- The tests use no condition but `FFMT_ID_<id>`. A case that fails on an id
+  is listed under that id's `expected_fail` in `test/configs.json`:
+  `compile` for a file that does not build (`isolated:<name>`,
+  `negative:<name>`), `runtime` for a test whose output differs
+  (`<file>:<number>`). Never change expected output to hide a bug. For a
+  new compiler bug, add a reproducer to `implementation_limitation/`.
 - The README code blocks are copies of files in `examples/` (built and run
-  by `make readme-examples`). Nothing checks that they match: edit both.
+  by the old `Makefile`'s `make readme-examples`). Nothing checks that they
+  match: edit both.
 
-Commands (the default compiler is `icpx`; on a machine without it pass
-`CXX=clang++` or `CXX=g++`):
+An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
+every compile flag) plus its row in `test/configs.json`. Ids 0 and 1 are the
+host references (g++; specifiers path and buffer path); start a new id's
+`expected_fail` from the reference for its path. A new toolchain or machine
+gets a new id.
 
 ```sh
-make CXX=clang++ test-host       # CPU, both paths: run this first
-make CXX=clang++ test-negative   # compile-time rejections
-make CXX=clang++ EXTRA_CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=bool" test-host  # as CI
-make                             # icpx -fsycl on the device, -O0..-O3
+test/run_id.sh 1;  python3 test/check_id.py 1    # host, buffer path: run first
+test/run_id.sh 0;  python3 test/check_id.py 0    # host, specifiers path
+test/run_id.sh 26; python3 test/check_id.py 26   # g++ ASan+UBSan, as CI
 ```
 
-Valgrind has no target: run it on `build/test_main_host_*`. Other backends
-(`USE_ACPP`, `USE_OMP_CLANG`, `USE_OMP_ICPX`, `USE_CUDA_CLANG`) are listed in
-README "Tests".
+`test/run_id.sh` exits non-zero whenever a test fails, expected or not;
+`test/check_id.py` is what decides. Valgrind has no target: run it on
+`build/id-<id>/test`.
 
-Host tests are not enough for device-facing changes: say which backends you
+Host tests are not enough for device-facing changes: say which ids you
 actually ran, and which you did not.
 
 ## CI
 
 Never relax the CI to make it pass: do not skip, loosen or delete a check,
 lower the coverage gate (region coverage of `base.hpp` must not drop), or
-widen a `SKIP_IF` just to avoid implementing a fix. The device workflow only
-compiles (the CI has no GPU): green there means the device code builds, not
-that it runs correctly.
+add to an `expected_fail` list just to avoid implementing a fix. The GitHub
+device ids (36-42) only build, as GitHub has no GPU: green there means the
+device code builds, not that it runs correctly.

@@ -1,0 +1,118 @@
+name: test
+
+# Every id of test/configs.json that a GitHub runner can run, each through
+# test/run_id.sh. test/check_id.py then compares the id's results with its
+# expected failures and decides pass or fail, so run_id.sh's own exit status
+# (non-zero whenever any test fails, expected or not) is ignored.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ubuntu:
+    # Host references (0 specifiers path, 1 buffer path), fast-math (12, 13),
+    # ASan+UBSan with g++ and clang++ at -O0 and -O2 (24-31), C++23 (43).
+    # Then the GPU routes, built but not run as there is no GPU here:
+    # clang-22 CUDA (36), clang-22 OpenMP NVPTX -O0/-O2 (37, 38, compile
+    # only), icpx SYCL and OpenMP ahead-of-time for PVC -O0/-O2 (39-42).
+    # Their setup scripts install their own toolchains.
+    name: id ${{ matrix.id }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        id: [0, 1, 12, 13, 24, 25, 26, 27, 28, 29, 30, 31, 43]
+        goal: [test]
+        include:
+          - {id: 36, goal: build}
+          - {id: 37, goal: build}
+          - {id: 38, goal: build}
+          - {id: 39, goal: build}
+          - {id: 40, goal: build}
+          - {id: 41, goal: build}
+          - {id: 42, goal: build}
+    steps:
+      - uses: actions/checkout@v6
+      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
+      - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
+
+  macos:
+    # Apple clang with libc++ (32 specifiers path, 33 buffer path). GNU Make
+    # from Homebrew: the system one is 3.81, which ignores .SHELLFLAGS, so
+    # pipefail would be lost and tee would hide failures.
+    name: id ${{ matrix.id }} (macOS)
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        id: [32, 33]
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          brew install make
+          echo "$(brew --prefix)/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
+      - run: test/run_id.sh ${{ matrix.id }} || true
+      - run: python3 test/check_id.py ${{ matrix.id }}
+
+  coverage:
+    # Region coverage of base.hpp, as the union over the coverage ids' binaries
+    # (34 specifiers path, 35 buffer path; main and isolated binaries both),
+    # must not drop against the base branch.
+    name: coverage non-regression
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Need the base branch for the comparison build.
+          fetch-depth: 0
+      - name: Install llvm + jq
+        run: sudo apt-get update && sudo apt-get install -y llvm jq
+      - name: Pick base ref
+        id: base
+        run: |
+          # PR runs compare against the merge base. Pushes fall back to
+          # comparing against origin/main so direct pushes are still gated.
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            echo "ref=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Coverage on base
+        run: |
+          git worktree add ../base ${{ steps.base.outputs.ref }}
+          cd ../base
+          if [ -x test/run_id.sh ]; then
+            test/run_id.sh 34 build || true
+            test/run_id.sh 35 build || true
+            mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+          else
+            # A base that predates test/run_id.sh: the old Makefile's build.
+            make CXX=clang++ -j$(nproc) coverage
+            mapfile -t BINS < <(find build -maxdepth 1 -type f -executable -name 'cov_*')
+          fi
+          # This branch's copy of the script, so base and head are measured
+          # the same way.
+          python3 "$GITHUB_WORKSPACE/.github/scripts/coverage_union.py" \
+            "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
+            include/ffmt/base.hpp "${BINS[@]}" > "$GITHUB_WORKSPACE/base.json"
+      - name: Coverage on this branch
+        run: |
+          test/run_id.sh 34 build || true
+          test/run_id.sh 35 build || true
+          mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+          python3 .github/scripts/coverage_union.py \
+            "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
+            include/ffmt/base.hpp "${BINS[@]}" > head.json
+      - name: Compare
+        run: |
+          # Union over the coverage binaries (see coverage_union.py): a
+          # region counts as covered if any binary covers it.
+          base=$(jq -r .percent base.json)
+          head=$(jq -r .percent head.json)
+          printf 'Regions coverage — base: %.4f%%  head: %.4f%%\n' "$base" "$head"
+          # 0.01pp slack: identical builds occasionally wobble at the 5th
+          # decimal. A real regression moves the number by much more.
+          awk -v b="$base" -v h="$head" \
+            'BEGIN { if (h+0 < b+0 - 0.01) { printf("FAIL: %.4f%% < base %.4f%% (drop)\n", h, b); exit 1 } }'

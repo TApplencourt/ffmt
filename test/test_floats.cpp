@@ -8,11 +8,11 @@
 RUN(PRINT("{}\n", 3.14f));
 RUN(PRINT("{}\n", 0.1f));
 RUN(PRINT("{}\n", 1.0f));
-SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5f));
+RUN(PRINT("{}\n", -2.5f));
 RUN(PRINT("{}\n", 3.14));
 RUN(PRINT("{}\n", 0.1));
 RUN(PRINT("{}\n", 1.0));
-SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{}\n", -2.5));
+RUN(PRINT("{}\n", -2.5));
 
 // Floats — explicit specs
 RUN(PRINT("{:g}\n", 3.14));
@@ -152,14 +152,13 @@ RUN(PRINT("{}\n", 0.001));
 RUN(PRINT("{}\n", 0.001f));
 
 
-// ACPP-only: dragonbox paths that round numbers don't hit. These default
-// `{}` outputs use shortest-round-trip representation which std::format
-// matches but printf("%g") (DPC++ path) does not (capped at 6 sig digits).
+// Dragonbox paths that round numbers don't hit. These default `{}`
+// outputs use the shortest round-trip representation, which {fmt} matches
+// but printf("%g") on the specifiers path does not (6 significant digits).
 //   - round-up fallback in shorter_interval_case<double> (large powers of 2)
 //   - small_divisor path → check_divisibility_and_divide_by_pow10
 //     + compute_mul_parity<double> + umul192_lower128
 //     + remove_trailing_zeros<uint64_t> inner loop
-#if FFMT_BUFFER_PATH
 RUN(PRINT("{}\n", 1.2676506002282294e+30));  // 2^100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 7.888609052210118e-31));   // 2^-100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision
@@ -196,7 +195,6 @@ RUN(PRINT("{}\n", 1234567890.0));      // exp=9, sig=10 → fixed
 RUN(PRINT("{}\n", 1234567890123456.0));// exp=15, sig=16 → fixed
 RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → sci
 RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
-#endif
 
 
 // ── Exact digits beyond 2^53 ────────────────────────────────────────────────
@@ -248,39 +246,61 @@ RUN(PRINT("{:f}\n", 3.4028234663852886e38f));          // FLT_MAX
 // A float with no type ("{}", "{:10}", "{:#}") gets {fmt}'s shortest form on
 // the buffer path. On the specifiers path it prints like {:g}: printf has no
 // shortest conversion and Intel GPU printf supports neither `*` widths nor %s
-// on computed strings (README, Backend differences). Where the two differ the
-// specifiers path is checked against a fixed value instead of {fmt}.
-#if FFMT_BUFFER_PATH || !defined(FFMT_STD_PATH)
-#define OR_ON_SPECIFIERS(g_out, fmt_str, v) PRINT(fmt_str, v)
-#else
-#define OR_ON_SPECIFIERS(g_out, fmt_str, v) printf("%s\n", g_out)
-#endif
-RUN(OR_ON_SPECIFIERS("1.15292e+18", "{}\n", 1152921504606846976.0));
-RUN(OR_ON_SPECIFIERS("1.23457e+17", "{}\n", 123456789012345678.0));
-RUN(OR_ON_SPECIFIERS("9.22337e+18", "{}\n", 9.223372036854775807e18));
-RUN(OR_ON_SPECIFIERS("4.72237e+21", "{}\n", 4.722366482869645e21));
-RUN(OR_ON_SPECIFIERS("-1.07431e+12", "{}\n", -1074311135232.0f));
-RUN(OR_ON_SPECIFIERS("1.07374e+09", "{}\n", 16777217.0f * 64));
-RUN(OR_ON_SPECIFIERS("1.23457e+06", "{}\n", 1234567.0));
+// on computed strings (README, Backend differences).
+RUN(PRINT("{}\n", 1152921504606846976.0));
+RUN(PRINT("{}\n", 123456789012345678.0));
+RUN(PRINT("{}\n", 9.223372036854775807e18));
+RUN(PRINT("{}\n", 4.722366482869645e21));
+RUN(PRINT("{}\n", -1074311135232.0f));
+RUN(PRINT("{}\n", 16777217.0f * 64));
+RUN(PRINT("{}\n", 1234567.0));
 RUN(PRINT("{}\n", 1e16));
-RUN(OR_ON_SPECIFIERS("1.23457e+07", "{}\n", 12345678.0f));
-RUN(OR_ON_SPECIFIERS("[     3.14159]", "[{:12}]\n", 3.14159265));
+RUN(PRINT("{}\n", 12345678.0f));
+RUN(PRINT("[{:12}]\n", 3.14159265));
 RUN(PRINT("[{:<12}]\n", 0.1));
 RUN(PRINT("[{:+}]\n", 1e100));
 RUN(PRINT("[{:012}]\n", -2.5e-7));
 RUN(PRINT("[{:10}]\n", 0.1f));
-RUN(OR_ON_SPECIFIERS("[1.00000]", "[{:#}]\n", 1.0));
-RUN(OR_ON_SPECIFIERS("[1.00000e+20]", "[{:#}]\n", 1e20));
-RUN(OR_ON_SPECIFIERS("[0.500000]", "[{:#}]\n", 0.5));
+RUN(PRINT("[{:#}]\n", 1.0));
+RUN(PRINT("[{:#}]\n", 1e20));
+RUN(PRINT("[{:#}]\n", 0.5));
 RUN(PRINT("[{:>12}]\n", -0.0));
 RUN(PRINT("[{:<+10}]\n", 1.5e-300));
-RUN(OR_ON_SPECIFIERS("[1.00000e-07]", "[{:#}]\n", 1e-7f));
+RUN(PRINT("[{:#}]\n", 1e-7f));
 RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity()));
 RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
-#undef OR_ON_SPECIFIERS
 
 // Precision above 127 (stored in 8 bits, it wrapped negative).
 RUN(PRINT("{:.200f}\n", 0.1));
 RUN(PRINT("{:.150e}\n", 1.0 / 3.0));
+
+// ── Floats ────────────────────────────────────────────────────────────────────
+RUN(PRINT("{}\n", 1.0e10f));
+RUN(PRINT("{}\n", 1.0e-10f));
+RUN(PRINT("{}\n", 1.0e100));
+RUN(PRINT("{}\n", 1.0e-100));
+// Float extremes — default format
+RUN(PRINT("{}\n", std::numeric_limits<float>::max()));
+RUN(PRINT("{}\n", -std::numeric_limits<float>::max()));
+RUN(PRINT("{}\n", std::numeric_limits<float>::min()));
+RUN(PRINT("{}\n", std::numeric_limits<float>::denorm_min()));
+RUN(PRINT("{}\n", -0.0f));
+RUN(PRINT("{}\n", std::numeric_limits<double>::max()));
+RUN(PRINT("{}\n", std::numeric_limits<double>::min()));
+RUN(PRINT("{}\n", -0.0));
+RUN(PRINT("{}\n", std::numeric_limits<float>::infinity()));
+RUN(PRINT("{}\n", -std::numeric_limits<float>::infinity()));
+RUN(PRINT("{}\n", std::numeric_limits<float>::quiet_NaN()));
+RUN(PRINT("{:e}\n", 5e-324));
+RUN(PRINT("{:g}\n", 5e-324));
+
+// ── Float formatting fixes ────────────────────────────────────────────────────
+// '+' on NaN. Buffer path only: on the specifiers path the sign of a NaN is
+// up to the printf implementation (glibc: "+nan", macOS libc: "nan").
+RUN(PRINT("[{:+}]\n", std::numeric_limits<float>::quiet_NaN()));
+// '0' is ignored for inf/nan.
+RUN(PRINT("[{:010}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010f}]\n", -std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:010e}]\n", std::numeric_limits<double>::quiet_NaN()));
 
 #endif

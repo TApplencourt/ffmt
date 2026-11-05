@@ -6,6 +6,7 @@ bool test_strings(::sycl::queue& q);
 bool test_layout(::sycl::queue& q);
 bool test_misc(::sycl::queue& q);
 bool test_formatter(::sycl::queue& q);
+bool test_escape_percent(::sycl::queue& q);
 
 int main() {
   ::sycl::queue q;
@@ -17,6 +18,7 @@ int main() {
   ok &= test_layout(q);
   ok &= test_misc(q);
   ok &= test_formatter(q);
+  ok &= test_escape_percent(q);
 
   return ok ? 0 : 1;
 }

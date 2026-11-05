@@ -1,4 +1,4 @@
-// Positive control for test-negative: a valid call through the same harness
+// Positive control for the negative tests: a valid call through the same harness
 // must compile in every variant. Without it, a negative test "passes" when
 // compilation fails for an unrelated reason (missing header, typo, ...).
 #include "../negative.hpp"

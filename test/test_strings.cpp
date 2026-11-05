@@ -12,18 +12,16 @@ RUN(PRINT("{:d}\n", 'Z'));
 RUN(PRINT("{:c}\n", 65));
 
 // Bool/string as %s — see "spirv-o0" / "ptx-clang-o0" in capture.hpp.
-#define _S (FFMT_SPIRV_O0 || FFMT_PTX_CLANG_O0)
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", false));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", true));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:>10}\n", true));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:<10}\n", false));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:s}\n", true));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:s}\n", false));
+RUN(PRINT("{}\n", false));
+RUN(PRINT("{}\n", true));
+RUN(PRINT("{:>10}\n", true));
+RUN(PRINT("{:<10}\n", false));
+RUN(PRINT("{:s}\n", true));
+RUN(PRINT("{:s}\n", false));
 
 // println
 RUN(PRINTLN("hello println"));
-SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0",
-        PRINTLN("{} + {} = {}", 1, 2, 3));
+RUN(PRINTLN("{} + {} = {}", 1, 2, 3));
 RUN(PRINTLN("{:08x}", 255u));
 
 // Dynamic char
@@ -37,33 +35,26 @@ RUN(PRINT("{:<10c}\n", 'B'));
 RUN(PRINT("{:>10c}\n", 'C'));
 
 // String %s tests — same gate.
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", "hello world"));
-// OMP target / CUDA: skip — host-side `const char*` isn't accessible
-// on device and would need `map(to: env[:len])` or a malloc_shared /
-// cudaMemcpy equivalent. Not worth the carve-out for what's a runtime-
-// transfer test, not a formatter test.
-#if !defined(_OPENMP) && !defined(__CUDACC__)
-{
-  const char *env = "cpu-char-* copied";
-#if defined(FFMT_STD_PATH) || !(defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP)
-  SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", env));
-#else
-  size_t len = std::strlen(env) + 1;
-  char *shared = ::sycl::malloc_shared<char>(len, q);
-  std::memcpy(shared, env, len);
-  SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{}\n", shared));
-  ::sycl::free(shared, q);
-#endif
-}
-#endif
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:<20s}\n", "hello"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:>20s}\n", "hello"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:.5s}\n", "hello world"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:.0s}\n", "hello"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:.100s}\n", "hello"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:>10.5s}\n", "hello world"));
-SKIP_IF(_S, "spirv-o0|ptx-clang-o0", PRINT("{:<10.3s}\n", "hello"));
-#undef _S
+RUN(PRINT("{}\n", "hello world"));
+RUN(PRINT("{:<20s}\n", "hello"));
+RUN(PRINT("{:>20s}\n", "hello"));
+RUN(PRINT("{:.5s}\n", "hello world"));
+RUN(PRINT("{:.0s}\n", "hello"));
+RUN(PRINT("{:.100s}\n", "hello"));
+RUN(PRINT("{:>10.5s}\n", "hello world"));
+RUN(PRINT("{:<10.3s}\n", "hello"));
 
+// ── Strings ───────────────────────────────────────────────────────────────────
+RUN(PRINT("{:10c}\n", 'A'));
+RUN(PRINT("{:20s}\n", "hello"));
+RUN(PRINT("[{:.3}]\n", "静夜思"));
+RUN(PRINT("[{:.4}]\n", "静夜思"));
+RUN(PRINT("[{:>5}]\n", "\xff\xe2\x94"));
+// Overlong '/', a UTF-16 surrogate, and > U+10FFFF: each byte is invalid.
+RUN(PRINT("[{:>6}]\n", "\xc0\xaf"));
+RUN(PRINT("[{:>6}]\n", "\xed\xa0\x80"));
+RUN(PRINT("[{:>6}]\n", "\xf4\x90\x80\x80"));
+// A spec with no width or precision: copied without measuring.
+RUN(PRINT("[{:s}] [{:<}]\n", "静夜思", "hôpital"));
 
 #endif

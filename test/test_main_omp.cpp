@@ -6,9 +6,7 @@ bool test_strings();
 bool test_layout();
 bool test_misc();
 bool test_formatter();
-#if FFMT_BUFFER_PATH
-bool test_buffer_path();
-#endif
+bool test_escape_percent();
 
 int main() {
   bool ok = true;
@@ -18,8 +16,6 @@ int main() {
   ok &= test_layout();
   ok &= test_misc();
   ok &= test_formatter();
-#if FFMT_BUFFER_PATH
-  ok &= test_buffer_path();
-#endif
+  ok &= test_escape_percent();
   return ok ? 0 : 1;
 }

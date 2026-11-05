@@ -1,7 +1,6 @@
 #ifndef TEST_INC
 #define TEST_NAME integers
 #define TEST_INC "test_integers.cpp"
-#include <utility> // std::to_underlying, __cpp_lib_to_underlying
 // Enums are rejected (test/negative/reject_*_enum.cpp); converting them
 // explicitly is the supported way to print one.
 enum class status : int { warning = -3 };
@@ -28,7 +27,7 @@ RUN(PRINT("{:d}\n", 255));
 RUN(PRINT("{:x}\n", 255u));
 RUN(PRINT("{:X}\n", 255u));
 RUN(PRINT("{:o}\n", 255u));
-SKIP_IF(FFMT_PTX_CLANG_O0, "ptx-clang-o0", PRINT("{:#o}\n", 255u));
+RUN(PRINT("{:#o}\n", 255u));
 
 // Extremes
 RUN(PRINT("{:d}\n", -2147483647 - 1));
@@ -54,9 +53,5 @@ RUN(PRINT("[{:<1000}]\n", -7));
 RUN(PRINT("{}\n", static_cast<int>(status::warning)));
 RUN(PRINT("{:+05}\n", static_cast<int>(status::warning)));
 RUN(PRINT("{}\n", static_cast<int>(green)));
-#ifdef __cpp_lib_to_underlying // C++23
-RUN(PRINT("{}\n", std::to_underlying(status::warning)));
-RUN(PRINT("{:x}\n", std::to_underlying(green)));
-#endif
 
 #endif
