@@ -8,7 +8,7 @@
 #include <utility>
 enum class status : int { warning = -3 };
 enum color { red, green };
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 
 RUN(PRINT("{}\n", std::to_underlying(status::warning)));

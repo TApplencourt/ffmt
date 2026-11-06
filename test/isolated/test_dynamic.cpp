@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME dynamic
 #define TEST_INC "isolated/test_dynamic.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Strings ───────────────────────────────────────────────────────────────────
 RUN(PRINT("┌{0:─^{2}}┐\n│{1: ^{2}}│\n", "", "Hello", 9));

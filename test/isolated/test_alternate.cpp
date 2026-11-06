@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME alternate
 #define TEST_INC "isolated/test_alternate.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Integers ──────────────────────────────────────────────────────────────────
 RUN(PRINT("{:#x}\n", 255));

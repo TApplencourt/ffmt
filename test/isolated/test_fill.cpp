@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME fill
 #define TEST_INC "isolated/test_fill.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Strings ───────────────────────────────────────────────────────────────────
 RUN(PRINT("{:*^10}\n", true));

@@ -5,7 +5,7 @@
 #ifndef TEST_INC
 #define TEST_NAME null_string
 #define TEST_INC "isolated/test_null_string.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 
 // fmt::format reports a null const char* as an error, which a device can

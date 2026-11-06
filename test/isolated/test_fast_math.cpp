@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME fast_math
 #define TEST_INC "isolated/test_fast_math.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 
 // Meaningful on the fast-math ids (-ffast-math). On x86 that enables DAZ

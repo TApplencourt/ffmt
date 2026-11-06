@@ -6,7 +6,7 @@
 #define TEST_INC "isolated/test_sycl_types.cpp"
 #include "../capture.hpp"
 #include "../sycl_std_formatters.hpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 RUN(PRINTLN("range = {}", sycl::range<1>{4}));
 RUN(PRINTLN("range = {}", sycl::range<2>{4, 8}));

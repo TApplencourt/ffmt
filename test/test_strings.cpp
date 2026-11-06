@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME strings
 #define TEST_INC "test_strings.cpp"
-#include "test_select_body.inc"
+#include "test_body.inc"
 #else
 
 // Char

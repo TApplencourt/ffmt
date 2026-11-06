@@ -6,7 +6,7 @@
 #define TEST_NAME sycl_usm_string
 #define TEST_INC "isolated/test_sycl_usm_string.cpp"
 #include <cstring>
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 {
   const char *env = "cpu-char-* copied";

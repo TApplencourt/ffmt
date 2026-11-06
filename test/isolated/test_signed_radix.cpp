@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME signed_radix
 #define TEST_INC "isolated/test_signed_radix.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Integers ──────────────────────────────────────────────────────────────────
 RUN(PRINT("{:x}\n", -2147483647 - 1));

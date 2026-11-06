@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME binary
 #define TEST_INC "isolated/test_binary.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Integers ──────────────────────────────────────────────────────────────────
 RUN(PRINT("{:b}\n", 255));

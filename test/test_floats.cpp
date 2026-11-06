@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME floats
 #define TEST_INC "test_floats.cpp"
-#include "test_select_body.inc"
+#include "test_body.inc"
 #else
 
 // Floats — default format ({}) for float and double

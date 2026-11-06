@@ -1,7 +1,7 @@
 #include "capture.hpp"
 
 // TEST_LIST comes from Makefile.id: X(<name>) for each test/test_<name>.cpp.
-#define X(name) bool test_##name(::sycl::queue& q);
+#define X(name) bool test_##name(::sycl::queue q);
 TEST_LIST
 #undef X
 

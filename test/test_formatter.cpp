@@ -69,7 +69,7 @@ struct ffmt::formatter<test_fmt::segment> {
   }
 };
 
-#include "test_select_body.inc"
+#include "test_body.inc"
 #else
 
 // Custom non-SYCL formatter — every PTX-clang-O0 test below mishandles

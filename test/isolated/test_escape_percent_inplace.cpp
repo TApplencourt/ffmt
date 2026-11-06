@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME escape_percent_inplace
 #define TEST_INC "isolated/test_escape_percent_inplace.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── escape_percent_inplace (host-only unit test) ───────────────────────────
 // The ACPP device emit escapes % → %% in place. When the escaped text no

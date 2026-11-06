@@ -28,7 +28,7 @@ struct ffmt::formatter<test_fmt::boxed> {
   }
 };
 
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 
 RUN(PRINT("{1} {0}\n", "hello", "world"));

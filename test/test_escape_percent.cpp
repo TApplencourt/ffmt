@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME escape_percent
 #define TEST_INC "test_escape_percent.cpp"
-#include "test_select_body.inc"
+#include "test_body.inc"
 #else
 
 RUN(PRINT("100% done\n"));

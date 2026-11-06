@@ -4,7 +4,7 @@
 #ifndef TEST_INC
 #define TEST_NAME float_sweep
 #define TEST_INC "isolated/test_float_sweep.cpp"
-#include "../test_select_body.inc"
+#include "../test_body.inc"
 #else
 // ── Differential sweep against {fmt} (host only) ───────────────────────────
 // Deterministic pseudo-random doubles/floats (raw bit patterns, so every
