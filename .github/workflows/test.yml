@@ -12,7 +12,7 @@ on:
 
 jobs:
   matrix:
-    # Builds the matrices below with each id's notes from test/configs.json,
+    # Builds the matrix below with each id's notes from test/configs.json,
     # so the job names say what each id is (a name cannot read a file).
     # ubuntu: host references (0 specifiers path, 1 buffer path), fast-math
     # (12, 13), ASan+UBSan with g++ and clang++ at -O0 and -O2 (24-31), C++23
@@ -23,8 +23,7 @@ jobs:
     # macos: Apple clang with libc++ (32 specifiers path, 33 buffer path).
     runs-on: ubuntu-24.04
     outputs:
-      ubuntu: ${{ steps.m.outputs.ubuntu }}
-      macos: ${{ steps.m.outputs.macos }}
+      ids: ${{ steps.m.outputs.ids }}
     steps:
       - uses: actions/checkout@v6
       - id: m
@@ -32,42 +31,30 @@ jobs:
           python3 - >> "$GITHUB_OUTPUT" <<'EOF'
           import json
           notes = {r["id"]: r["notes"] for r in json.load(open("test/configs.json"))}
-          def ids(goal, *l): return [{"id": i, "goal": goal, "notes": notes[i]} for i in l]
-          print("ubuntu=" + json.dumps(ids("test", 0, 1, 12, 13, 24, 25, 26, 27, 28, 29, 30, 31, 43)
-                                       + ids("build", 36, 37, 38, 39, 40, 41, 42)))
-          print("macos=" + json.dumps(ids("test", 32, 33)))
+          def ids(os, goal, *l): return [{"id": i, "os": os, "goal": goal, "notes": notes[i]} for i in l]
+          print("ids=" + json.dumps(ids("ubuntu-24.04", "test", 0, 1, 12, 13, 24, 25, 26, 27, 28, 29, 30, 31, 43)
+                                    + ids("ubuntu-24.04", "build", 36, 37, 38, 39, 40, 41, 42)
+                                    + ids("macos-latest", "test", 32, 33)))
           EOF
 
-  ubuntu:
+  id:
     needs: matrix
     name: id ${{ matrix.id }} (${{ matrix.notes }})
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.matrix.outputs.ubuntu) }}
+        include: ${{ fromJSON(needs.matrix.outputs.ids) }}
     steps:
       - uses: actions/checkout@v6
-      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
-      - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
-
-  macos:
-    # GNU Make from Homebrew: the system one is 3.81, which ignores
-    # .SHELLFLAGS, so pipefail would be lost and tee would hide failures.
-    needs: matrix
-    name: id ${{ matrix.id }} (${{ matrix.notes }})
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJSON(needs.matrix.outputs.macos) }}
-    steps:
-      - uses: actions/checkout@v6
-      - run: |
+      # GNU Make from Homebrew: macOS's is 3.81, which ignores .SHELLFLAGS, so
+      # pipefail would be lost and tee would hide failures.
+      - if: runner.os == 'macOS'
+        run: |
           brew install make
           echo "$(brew --prefix)/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
-      - run: test/run_id.sh ${{ matrix.id }} || true
-      - run: python3 test/check_id.py ${{ matrix.id }}
+      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
+      - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
 
   readme:
     # Every whole program in README.md is a copy of a file in examples/,
@@ -89,8 +76,8 @@ jobs:
         with:
           # Need the base branch for the comparison build.
           fetch-depth: 0
-      - name: Install llvm + jq
-        run: sudo apt-get update && sudo apt-get install -y llvm jq
+      - name: Install llvm
+        run: sudo apt-get update && sudo apt-get install -y llvm
       - name: Pick base ref
         id: base
         run: |
@@ -118,7 +105,7 @@ jobs:
           # the same way.
           python3 "$GITHUB_WORKSPACE/.github/scripts/coverage_union.py" \
             "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
-            include/ffmt/base.hpp "${BINS[@]}" > "$GITHUB_WORKSPACE/base.json"
+            include/ffmt/base.hpp "${BINS[@]}" > "$GITHUB_WORKSPACE/base.txt"
       - name: Coverage on this branch
         run: |
           test/run_id.sh 34 build || true
@@ -126,13 +113,13 @@ jobs:
           mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
           python3 .github/scripts/coverage_union.py \
             "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
-            include/ffmt/base.hpp "${BINS[@]}" > head.json
+            include/ffmt/base.hpp "${BINS[@]}" > head.txt
       - name: Compare
         run: |
           # Union over the coverage binaries (see coverage_union.py): a
           # region counts as covered if any binary covers it.
-          base=$(jq -r .percent base.json)
-          head=$(jq -r .percent head.json)
+          base=$(cat base.txt)
+          head=$(cat head.txt)
           printf 'Regions coverage — base: %.4f%%  head: %.4f%%\n' "$base" "$head"
           # 0.01pp slack: identical builds occasionally wobble at the 5th
           # decimal. A real regression moves the number by much more.
