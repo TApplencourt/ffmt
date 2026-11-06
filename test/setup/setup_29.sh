@@ -13,6 +13,9 @@ export UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
 export ASAN_OPTIONS=detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -O0 -fno-fast-math -DFFMT_BUFFER_PATH=1 -fsanitize=address,undefined -fno-sanitize=bool"
 export FFMT_MAIN=test/main_host.cpp
+# A host example the buffer path can print (the specifiers path rejects its
+# specs): built and run by the test goal, but not a test (Makefile.id).
+export FFMT_EXTRA_FILES="examples/ccpreference_print.cpp"
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
 # compile has a bug of its own and its rejection would mean nothing.
