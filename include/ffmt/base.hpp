@@ -1529,33 +1529,24 @@ template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
 template <typename P, typename... Args>
 using arg_t = std::decay_t<std::tuple_element_t<P::index, std::tuple<Args...>>>;
 
-// Can printf express every placeholder? (validate_format has already checked
-// that the format string is well formed.)
+// The whole format string: can printf express every placeholder
+// (validate_format has already checked that it is well formed), and how many
+// have a null form?
+struct printf_plan { bool supported = true; size_t null_alts = 0; };
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval bool supported() {
+consteval printf_plan plan() {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::found)
-    return true;
-  else
-    return conversion<arg_t<P, Args...>, P::spec>::supported &&
-           supported<Fmt, P::info.close + 1, P::next_auto, Args...>();
+  if constexpr (!P::found) {
+    return {};
+  } else {
+    using C = conversion<arg_t<P, Args...>, P::spec>;
+    auto r = plan<Fmt, P::info.close + 1, P::next_auto, Args...>();
+    return {C::supported && r.supported, C::null_alt + r.null_alts};
+  }
 }
 
 // Nulls: one bit per null_alt placeholder, in order, set when it takes its
-// null form. The walkers below consume it as they go.
-
-// How many placeholders have a null form.
-template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval size_t null_alts() {
-  using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::found)
-    return 0;
-  else
-    return conversion<arg_t<P, Args...>, P::spec>::null_alt +
-           null_alts<Fmt, P::info.close + 1, P::next_auto, Args...>();
-}
-
-// The Nulls of these arguments.
+// null form; the walkers below consume it as they go. These arguments' Nulls:
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
 inline size_t null_mask(const std::tuple<Args...> &args) {
   using P = placeholder<Fmt, Pos, AutoIdx>;
@@ -1631,7 +1622,8 @@ inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::inde
 }
 
 template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
-  static_assert(supported<Fmt, 0, 0, Args...>(),
+  constexpr auto pl = plan<Fmt, 0, 0, Args...>();
+  static_assert(pl.supported,
                 "This format string uses features the specifiers path (DPC++, "
                 "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
                 "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
@@ -1650,7 +1642,7 @@ template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
                           std::make_index_sequence<std::tuple_size_v<decltype(a)>>{})
                     : void()),
        ...);
-    }(std::make_index_sequence<size_t(1) << null_alts<Fmt, 0, 0, Args...>()>{});
+    }(std::make_index_sequence<size_t(1) << pl.null_alts>{});
   }
 }
 } // namespace specifiers_path
