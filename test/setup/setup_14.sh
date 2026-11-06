@@ -11,7 +11,7 @@ source /vast/users/bertoni/intel/oneapi/setvars.sh
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 export CXX=icpx
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -fsycl -O0 -ffast-math"
-export FFMT_MAIN=test/test_main_sycl.cpp
+export FFMT_MAIN=test/main_sycl.cpp
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
 # compile has a bug of its own and its rejection would mean nothing.

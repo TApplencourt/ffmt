@@ -42,8 +42,10 @@ ifndef FFMT_FMT_FLAGS
   $(error $(SETUP) must export FFMT_FMT_FLAGS)
 endif
 
-TESTS := integers floats strings layout misc formatter escape_percent
-SRCS  := $(TESTS:%=test/test_%.cpp)
+# The mains (test/main_*.cpp) call test_<name>() for each X(<name>) in
+# TEST_LIST, so a new test/test_<name>.cpp needs no other edit.
+SRCS := $(wildcard test/test_*.cpp)
+TEST_LIST_FLAG := -D'TEST_LIST=$(patsubst test/test_%.cpp,X(%),$(SRCS))'
 HDRS  := $(wildcard test/*.hpp test/*.inc) include/ffmt/base.hpp
 
 INCLUDES := -Iinclude -isystem third_party/fmt/include
@@ -124,7 +126,7 @@ ifdef FFMT_COMPILE_ONLY
 OBJS := $(patsubst test/%.cpp,$(OUT)/%.o,$(FFMT_MAIN) $(SRCS))
 
 $(OUT)/%.o: test/%.cpp $(HDRS) $(SETUP) $(LOGS)/config.txt | $(OUT)/.dir $(FMT_HDR)
-	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN -c $< -o $@ 2>&1 | tee $(LOGS)/build-$*.log
+	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN $(TEST_LIST_FLAG) -c $< -o $@ 2>&1 | tee $(LOGS)/build-$*.log
 
 $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir $(FMT_HDR)
 	@mkdir -p $(@D)
@@ -142,7 +144,7 @@ else
 
 # `-x none` ends a `-x cuda` from FFMT_FLAGS before the object file.
 $(BIN): $(FFMT_MAIN) $(SRCS) $(HDRS) $(SETUP) $(FMT_OBJ) $(LOGS)/config.txt | $(OUT)/.dir
-	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN \
+	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN $(TEST_LIST_FLAG) \
 	  $(FFMT_MAIN) $(SRCS) -x none $(FMT_OBJ) -o $@ 2>&1 | tee $(LOGS)/build.log
 
 $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) $(FMT_OBJ) | $(OUT)/.dir

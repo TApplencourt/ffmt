@@ -7,7 +7,7 @@ module load cuda/12.3.0
 module load llvm/release-22.1.8
 export CXX=clang++
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -x cuda --cuda-gpu-arch=sm_80 -L${CUDA_PATH:-/usr/local/cuda}/lib64 -lcudart -O2 -fno-fast-math"
-export FFMT_MAIN=test/test_main_omp.cpp
+export FFMT_MAIN=test/main_omp.cpp
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
 # compile has a bug of its own and its rejection would mean nothing.

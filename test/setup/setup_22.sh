@@ -7,7 +7,7 @@ module load rocm/7.0.2
 export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host
 export CXX=$ROCM_PATH/llvm/bin/clang++
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -fopenmp --offload-arch=gfx942 -O2 -ffast-math"
-export FFMT_MAIN=test/test_main_omp.cpp
+export FFMT_MAIN=test/main_omp.cpp
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
 # compile has a bug of its own and its rejection would mean nothing.

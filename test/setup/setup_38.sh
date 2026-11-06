@@ -26,7 +26,7 @@ export CXX=clang++-22
 # apt.llvm.org ships no NVPTX OpenMP device runtime, so compile without
 # linking; -nogpulib skips the device bitcode clang would link at compile time.
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --cuda-path=${CUDA_PATH} -fopenmp --offload-arch=sm_80 -nogpulib -O2 -fno-fast-math"
-export FFMT_MAIN=test/test_main_omp.cpp
+export FFMT_MAIN=test/main_omp.cpp
 export FFMT_COMPILE_ONLY=1
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
