@@ -92,6 +92,18 @@ def check(id_, goal):
             elif kind == "ffmt" and not compiled:
                 compile_fails.add("negative:" + name)
 
+    # FFMT_EXTRA_FILES (e.g. the README examples) are not tests: no expected
+    # failure, so any that does not build or run is a problem.
+    extra_log = os.path.join(logs, "extra.log")
+    if not os.path.exists(extra_log):
+        problems.append("no extra.log: the extra step did not run")
+    else:
+        for line in open(extra_log):
+            status, step, name = line.split()
+            if status != "0":
+                problems.append("extra file %s does not %s (exit %s, see extra-%s.log)"
+                                % (name, step, status, name))
+
     expected = row["expected_fail"]
     for what, actual, exp in (("compile", compile_fails, set(expected["compile"])),
                               ("runtime", runtime_fails, set(expected["runtime"]))):

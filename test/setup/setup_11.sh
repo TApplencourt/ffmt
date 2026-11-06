@@ -12,6 +12,9 @@ export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 export CXX=icpx
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -fsycl -O2 -fno-fast-math"
 export FFMT_MAIN=test/main_sycl.cpp
+# The README examples for this programming model: built with the flags
+# above and run by the test goal, but not tests (Makefile.id).
+export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
 # Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
 # harness's format call into a no-op, so a negative file that still fails to
 # compile has a bug of its own and its rejection would mean nothing.

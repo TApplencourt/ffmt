@@ -7,7 +7,8 @@
 # This file knows only the id. Modules, compiler, every compile flag
 # (language standard and warnings included) and which main to use all come
 # from test/setup/setup_<id>.sh, which must export CXX, FFMT_FLAGS,
-# FFMT_MAIN, FFMT_SYNTAX_FLAGS and FFMT_FMT_FLAGS. This file adds only its
+# FFMT_MAIN, FFMT_SYNTAX_FLAGS and FFMT_FMT_FLAGS, and may export
+# FFMT_EXTRA_FILES and FFMT_COMPILE_ONLY. This file adds only its
 # own mechanics: the include paths, -DFFMT_ID_<id> and -DTEST_NO_MAIN.
 #
 # Binaries go to build/id-<id>/; the config, build log and run log go to
@@ -119,7 +120,20 @@ ISO_DONE := $(patsubst test/isolated/%.cpp,$(LOGS)/isolated/%.build,$(ISO_SRCS))
 
 .PHONY: isolated
 
+# FFMT_EXTRA_FILES, optional in the setup: more programs, such as the README
+# examples, built with the id's flags (compiled only on a compile-only id)
+# and run by the test goal. Not tests: no expected failure and no pass
+# count; test/check_id.py reports any that does not build or run.
+.PHONY: extra
+extra: | $(OUT)/.dir
+	@mkdir -p $(OUT)/extra; for f in $(FFMT_EXTRA_FILES); do n=$$(basename $${f%.*}); \
+	  $(CXX) $(INCLUDES) $(FFMT_FLAGS) $(EXTRA_FLAGS) $$f -o $(OUT)/extra/$$n \
+	    >$(LOGS)/extra-$$n.log 2>&1; echo "$$? build $$n"; \
+	done | tee $(LOGS)/extra.log
+
 ifdef FFMT_COMPILE_ONLY
+
+EXTRA_FLAGS := -c -Wno-unused-command-line-argument
 
 # For a toolchain that can compile for a device but not link for it (no
 # device runtime installed): compile each source to an object and stop.
@@ -135,7 +149,7 @@ $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir $(F
 isolated: $(ISO_DONE)
 	@cat $(ISO_DONE) | tee $(LOGS)/isolated.log
 
-build: $(OBJS) negative isolated
+build: $(OBJS) negative isolated extra
 
 test:
 	@echo "Makefile.id: id $(id) is compile-only; use test/run_id.sh $(id) build" >&2; exit 1
@@ -157,7 +171,7 @@ $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) $(FMT_OBJ) | $(OU
 isolated-build: $(ISO_DONE)
 	@cat $(ISO_DONE) | tee $(LOGS)/isolated.log
 
-build: $(BIN) negative isolated-build
+build: $(BIN) negative isolated-build extra
 
 # The builds run in parallel; the programs run one after another, so that
 # two of them never share the GPU.
@@ -168,11 +182,15 @@ isolated: $(ISO_DONE)
 	  fi; \
 	done | tee $(LOGS)/isolated.log
 
-# Runs after isolated has finished, so again only one program on the GPU.
-# TAP goes to stderr, hence 2>&1. tee hides the exit status, which
-# test/check_id.py needs to tell a crash from a failing test, so it goes to
-# run.status; the recipe still fails with it.
-test: $(BIN) negative isolated
+# Runs after isolated has finished, so again only one program on the GPU:
+# the extra programs that built, then the tests. TAP goes to stderr, hence
+# 2>&1. tee hides the exit status, which test/check_id.py needs to tell a
+# crash from a failing test, so it goes to run.status; the recipe still
+# fails with it.
+test: $(BIN) negative isolated extra
+	@for n in $$(awk '$$1 == 0 { print $$3 }' $(LOGS)/extra.log); do \
+	  ./$(OUT)/extra/$$n >>$(LOGS)/extra-$$n.log 2>&1; echo "$$? run $$n"; \
+	done | tee -a $(LOGS)/extra.log
 	./$(BIN) 2>&1 | tee $(LOGS)/run.log; s=$${PIPESTATUS[0]}; echo $$s > $(LOGS)/run.status; exit $$s
 
 endif
