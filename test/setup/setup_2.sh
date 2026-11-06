@@ -11,4 +11,6 @@ export CXX=icpx
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -fiopenmp -fopenmp-targets=spir64 -O0 -fno-fast-math"
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
-export FFMT_EXTRA_FILES="examples/readme1_omp.cpp examples/readme2_omp.cpp"
+# Not readme1: it prints a string, which crashes Intel's printf at -O0
+# (implementation_limitation/dpcpp_O0.cpp).
+export FFMT_EXTRA_FILES="examples/readme2_omp.cpp"

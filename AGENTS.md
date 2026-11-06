@@ -109,7 +109,8 @@ Reuse the existing framework; do not add a new test harness.
   compile on an id, or a case that crashes its binary, takes down only that
   file's tests: keep cases that some ids cannot compile (specs the
   specifiers path rejects, C++23, SYCL types, a compiler crash) or that
-  crash in files of their own, grouped by the reason. Add other cases to the file that fits, at its end: a test is
+  crash (a string at -O0 on Intel GPUs) in files of their own, grouped by
+  the reason. Add other cases to the file that fits, at its end: a test is
   named by its position, so one added in the middle renames those after it.
 - `test/negative/reject_*.cpp`: one `NEG_EXPECT_REJECTED(...)` per file.
   Every id compiles it three ways: it must compile with the call made a
