@@ -106,9 +106,10 @@ Reuse the existing framework; do not add a new test harness.
   by the pinned {fmt}, and the outputs are diffed. Add cases to the file
   that fits. Every id compiles and runs every case.
 - `test/isolated/test_<name>.cpp`: cases that some ids cannot compile
-  (specs the specifiers path rejects, C++23, SYCL types, a compiler crash).
-  Each file is built as its own binary, so a compile failure stays
-  contained. A case goes here only if it does not compile somewhere; group
+  (specs the specifiers path rejects, C++23, SYCL types, a compiler crash)
+  or that crash the binary on some id (a string at -O0 on Intel GPUs).
+  Each file is built as its own binary, so the failure stays contained. A
+  case goes here only if it does not compile or crashes somewhere; group
   cases by the reason.
 - `test/negative/reject_*.cpp`: one `NEG_EXPECT_REJECTED(...)` per file.
   Every id compiles it three ways: it must compile with the call made a
@@ -117,8 +118,9 @@ Reuse the existing framework; do not add a new test harness.
   is listed under that id's `expected_fail` in `test/configs.json`:
   `compile` for a file that does not build (`isolated:<name>`,
   `negative:<name>`), `runtime` for a test whose output differs
-  (`<file>:<number>`). Never change expected output to hide a bug. For a
-  new compiler bug, add a reproducer to `implementation_limitation/`.
+  (`<file>:<number>`) or a binary that crashes (`<file>:crash`). Never
+  change expected output to hide a bug. For a new compiler bug, add a
+  reproducer to `implementation_limitation/`.
 - The README programs are copies of files in `examples/`, built and run
   by each id that lists them in `FFMT_EXTRA_FILES`; `test/check_readme.py`
   (in CI) fails if a README program is not an exact copy: edit both.

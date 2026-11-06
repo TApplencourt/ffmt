@@ -80,38 +80,14 @@
 // buffer path.
 #if defined(__INTEL_LLVM_COMPILER) && defined(_OPENMP) \
     && !defined(SYCL_LANGUAGE_VERSION) && !FFMT_COMPILER_ACPP \
-    && !defined(FFMT_EMIT_PRINTF)
-  // __spirv_ocl_printf, declared as a template with both opencl_constant and
-  // plain overloads — overload resolution picks the right one based on the
-  // AS of our format string (always AS=2 thanks to FFMT_CONST_AS below).
-  #if defined(__SPIR__) || defined(__SPIRV__)
-    template <typename... Args>
-    extern int __spirv_ocl_printf(
-        const __attribute__((opencl_constant)) char* Format, Args... args);
-    template <typename... Args>
-    extern int __spirv_ocl_printf(const char* Format, Args... args);
-  #endif
-  namespace ffmt { namespace detail {
-  #if defined(__SPIR__) || defined(__SPIRV__)
-    template <typename... Args>
-    inline int omp_printf(const __attribute__((opencl_constant)) char* fmt,
-                          Args... args) {
-      return __spirv_ocl_printf(fmt, args...);
-    }
-    template <typename... Args>
-    inline int omp_printf(const char* fmt, Args... args) {
-      return __spirv_ocl_printf(fmt, args...);
-    }
-  #else
-    // Host pass of the same TU: forward to libc printf.
-    template <typename... Args>
-    inline int omp_printf(const char* fmt, Args... args) {
-      return ::printf(fmt, args...);
-    }
-  #endif
-  }} // namespace ffmt::detail
-  #define FFMT_EMIT_PRINTF(...) \
-    ::ffmt::detail::omp_printf(__VA_ARGS__)
+    && !defined(FFMT_EMIT_PRINTF) && (defined(__SPIR__) || defined(__SPIRV__))
+  // Device pass (the host pass of the same TU keeps ::printf, below). Our
+  // format strings are always in AS=2 (FFMT_CONST_AS below). Called directly,
+  // not through a wrapper: Intel's SPIR-V printf at -O0 faults on a format
+  // string passed as a parameter.
+  template <typename... Args>
+  extern int __spirv_ocl_printf(const __attribute__((opencl_constant)) char *Format, Args... args);
+  #define FFMT_EMIT_PRINTF(...) __spirv_ocl_printf(__VA_ARGS__)
 #endif
 
 // ── NVPTX auto-install: clang-OMP-CUDA, clang-CUDA ──────────────────────
@@ -1430,7 +1406,16 @@ template <char Type, bool Wide, typename T> FMT_HD inline auto printf_cast(T arg
   if constexpr (std::same_as<T, bool> && Type == 's')
     return arg ? "true" : "false";
   else if constexpr (std::is_pointer_v<T> && Type == 's') // a C string
+#if defined(__SPIR__) || defined(__SPIRV__)
+    // Not the select below: IGC 2.11.43 (Aurora's default) crashes on it in
+    // front of any %s; 2.34.4 does not. Intel GPU printf prints a null as
+    // "(null)" itself, but as glibc: nothing with a precision below 6.
+    return arg;
+#else
     return arg ? arg : "(null)"; // as the buffer path: printf never sees a null %s
+#endif
+  else if constexpr (Type == 'p') // the address, as %x
+    return printf_cast<'x', Wide>(reinterpret_cast<uintptr_t>(arg));
   else if constexpr (Type == 'c')
     return static_cast<char>(arg);
   else if constexpr (Type == 'd')
@@ -1460,20 +1445,25 @@ struct printf_fmt_buf {
   }
 };
 
-// %[flags][width][.precision][ll]type
-template <format_spec Spec, char Type, bool Wide>
+// [prefix]%[flags][width][.precision][ll]type; Prefix is the number of chars
+// ffmt writes ahead of the value ("0x", or a sign through %c). A pointer is
+// its address in hex: "0x%llx", or "%#20llx" when padded in front.
+template <format_spec Spec, char Type, bool Wide, int Prefix>
 consteval printf_fmt_buf build_printf_fmt() {
   printf_fmt_buf buf;
+  if (Prefix == 2) { buf.push('0'); buf.push('x'); }
+  if (Prefix == 1) { buf.push('%'); buf.push('c'); }
   buf.push('%');
-  if (Spec.align == '<') buf.push('-');
-  if (Spec.sign == '+' || Spec.sign == ' ') buf.push(Spec.sign);
-  if (Spec.alt) buf.push('#');
+  // {fmt} left-aligns strings and chars by default; printf right-aligns.
+  if (Spec.align == '<' || (!Spec.align && (Type == 's' || Type == 'c'))) buf.push('-');
+  if (!Prefix && (Spec.sign == '+' || Spec.sign == ' ')) buf.push(Spec.sign);
+  if (Spec.alt || (Type == 'p' && !Prefix)) buf.push('#');
   if (Spec.zero_pad && !Spec.align) buf.push('0'); // ignored once an alignment is given
-  if (Spec.width > 0) buf.push_int(Spec.width);
+  if (Spec.width > Prefix) buf.push_int(Spec.width - Prefix);
   if (Spec.precision >= 0) { buf.push('.'); buf.push_int(Spec.precision); }
-  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o'))
+  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o' || Type == 'p'))
     { buf.push('l'); buf.push('l'); }
-  buf.push(Type);
+  buf.push(Type == 'p' ? 'x' : Type);
   return buf;
 }
 
@@ -1487,14 +1477,38 @@ template <typename U, format_spec Spec> struct conversion {
     return std::unsigned_integral<U> && t == 'd' ? 'u' : t;
   }();
   static constexpr bool wide = sizeof(U) > 4;
-  static constexpr auto format = build_printf_fmt<Spec, type, wide>();
+  // {fmt} writes a pointer's "0x" and a float's sign itself, while printf's
+  // %p (null: "(nil)" on glibc) and NaN sign (%+g: "nan" on macOS) vary by
+  // libc. ffmt writes them too when no padding goes in front: no width, or '<'.
+  static constexpr int prefix = Spec.width && Spec.align != '<' ? 0
+                                : type == 'p'                   ? 2
+                                : is_float_format(type) && (Spec.sign == '+' || Spec.sign == ' ') ? 1
+                                                                : 0;
+  // A pointer padded in front prints as "%#20llx", but printf drops the "0x"
+  // of 0. So a null has its own printf format, "                 0x0%.0llx"
+  // (the "%.0llx" prints nothing of the 0), and print() picks it at run time.
+  static constexpr bool null_alt = type == 'p' && !prefix;
+  template <bool Null> static constexpr auto format = [] {
+    if constexpr (!Null) return build_printf_fmt<Spec, type, wide, prefix>();
+    printf_fmt_buf buf;
+    for (int i = 3; i < Spec.width; i++) buf.push(' ');
+    for (const char *c = wide ? "0x0%.0llx" : "0x0%.0x"; *c; c++) buf.push(*c);
+    return buf;
+  }();
   // What printf cannot express (these need the buffer path).
   static constexpr bool supported =
       type != 'b' && type != 'B' && type != 'a' && type != 'A' && Spec.align != '^' &&
       Spec.fill.size == 1 && Spec.fill.data[0] == ' ' && Spec.width_arg < 0 && Spec.prec_arg < 0 &&
       !(std::signed_integral<U> && (type == 'x' || type == 'X' || type == 'o')) &&
       !(Spec.alt && (type == 'x' || type == 'X'));
-  static auto arg(U v) { return printf_cast<type, wide>(v); }
+  static auto args(U v) {
+    if constexpr (prefix == 1) { // sign and |v| from the bits: no FP op
+      uint64_t b = __builtin_bit_cast(uint64_t, widen_exact(v));
+      return std::tuple(b >> 63 ? '-' : Spec.sign, __builtin_bit_cast(double, b << 1 >> 1));
+    } else {
+      return std::tuple(printf_cast<type, wide>(v));
+    }
+  }
 };
 
 // The placeholder at or after Pos, resolved once for the walkers below.
@@ -1515,30 +1529,51 @@ template <fixed_string Fmt, size_t Pos, size_t AutoIdx> struct placeholder {
 template <typename P, typename... Args>
 using arg_t = std::decay_t<std::tuple_element_t<P::index, std::tuple<Args...>>>;
 
-// Can printf express every placeholder? (validate_format has already checked
-// that the format string is well formed.)
+// The whole format string: can printf express every placeholder
+// (validate_format has already checked that it is well formed), and how many
+// have a null form?
+struct printf_plan { bool supported = true; size_t null_alts = 0; };
 template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
-consteval bool supported() {
+consteval printf_plan plan() {
   using P = placeholder<Fmt, Pos, AutoIdx>;
-  if constexpr (!P::found)
-    return true;
-  else
-    return conversion<arg_t<P, Args...>, P::spec>::supported &&
-           supported<Fmt, P::info.close + 1, P::next_auto, Args...>();
+  if constexpr (!P::found) {
+    return {};
+  } else {
+    using C = conversion<arg_t<P, Args...>, P::spec>;
+    auto r = plan<Fmt, P::info.close + 1, P::next_auto, Args...>();
+    return {C::supported && r.supported, C::null_alt + r.null_alts};
+  }
+}
+
+// Nulls: one bit per null_alt placeholder, in order, set when it takes its
+// null form; the walkers below consume it as they go. These arguments' Nulls:
+template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
+inline size_t null_mask(const std::tuple<Args...> &args) {
+  using P = placeholder<Fmt, Pos, AutoIdx>;
+  if constexpr (!P::found) {
+    return 0;
+  } else {
+    size_t rest = null_mask<Fmt, P::info.close + 1, P::next_auto>(args);
+    if constexpr (conversion<arg_t<P, Args...>, P::spec>::null_alt)
+      rest = rest << 1 | (std::get<P::index>(args) == nullptr);
+    return rest;
+  }
 }
 
 // The whole printf format string; out == nullptr only measures it.
-template <fixed_string Fmt, size_t Pos, size_t AutoIdx, typename... Args>
+template <fixed_string Fmt, size_t Pos, size_t AutoIdx, size_t Nulls, typename... Args>
 consteval size_t write_printf_fmt(char *out, size_t pos = 0) {
   using P = placeholder<Fmt, Pos, AutoIdx>;
   if constexpr (!P::found) {
     return walk_literal<Fmt, Pos, flen(Fmt)>(out, pos);
   } else {
+    using C = conversion<arg_t<P, Args...>, P::spec>;
     pos = walk_literal<Fmt, Pos, P::info.open>(out, pos);
-    constexpr auto f = conversion<arg_t<P, Args...>, P::spec>::format;
+    constexpr auto f = C::template format<C::null_alt && (Nulls & 1)>;
     for (size_t i = 0; i < f.len; i++, pos++)
       if (out) out[pos] = f.data[i];
-    return write_printf_fmt<Fmt, P::info.close + 1, P::next_auto, Args...>(out, pos);
+    return write_printf_fmt<Fmt, P::info.close + 1, P::next_auto, (Nulls >> C::null_alt), Args...>(
+        out, pos);
   }
 }
 
@@ -1550,14 +1585,14 @@ inline auto printf_args(const std::tuple<Args...> &args) {
     return std::tuple<>();
   } else {
     using C = conversion<arg_t<P, Args...>, P::spec>;
-    return std::tuple_cat(std::tuple(C::arg(std::get<P::index>(args))),
+    return std::tuple_cat(C::args(std::get<P::index>(args)),
                           printf_args<Fmt, P::info.close + 1, P::next_auto>(args));
   }
 }
 
-template <fixed_string Fmt, typename... Args> consteval auto printf_fmt() {
-  fixed_string<write_printf_fmt<Fmt, 0, 0, Args...>(nullptr) + 1> r{};
-  write_printf_fmt<Fmt, 0, 0, Args...>(r.data);
+template <fixed_string Fmt, size_t Nulls, typename... Args> consteval auto printf_fmt() {
+  fixed_string<write_printf_fmt<Fmt, 0, 0, Nulls, Args...>(nullptr) + 1> r{};
+  write_printf_fmt<Fmt, 0, 0, Nulls, Args...>(r.data);
   return r;
 }
 
@@ -1577,7 +1612,9 @@ template <fixed_string Lit, size_t... Is> inline void emit_literal(std::index_se
   FFMT_EMIT_PRINTF(fmt_s, s);
 }
 
-// One printf call; the format string lands in constant address space.
+// One printf call; the format string lands in constant address space. It is
+// used right there: Intel's SPIR-V printf at -O0 faults on a format pointer
+// passed in or returned.
 template <fixed_string PrintfFmt, size_t... Is, typename Tuple, size_t... Js>
 inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::index_sequence<Js...>) {
   static constexpr FFMT_CONST_AS char s[] = {PrintfFmt.data[Is]..., '\0'};
@@ -1585,18 +1622,27 @@ inline void emit_printf(std::index_sequence<Is...>, const Tuple &args, std::inde
 }
 
 template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
-  static_assert(supported<Fmt, 0, 0, Args...>(),
+  constexpr auto pl = plan<Fmt, 0, 0, Args...>();
+  static_assert(pl.supported,
                 "This format string uses features the specifiers path (DPC++, "
                 "icpx OpenMP) cannot express with printf: {:b}, {:a}, {:^}, custom "
                 "fill, {:x}/{:o} with signed int, {:#x}, dynamic width/precision.");
-  constexpr auto pf = printf_fmt<Fmt, Args...>();
   if constexpr (sizeof...(Args) == 0) {
     constexpr auto lit = literal_text<Fmt>();
     if constexpr (flen(lit) > 0) emit_literal<lit>(std::make_index_sequence<flen(lit)>{});
   } else {
-    auto a = printf_args<Fmt, 0, 0>(std::tuple<Args...>(args...));
-    emit_printf<pf>(std::make_index_sequence<flen(pf)>{}, a,
-                    std::make_index_sequence<std::tuple_size_v<decltype(a)>>{});
+    // One printf format per combination of null pointers (just one without
+    // a padded pointer). Only one printf runs, so the line stays whole.
+    std::tuple<Args...> t(args...);
+    auto a = printf_args<Fmt, 0, 0>(t);
+    size_t nulls = null_mask<Fmt, 0, 0>(t);
+    [&]<size_t... Ns>(std::index_sequence<Ns...>) {
+      ((nulls == Ns ? emit_printf<printf_fmt<Fmt, Ns, Args...>()>(
+                          std::make_index_sequence<flen(printf_fmt<Fmt, Ns, Args...>())>{}, a,
+                          std::make_index_sequence<std::tuple_size_v<decltype(a)>>{})
+                    : void()),
+       ...);
+    }(std::make_index_sequence<size_t(1) << pl.null_alts>{});
   }
 }
 } // namespace specifiers_path

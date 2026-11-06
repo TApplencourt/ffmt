@@ -97,11 +97,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -166,7 +162,7 @@
     "id": 2,
     "setup": "test/setup/setup_2.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -260,11 +256,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -272,7 +266,7 @@
     "id": 3,
     "setup": "test/setup/setup_3.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -366,11 +360,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
@@ -721,7 +712,7 @@
     "id": 10,
     "setup": "test/setup/setup_10.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -813,11 +804,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -825,7 +814,7 @@
     "id": 11,
     "setup": "test/setup/setup_11.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -917,11 +906,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
@@ -1023,11 +1009,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43",
+        "strings_spirv_o0:17",
         "floats:60",
         "floats:141",
         "floats:201",
@@ -1196,11 +1178,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -1300,11 +1280,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -1406,11 +1382,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -1512,11 +1486,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -1961,11 +1931,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "misc:42",
-        "misc:43",
-        "strings:26",
-        "strings:27",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2124,11 +2090,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2287,11 +2249,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2450,11 +2408,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "misc:42",
-        "misc:43",
-        "strings:26",
-        "strings:27",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2519,7 +2473,7 @@
     "id": 32,
     "setup": "test/setup/setup_32.sh",
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2613,10 +2567,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "floats:203",
-        "strings:26",
-        "strings:27",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2624,7 +2575,7 @@
     "id": 33,
     "setup": "test/setup/setup_33.sh",
     "notes": "macOS Apple clang (libc++), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -2775,11 +2726,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3109,11 +3056,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3213,11 +3156,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3319,11 +3258,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3425,11 +3360,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3493,7 +3424,7 @@
     "id": 44,
     "setup": "test/setup/setup_44.sh",
     "notes": "icpx SYCL (DPC++) on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
-    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3585,11 +3516,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
@@ -3597,7 +3525,7 @@
     "id": 45,
     "setup": "test/setup/setup_45.sh",
     "notes": "icpx OpenMP offload to SPIR-V on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
-    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3691,11 +3619,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
@@ -3703,7 +3628,7 @@
     "id": 46,
     "setup": "test/setup/setup_46.sh",
     "notes": "Aurora g++ 14.3 (module gcc/14.3.0), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3714,7 +3639,6 @@
         "isolated:fill",
         "isolated:float_sweep",
         "isolated:hexfloat",
-        "isolated:null_string",
         "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -3798,11 +3722,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3810,7 +3730,7 @@
     "id": 47,
     "setup": "test/setup/setup_47.sh",
     "notes": "Aurora g++ 14.3 (module gcc/14.3.0), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
