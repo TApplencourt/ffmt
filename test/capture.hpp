@@ -17,10 +17,7 @@
 #include <unistd.h>
 
 #include <ffmt/base.hpp>
-// Pull in <sycl/sycl.hpp> only when the TU is built for a SYCL backend
-// (so capture_stdout can take a sycl::queue&). Host test rig and OpenMP
-// backends don't define SYCL_LANGUAGE_VERSION and don't have ACPP, so
-// they skip this include.
+// SYCL backends only: TEST_PARAM below is a sycl::queue.
 #if defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP
 #include <sycl/sycl.hpp>
 #endif
@@ -31,6 +28,40 @@ constexpr int N = 2;
 // Unlike 1 (ASan, UBSan), 23 (LSan) or 128+n (a signal), it cannot come from
 // a crash, so test/check_id.py can tell the two apart.
 constexpr int TEST_FAILED = 88;
+
+// What depends on the programming model, for test_body.inc and main.cpp:
+// how a test function receives what it needs (TEST_PARAM, TEST_ARG) and
+// how a RUN(...) case reaches the device (DEVICE_RUN).
+#if defined(SYCL_LANGUAGE_VERSION) \
+    || defined(__ADAPTIVECPP__) || defined(__HIPSYCL__) || defined(__ACPP__)
+#define TEST_PARAM ::sycl::queue q  // a handle: copies share the queue
+#define TEST_ARG ::sycl::queue()
+#define DEVICE_RUN(...) do { printf("Test %d\n", ++_test_id); \
+  q.parallel_for(N, [=](::sycl::id<1>) { __VA_ARGS__; }).wait(); } while (0)
+#elif defined(_OPENMP)
+// No do/while around the target region: icpx registers an OpenMP kernel
+// emitted inside one under one __LINE__ and looks it up under another, and
+// every offload fails with "Failed to load kernel __omp_offloading_*_l<N>".
+// RUN(...) sits at the top level of a lambda, so bare statements are fine.
+#define DEVICE_RUN(...) printf("Test %d\n", ++_test_id);                        \
+  _Pragma("omp target teams distribute parallel for num_teams(1) thread_limit(N)") \
+  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; }
+#elif defined(__CUDACC__)
+// One single-thread launch per RUN, with the N repetitions inside, as on the
+// host. Needs extended device lambdas.
+template <typename F> __global__ void _ffmt_run_kernel(F f) { f(); }
+#define DEVICE_RUN(...) do { printf("Test %d\n", ++_test_id);              \
+  _ffmt_run_kernel<<<1, 1>>>([=] __device__ () {                           \
+    for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } });                    \
+  cudaDeviceSynchronize(); } while (0)
+#else
+#define DEVICE_RUN(...) do { printf("Test %d\n", ++_test_id); \
+  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } } while (0)
+#endif
+#ifndef TEST_PARAM
+#define TEST_PARAM
+#define TEST_ARG
+#endif
 
 static std::string capture_stdout(auto&& fn) {
   std::cout.flush();

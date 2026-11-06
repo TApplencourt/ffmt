@@ -1,5 +1,5 @@
 # Setup for id 42: GitHub icpx OpenMP offload, AOT for PVC, -O2, no fast-math, build only (no GPU).
-# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS and FFMT_MAIN.
+# Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 # GitHub runner: icpx from Intel's oneAPI apt repo (oneAPI 2025.2) and a
 # current ocloc for the ahead-of-time PVC build, so IGC's codegen is checked
@@ -19,7 +19,6 @@ set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /opt/intel/oneapi/setvars.sh
 export CXX=icpx
 export FFMT_FLAGS='-std=c++20 -Wall -Werror -fiopenmp -fopenmp-targets=spir64_gen -Xopenmp-target-backend "-device pvc" -O2 -fno-fast-math'
-export FFMT_MAIN=test/main_omp.cpp
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_omp.cpp examples/readme2_omp.cpp"

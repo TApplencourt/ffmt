@@ -4,12 +4,12 @@
 #   test/run_id.sh 4          build and run id 4
 #   test/run_id.sh 4 build    build only
 #
-# This file knows only the id. Modules, compiler, every compile flag
-# (language standard and warnings included) and which main to use all come
-# from test/setup/setup_<id>.sh, which must export CXX, FFMT_FLAGS and
-# FFMT_MAIN, and may export FFMT_EXTRA_FILES and FFMT_COMPILE_ONLY. This
-# file adds only its own mechanics: the include paths, -DFFMT_ID_<id>,
-# -DTEST_NO_MAIN, TEST_LIST and the negative tests' two extra compiles.
+# This file knows only the id. Modules, compiler and every compile flag
+# (language standard and warnings included) come from
+# test/setup/setup_<id>.sh, which must export CXX and FFMT_FLAGS, and may
+# export FFMT_EXTRA_FILES and FFMT_COMPILE_ONLY. This file adds only its own
+# mechanics: the include paths, -DFFMT_ID_<id>, -DTEST_NO_MAIN, TEST_LIST
+# and the negative tests' two extra compiles.
 #
 # Binaries go to build/id-<id>/; the config, build log and run log go to
 # results/id-<id>/.
@@ -29,16 +29,16 @@ BIN   := $(OUT)/test
 .DEFAULT_GOAL := test
 .PHONY: test build
 
-# CXX, FFMT_FLAGS and FFMT_MAIN come from the setup script.
-ifndef FFMT_MAIN
-  $(error FFMT_MAIN is not set: run test/run_id.sh $(id), which sources $(SETUP))
+# CXX and FFMT_FLAGS come from the setup script.
+ifndef FFMT_FLAGS
+  $(error FFMT_FLAGS is not set: run test/run_id.sh $(id), which sources $(SETUP))
 endif
 ifeq ($(origin CXX),default)
   $(error $(SETUP) must export CXX)
 endif
 
-# The mains (test/main_*.cpp) call test_<name>() for each X(<name>) in
-# TEST_LIST, so a new test/test_<name>.cpp needs no other edit.
+# test/main.cpp calls test_<name>() for each X(<name>) in TEST_LIST, so a
+# new test/test_<name>.cpp needs no other edit.
 SRCS := $(wildcard test/test_*.cpp)
 TEST_LIST_FLAG := -D'TEST_LIST=$(patsubst test/test_%.cpp,X(%),$(SRCS))'
 HDRS  := $(wildcard test/*.hpp test/*.inc) include/ffmt/base.hpp
@@ -68,7 +68,7 @@ $(FMT_OBJ): $(SETUP) | $(OUT)/.dir $(FMT_HDR)
 
 # What was built and with which compiler, next to the logs.
 $(LOGS)/config.txt: $(SETUP) | $(OUT)/.dir
-	@echo 'id=$(id) CXX=$(CXX) FFMT_FLAGS=$(FFMT_FLAGS) FFMT_MAIN=$(FFMT_MAIN)' | tee $@
+	@echo 'id=$(id) CXX=$(CXX) FFMT_FLAGS=$(FFMT_FLAGS)' | tee $@
 	@$(CXX) --version | head -1 | tee -a $@
 	@echo "commit=$$(git describe --always --dirty --abbrev=40)" | tee -a $@
 
@@ -133,7 +133,7 @@ EXTRA_FLAGS := -c -Wno-unused-command-line-argument
 
 # For a toolchain that can compile for a device but not link for it (no
 # device runtime installed): compile each source to an object and stop.
-OBJS := $(patsubst test/%.cpp,$(OUT)/%.o,$(FFMT_MAIN) $(SRCS))
+OBJS := $(patsubst test/%.cpp,$(OUT)/%.o,test/main.cpp $(SRCS))
 
 $(OUT)/%.o: test/%.cpp $(HDRS) $(SETUP) $(LOGS)/config.txt | $(OUT)/.dir $(FMT_HDR)
 	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN $(TEST_LIST_FLAG) -c $< -o $@ 2>&1 | tee $(LOGS)/build-$*.log
@@ -153,9 +153,9 @@ test:
 else
 
 # `-x none` ends a `-x cuda` from FFMT_FLAGS before the object file.
-$(BIN): $(FFMT_MAIN) $(SRCS) $(HDRS) $(SETUP) $(FMT_OBJ) $(LOGS)/config.txt | $(OUT)/.dir
+$(BIN): test/main.cpp $(SRCS) $(HDRS) $(SETUP) $(FMT_OBJ) $(LOGS)/config.txt | $(OUT)/.dir
 	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN $(TEST_LIST_FLAG) \
-	  $(FFMT_MAIN) $(SRCS) -x none $(FMT_OBJ) -o $@ 2>&1 | tee $(LOGS)/build.log
+	  test/main.cpp $(SRCS) -x none $(FMT_OBJ) -o $@ 2>&1 | tee $(LOGS)/build.log
 
 $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) $(FMT_OBJ) | $(OUT)/.dir
 	@mkdir -p $(@D) $(OUT)/isolated

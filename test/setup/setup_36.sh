@@ -1,5 +1,5 @@
 # Setup for id 36: GitHub clang-22 CUDA (sm_80), CUDA 12.6.3, -O2, no fast-math, build only (no GPU).
-# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS and FFMT_MAIN.
+# Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 # GitHub runner: clang-22 from apt.llvm.org, with libomp for -fopenmp, and
 # the CUDA 12.6 pieces clang needs for NVPTX: nvcc's package (headers,
@@ -23,7 +23,6 @@ if [ ! -x "$CUDA_PATH/bin/ptxas" ]; then
 fi
 export CXX=clang++-22
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --cuda-path=${CUDA_PATH} -x cuda --cuda-gpu-arch=sm_80 -L${CUDA_PATH}/lib64 -lcudart -O2 -fno-fast-math"
-export FFMT_MAIN=test/main_omp.cpp
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_cuda.cu examples/readme2_cuda.cu"

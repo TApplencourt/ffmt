@@ -1,5 +1,5 @@
 # Setup for id 30: host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math.
-# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS and FFMT_MAIN.
+# Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 # ubuntu-24.04's default clang (18), as on the GitHub runners; another
 # clang version is another id.
@@ -11,4 +11,3 @@ export CXX=clang++-18
 export UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
 export ASAN_OPTIONS=detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -O2 -fno-fast-math -DFFMT_BUFFER_PATH=0 -fsanitize=address,undefined -fno-sanitize=bool"
-export FFMT_MAIN=test/main_host.cpp

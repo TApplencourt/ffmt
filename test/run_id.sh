@@ -5,7 +5,7 @@
 #   test/run_id.sh 4 build    build only
 #
 # Sources test/setup/setup_<id>.sh, so its modules and exports are in
-# place, then runs Makefile.id, which reads CXX, FFMT_FLAGS and FFMT_MAIN
+# place, then runs Makefile.id, which reads CXX, FFMT_FLAGS and the rest
 # from the environment.
 cd "$(dirname "$0")/.." || exit 1
 

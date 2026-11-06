@@ -1,5 +1,5 @@
 # Setup for id 38: GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O2, no fast-math, compile only.
-# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS and FFMT_MAIN.
+# Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 # GitHub runner: clang-22 from apt.llvm.org, with libomp for -fopenmp, and
 # the CUDA 12.6 pieces clang needs for NVPTX: nvcc's package (headers,
@@ -25,7 +25,6 @@ export CXX=clang++-22
 # apt.llvm.org ships no NVPTX OpenMP device runtime, so compile without
 # linking; -nogpulib skips the device bitcode clang would link at compile time.
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --cuda-path=${CUDA_PATH} -fopenmp --offload-arch=sm_80 -nogpulib -O2 -fno-fast-math"
-export FFMT_MAIN=test/main_omp.cpp
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_omp.cpp examples/readme2_omp.cpp"
