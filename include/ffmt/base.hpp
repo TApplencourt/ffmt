@@ -1414,6 +1414,8 @@ template <char Type, bool Wide, typename T> FMT_HD inline auto printf_cast(T arg
 #else
     return arg ? arg : "(null)"; // as the buffer path: printf never sees a null %s
 #endif
+  else if constexpr (Type == 'p') // the address, as %x
+    return printf_cast<'x', Wide>(reinterpret_cast<uintptr_t>(arg));
   else if constexpr (Type == 'c')
     return static_cast<char>(arg);
   else if constexpr (Type == 'd')
@@ -1444,7 +1446,8 @@ struct printf_fmt_buf {
 };
 
 // [prefix]%[flags][width][.precision][ll]type; Prefix is the number of chars
-// ffmt writes ahead of the value ("0x", or a sign through %c).
+// ffmt writes ahead of the value ("0x", or a sign through %c). A pointer is
+// its address in hex: "0x%llx", or "%#20llx" when padded in front.
 template <format_spec Spec, char Type, bool Wide, int Prefix>
 consteval printf_fmt_buf build_printf_fmt() {
   printf_fmt_buf buf;
@@ -1454,13 +1457,13 @@ consteval printf_fmt_buf build_printf_fmt() {
   // {fmt} left-aligns strings and chars by default; printf right-aligns.
   if (Spec.align == '<' || (!Spec.align && (Type == 's' || Type == 'c'))) buf.push('-');
   if (!Prefix && (Spec.sign == '+' || Spec.sign == ' ')) buf.push(Spec.sign);
-  if (Spec.alt) buf.push('#');
+  if (Spec.alt || (Type == 'p' && !Prefix)) buf.push('#');
   if (Spec.zero_pad && !Spec.align) buf.push('0'); // ignored once an alignment is given
   if (Spec.width > Prefix) buf.push_int(Spec.width - Prefix);
   if (Spec.precision >= 0) { buf.push('.'); buf.push_int(Spec.precision); }
-  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o'))
+  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o' || Type == 'p'))
     { buf.push('l'); buf.push('l'); }
-  buf.push(Type);
+  buf.push(Type == 'p' ? 'x' : Type);
   return buf;
 }
 
@@ -1485,16 +1488,11 @@ template <typename U, format_spec Spec> struct conversion {
   // of 0. So a null has its own printf format, "                 0x0%.0llx"
   // (the "%.0llx" prints nothing of the 0), and print() picks it at run time.
   static constexpr bool null_alt = type == 'p' && !prefix;
-  static constexpr char ptype = type == 'p' ? 'x' : type;
-  static constexpr format_spec main_spec = [] { auto s = Spec; s.alt |= null_alt; return s; }();
-  static constexpr format_spec null_spec = [] { format_spec s; s.precision = 0; return s; }();
   template <bool Null> static constexpr auto format = [] {
-    if constexpr (!Null) return build_printf_fmt<main_spec, ptype, wide, prefix>();
+    if constexpr (!Null) return build_printf_fmt<Spec, type, wide, prefix>();
     printf_fmt_buf buf;
     for (int i = 3; i < Spec.width; i++) buf.push(' ');
-    for (char c : {'0', 'x', '0'}) buf.push(c);
-    auto f = build_printf_fmt<null_spec, 'x', wide, 0>();
-    for (size_t i = 0; i < f.len; i++) buf.push(f.data[i]);
+    for (const char *c = wide ? "0x0%.0llx" : "0x0%.0x"; *c; c++) buf.push(*c);
     return buf;
   }();
   // What printf cannot express (these need the buffer path).
@@ -1504,9 +1502,7 @@ template <typename U, format_spec Spec> struct conversion {
       !(std::signed_integral<U> && (type == 'x' || type == 'X' || type == 'o')) &&
       !(Spec.alt && (type == 'x' || type == 'X'));
   static auto args(U v) {
-    if constexpr (type == 'p') {
-      return std::tuple(printf_cast<ptype, wide>(reinterpret_cast<uintptr_t>(v)));
-    } else if constexpr (prefix == 1) { // sign and |v| from the bits: no FP op
+    if constexpr (prefix == 1) { // sign and |v| from the bits: no FP op
       uint64_t b = __builtin_bit_cast(uint64_t, widen_exact(v));
       return std::tuple(b >> 63 ? '-' : Spec.sign, __builtin_bit_cast(double, b << 1 >> 1));
     } else {
@@ -1568,9 +1564,8 @@ inline size_t null_mask(const std::tuple<Args...> &args) {
   } else {
     size_t rest = null_mask<Fmt, P::info.close + 1, P::next_auto>(args);
     if constexpr (conversion<arg_t<P, Args...>, P::spec>::null_alt)
-      return (rest << 1) | (std::get<P::index>(args) == nullptr);
-    else
-      return rest;
+      rest = rest << 1 | (std::get<P::index>(args) == nullptr);
+    return rest;
   }
 }
 
@@ -1586,8 +1581,8 @@ consteval size_t write_printf_fmt(char *out, size_t pos = 0) {
     constexpr auto f = C::template format<C::null_alt && (Nulls & 1)>;
     for (size_t i = 0; i < f.len; i++, pos++)
       if (out) out[pos] = f.data[i];
-    return write_printf_fmt<Fmt, P::info.close + 1, P::next_auto, (C::null_alt ? Nulls >> 1 : Nulls),
-                            Args...>(out, pos);
+    return write_printf_fmt<Fmt, P::info.close + 1, P::next_auto, (Nulls >> C::null_alt), Args...>(
+        out, pos);
   }
 }
 
