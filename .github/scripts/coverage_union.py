@@ -27,8 +27,13 @@ def regions(cov, profdata, source, binary, tmp):
     raw = os.path.join(tmp, name + ".profraw")
     prof = os.path.join(tmp, name + ".profdata")
     env = dict(os.environ, LLVM_PROFILE_FILE=raw)
-    subprocess.run([binary], env=env, stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL, check=True)
+    # 88 (TEST_FAILED, test/capture.hpp): the binary ran to the end with a
+    # failing test, expected on the specifiers path; it still covered what it
+    # ran, and test/check_id.py judges the results. Any other status is a crash.
+    status = subprocess.run([binary], env=env, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL).returncode
+    if status not in (0, 88):
+        sys.exit("%s exited %d: it did not finish" % (binary, status))
     subprocess.run([profdata, "merge", "-o", prof, raw], check=True)
     out = subprocess.run([cov, "export", binary, "-instr-profile=" + prof,
                           "-sources", source],
