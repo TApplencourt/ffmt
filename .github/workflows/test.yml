@@ -55,6 +55,35 @@ jobs:
           echo "$(brew --prefix)/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
       - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
       - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: summary-${{ matrix.id }}
+          path: results/id-${{ matrix.id }}/summary.md
+          # The summary job reports a missing row itself.
+          if-no-files-found: ignore
+
+  summary:
+    # One table of every id on the run's summary page, from the row each id
+    # job's check_id.py wrote. An id with no row did not get that far.
+    needs: [matrix, id]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: summary-*
+      - env:
+          IDS: ${{ needs.matrix.outputs.ids }}
+        run: |
+          python3 - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json, os
+          print("| id | config | result |\n|---|---|---|")
+          for r in json.loads(os.environ["IDS"]):
+              f = "summary-%d/summary.md" % r["id"]
+              print(open(f).read().strip() if os.path.exists(f) else
+                    "| ⚠️ %d | %s | no result: check_id.py did not run |" % (r["id"], r["notes"]))
+          EOF
 
   readme:
     # Every whole program in README.md is a copy of a file in examples/,

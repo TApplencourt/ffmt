@@ -93,10 +93,9 @@ print("id %d (%s): %s" % (id_, row["notes"], result))
 for p in problems:
     print("  " + p)
 
-# On GitHub Actions, also list the id on the run's summary page, so a failing
-# job can be read without opening its log.
-if "GITHUB_STEP_SUMMARY" in os.environ:
-    with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
-        f.write("### %s id %d: %s\n%s\n%s\n" % ("❌" if problems else "✅", id_, row["notes"],
-                                              result, "".join("- %s\n" % p for p in problems)))
+# The id's row of the table on the CI run's summary page (the workflow's
+# summary job), so a failing id can be read without opening its log.
+with open(logs + "summary.md", "w") as f:
+    f.write("| %s %d | %s | %s |\n" % ("❌" if problems else "✅", id_, row["notes"],
+                                     "<br>".join([result] + problems).replace("|", "\\|")))
 sys.exit(1 if problems else 0)
