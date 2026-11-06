@@ -1,6 +1,5 @@
 # Setup for id 10: icpx SYCL (DPC++) on PVC, -O0, no fast-math.
-# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS, FFMT_MAIN, FFMT_SYNTAX_FLAGS
-# and FFMT_FMT_FLAGS.
+# Sourced by test/run_id.sh; must export CXX, FFMT_FLAGS and FFMT_MAIN.
 
 # 1032.21, not the 821.36 module: under 821 the Level Zero devices are
 # not visible to this oneAPI, so level_zero:gpu finds nothing and SYCL
@@ -15,11 +14,3 @@ export FFMT_MAIN=test/main_sycl.cpp
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
-# Only for the negative tests' first pass: NEG_SYNTAX_CHECK turns the
-# harness's format call into a no-op, so a negative file that still fails to
-# compile has a bug of its own and its rejection would mean nothing.
-export FFMT_SYNTAX_FLAGS="-DNEG_SYNTAX_CHECK"
-# Only for the negative tests' {fmt} cross-check: NEG_CHECK_FMT makes the
-# harness call fmt::format instead of ffmt, and {fmt} must reject the case
-# too, or the test is a restriction we invented that {fmt} would accept.
-export FFMT_FMT_FLAGS="-std=c++20 -Wall -Werror -DNEG_CHECK_FMT"

@@ -1,11 +1,10 @@
 // Negative test harness. Each test file expands NEG_EXPECT_REJECTED(fmt, ...)
 // once. Makefile.id compiles every file three ways on every id and records
 // each exit status (which statuses are expected is judged elsewhere):
-//   FFMT_SYNTAX_FLAGS (-DNEG_SYNTAX_CHECK) → the call made a no-op; must
-//                                            compile, so a typo cannot pass
-//                                            as a "rejection"
-//   FFMT_FMT_FLAGS    (-DNEG_CHECK_FMT)    → fmt::format; must fail
-//   the id's own flags                     → ffmt; must fail
+//   -DNEG_SYNTAX_CHECK  → the call made a no-op; must compile, so a typo
+//                         cannot pass as a "rejection"
+//   -DNEG_CHECK_FMT     → fmt::format; must fail
+//   the id's own flags  → ffmt; must fail
 //
 // The {fmt} build (our output reference, checked at compile time in C++20)
 // is what stops us from inventing restrictions ffmt rejects but {fmt}

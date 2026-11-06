@@ -6,10 +6,10 @@
 #
 # This file knows only the id. Modules, compiler, every compile flag
 # (language standard and warnings included) and which main to use all come
-# from test/setup/setup_<id>.sh, which must export CXX, FFMT_FLAGS,
-# FFMT_MAIN, FFMT_SYNTAX_FLAGS and FFMT_FMT_FLAGS, and may export
-# FFMT_EXTRA_FILES and FFMT_COMPILE_ONLY. This file adds only its
-# own mechanics: the include paths, -DFFMT_ID_<id> and -DTEST_NO_MAIN.
+# from test/setup/setup_<id>.sh, which must export CXX, FFMT_FLAGS and
+# FFMT_MAIN, and may export FFMT_EXTRA_FILES and FFMT_COMPILE_ONLY. This
+# file adds only its own mechanics: the include paths, -DFFMT_ID_<id>,
+# -DTEST_NO_MAIN, TEST_LIST and the negative tests' two extra compiles.
 #
 # Binaries go to build/id-<id>/; the config, build log and run log go to
 # results/id-<id>/.
@@ -35,12 +35,6 @@ ifndef FFMT_MAIN
 endif
 ifeq ($(origin CXX),default)
   $(error $(SETUP) must export CXX)
-endif
-ifndef FFMT_SYNTAX_FLAGS
-  $(error $(SETUP) must export FFMT_SYNTAX_FLAGS)
-endif
-ifndef FFMT_FMT_FLAGS
-  $(error $(SETUP) must export FFMT_FMT_FLAGS)
 endif
 
 # The mains (test/main_*.cpp) call test_<name>() for each X(<name>) in
@@ -80,22 +74,24 @@ $(LOGS)/config.txt: $(SETUP) | $(OUT)/.dir
 
 # Negative tests: each file in test/negative/ makes one format call that
 # must not compile. Every file is compiled three ways and each exit status
-# recorded: with FFMT_SYNTAX_FLAGS (the call made a no-op), with
-# FFMT_FMT_FLAGS (the call made through {fmt}) and plainly (through ffmt).
-# Which statuses are expected is judged elsewhere, not here. The {fmt}
-# compile leaves out FFMT_FLAGS: {fmt}'s headers in an offload compile hit
-# llvm/llvm-project#52699, which is why fmt.o is a separate host object.
+# recorded: with -DNEG_SYNTAX_CHECK, which makes the call a no-op (a file
+# that still fails has a bug of its own, and its rejection means nothing);
+# through {fmt} with -DNEG_CHECK_FMT (which must reject it too, or the
+# restriction is one we invented); and plainly, through ffmt. Which
+# statuses are expected is judged elsewhere, not here. The {fmt} compile is
+# the same for every id, like fmt.o, and leaves out FFMT_FLAGS: {fmt}'s
+# headers in an offload compile hit llvm/llvm-project#52699.
 # -Wno-unused-command-line-argument: with -c, clang warns that link flags
 # such as -lcudart are unused, and -Werror would turn that into a failure.
 # Each file is its own target, so make -j compiles them in parallel.
 NEG_SRCS    := test/negative/control/accept_valid.cpp $(wildcard test/negative/*.cpp)
 NEG_DONE    := $(foreach f,$(NEG_SRCS),$(LOGS)/negative/$(basename $(notdir $(f))).status)
 NEG_COMPILE  = $(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -Wno-unused-command-line-argument -c
-NEG_FMT      = $(CXX) $(INCLUDES) $(FFMT_FMT_FLAGS) -c
+NEG_FMT      = $(CXX) $(INCLUDES) -std=c++20 -Wall -Werror -DNEG_CHECK_FMT -c
 
 define NEG_RECIPE
 	@mkdir -p $(@D)
-	@{ $(NEG_COMPILE) $(FFMT_SYNTAX_FLAGS) $< -o /dev/null >/dev/null 2>&1; echo "$$? syntax $*"; \
+	@{ $(NEG_COMPILE) -DNEG_SYNTAX_CHECK $< -o /dev/null >/dev/null 2>&1; echo "$$? syntax $*"; \
 	   $(NEG_FMT) $< -o /dev/null >/dev/null 2>&1; echo "$$? fmt $*"; \
 	   $(NEG_COMPILE) $< -o /dev/null >/dev/null 2>&1; echo "$$? ffmt $*"; } > $@
 endef
