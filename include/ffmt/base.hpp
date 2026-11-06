@@ -1429,6 +1429,8 @@ FMT_HD inline double widen_exact(float f) {
 template <char Type, bool Wide, typename T> FMT_HD inline auto printf_cast(T arg) {
   if constexpr (std::same_as<T, bool> && Type == 's')
     return arg ? "true" : "false";
+  else if constexpr (std::is_pointer_v<T> && Type == 's') // a C string
+    return arg ? arg : "(null)"; // as the buffer path: printf never sees a null %s
   else if constexpr (Type == 'c')
     return static_cast<char>(arg);
   else if constexpr (Type == 'd')
@@ -2103,7 +2105,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
   } else if constexpr (std::is_pointer_v<U>) {
     using Pointee = std::remove_cv_t<std::remove_pointer_t<U>>;
     if constexpr (std::same_as<Pointee, char>) {
-      out.push_str(arg ? arg : "(null)"); // UB in std::format; glibc's choice
+      out.push_str(arg ? arg : "(null)"); // as fmt::printf; fmt::format throws (README)
     } else {
       out.push_str("0x");
       write_uint_direct<16>(out, reinterpret_cast<std::uintptr_t>(arg));
@@ -2142,7 +2144,7 @@ FMT_HD inline void write_arg_rt(fmt_buf &out, T arg, const format_spec &spec, co
   if constexpr (std::is_pointer_v<U> &&
                 std::same_as<std::remove_cv_t<std::remove_pointer_t<U>>, char>) {
     if (spec.type != 'p') { // {:p} prints the address: falls through below
-      const char *str = arg ? arg : "(null)"; // UB in std::format; never fault on device
+      const char *str = arg ? arg : "(null)"; // as fmt::printf; fmt::format throws (README)
       if (dyn_w <= 0 && dyn_p < 0) { out.push_str(str); return; }
       int cols = 0;
       int slen = str_width(str, dyn_p, cols);

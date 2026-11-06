@@ -1,7 +1,7 @@
 #ifndef TEST_INC
 #define TEST_NAME layout
 #define TEST_INC "test_layout.cpp"
-#include "test_select_body.inc"
+#include "test_body.inc"
 #else
 
 // Width and alignment
@@ -42,5 +42,10 @@ RUN(PRINT("{: 010f}\n", 3.14));
 RUN(PRINT("{:+08.2f}\n", 3.14));
 RUN(PRINT("{:+08.2f}\n", -3.14));
 
+// ── Layout ────────────────────────────────────────────────────────────────────
+RUN(PRINT("{:<10x}\n", 255u));
+RUN(PRINT("{:>10x}\n", 255u));
+RUN(PRINT("{:<10o}\n", 255u));
+RUN(PRINT("{:>10o}\n", 255u));
 
 #endif

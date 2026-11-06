@@ -1,35 +1,24 @@
+// The body of every test file: test_<TEST_NAME>() prints each RUN(...) case
+// of TEST_INC through {fmt} on the host, then through ffmt on the device, and
+// diffs the two. Only how a case reaches the device depends on the
+// programming model: DEVICE_RUN, in capture.hpp.
 #include "capture.hpp"
 
 #define CONCAT2(a, b) a##b
 #define CONCAT(a, b) CONCAT2(a, b)
 
-bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
+bool CONCAT(test_, TEST_NAME)(TEST_PARAM) {
   int _test_id = 0;
 
   auto std_out = capture_stdout([&]() {
 #define FFMT_STD_PATH
-#if FFMT_BUFFER_PATH
-    // ACPP device path uses a fixed fmt_buf and silently truncates per print
-    // call. Mirror that on the std reference so tests can include long output.
-#define PRINT(fmt_str, ...)                                                   \
-  std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, FFMT_BUFFER_SIZE)
-#define PRINTLN(fmt_str, ...)                                                 \
-  std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__)                 \
-                   .substr(0, FFMT_BUFFER_SIZE)                     \
-            << '\n'
-#else
-#define PRINT(fmt_str, ...) std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__)
-#define PRINTLN(fmt_str, ...) std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__) << '\n'
-#endif
+// The buffer path cuts each print at FFMT_BUFFER_SIZE: so does the reference.
+#define PRINT(fmt_str, ...) std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__) \
+  .substr(0, FFMT_BUFFER_PATH ? static_cast<size_t>(FFMT_BUFFER_SIZE) : std::string::npos)
+#define PRINTLN(fmt_str, ...) PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__) << '\n'
 #define RUN(...) do { printf("Test %d\n", ++_test_id); \
   for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } } while (0)
-#define SKIP_IF(gate, reason, ...) do {                                       \
-  if (gate) printf("Test %d\n# skipped: %s\n", ++_test_id, reason);           \
-  else RUN(__VA_ARGS__);                                                      \
-} while (0)
 #include TEST_INC
-#undef SKIP_IF
 #undef RUN
 #undef PRINTLN
 #undef PRINT
@@ -38,26 +27,19 @@ bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
 
   _test_id = 0;
 
-  auto sycl_out = capture_stdout([&]() {
+  auto device_out = capture_stdout([&]() {
 #define PRINT(fmt_str, ...) FFMT_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
 #define PRINTLN(fmt_str, ...) FFMT_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
-#define RUN(...) do { printf("Test %d\n", ++_test_id); \
-  q.parallel_for(N, [=](::sycl::id<1>) { __VA_ARGS__; }).wait(); } while (0)
-#define SKIP_IF(gate, reason, ...) do {                                       \
-  if (gate) printf("Test %d\n# skipped: %s\n", ++_test_id, reason);           \
-  else RUN(__VA_ARGS__);                                                      \
-} while (0)
+#define RUN DEVICE_RUN
 #include TEST_INC
-#undef SKIP_IF
 #undef RUN
 #undef PRINTLN
 #undef PRINT
   });
 
-  return diff_output(TEST_INC, std_out, sycl_out);
+  return diff_output(TEST_INC, std_out, device_out);
 }
 
-int main() {
-  ::sycl::queue q;
-  return CONCAT(test_, TEST_NAME)(q) ? 0 : 1;
-}
+#ifndef TEST_NO_MAIN
+int main() { return CONCAT(test_, TEST_NAME)(TEST_ARG) ? 0 : TEST_FAILED; }
+#endif
