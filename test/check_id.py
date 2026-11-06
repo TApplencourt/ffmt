@@ -85,13 +85,23 @@ def check(id_, goal):
             problems.append("expected %s failure did not happen: %s" % (what, name))
 
     if problems:
-        print("id %d: %d problem(s)" % (id_, len(problems)))
-        for p in problems:
-            print("  " + p)
-        return 1
-    print("id %d: as expected (%d compile, %d runtime expected failures)"
-          % (id_, len(compile_fails), len(runtime_fails) if ran else 0))
-    return 0
+        result = "%d problem(s)" % len(problems)
+    else:
+        result = ("as expected (%d compile, %d runtime expected failures)"
+                  % (len(compile_fails), len(runtime_fails) if ran else 0))
+    print("id %d (%s): %s" % (id_, row["notes"], result))
+    for p in problems:
+        print("  " + p)
+
+    # On GitHub Actions, also list the id on the run's summary page, so a
+    # failing job can be read without opening its log.
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a") as f:
+            f.write("### %s id %d: %s\n%s\n%s\n" % (
+                "❌" if problems else "✅", id_, row["notes"], result,
+                "".join("- %s\n" % p for p in problems)))
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
