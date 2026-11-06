@@ -69,6 +69,15 @@ jobs:
       - run: test/run_id.sh ${{ matrix.id }} || true
       - run: python3 test/check_id.py ${{ matrix.id }}
 
+  readme:
+    # Every whole program in README.md is a copy of a file in examples/,
+    # which the ids above build and run (FFMT_EXTRA_FILES).
+    name: README examples match examples/
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 test/check_readme.py
+
   coverage:
     # Region coverage of base.hpp, as the union over the coverage ids' binaries
     # (34 specifiers path, 35 buffer path; main and isolated binaries both),

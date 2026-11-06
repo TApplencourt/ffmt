@@ -119,9 +119,9 @@ Reuse the existing framework; do not add a new test harness.
   `negative:<name>`), `runtime` for a test whose output differs
   (`<file>:<number>`). Never change expected output to hide a bug. For a
   new compiler bug, add a reproducer to `implementation_limitation/`.
-- The README code blocks are copies of files in `examples/`, built and run
-  by each id that lists them in `FFMT_EXTRA_FILES`. Nothing checks that
-  they match: edit both.
+- The README programs are copies of files in `examples/`, built and run
+  by each id that lists them in `FFMT_EXTRA_FILES`; `test/check_readme.py`
+  (in CI) fails if a README program is not an exact copy: edit both.
 
 An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
 every compile flag) plus its row in `test/configs.json`. The row's
