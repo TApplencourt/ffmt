@@ -244,7 +244,9 @@ One deliberate difference: a null `const char*`. `fmt::format` reports it
 as an error (throws `format_error`, or aborts without exceptions), which a
 device can do neither of. ffmt prints it on both paths as the string
 `(null)`, as `fmt::printf` does, spec included: `{:>10}` gives
-`    (null)` and `{:.3}` gives `(nu`.
+`    (null)` and `{:.3}` gives `(nu`. On Intel GPUs (SPIR-V) the null goes
+to the device printf, which also prints `(null)` but nothing with a
+precision below 6: `{:.3}` gives an empty string there.
 
 ### Buffer-path size limit
 
