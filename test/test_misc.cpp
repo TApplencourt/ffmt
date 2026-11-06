@@ -45,8 +45,7 @@ RUN(PRINT("{:g}\n", 0.0));
 
 // Pointer formatting — fixed-value casts so host and device produce
 // identical addresses (no real &x: device address would diverge from host
-// std::format reference). The null-pointer cases further down fail on the
-// specifiers path, whose libc printf emits "(nil)" instead of "0x0".
+// std::format reference).
 RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
 RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
@@ -79,9 +78,8 @@ RUN(PRINTLN(""));
 RUN(PRINTLN("}}{{"));
 
 // ── Misc ──────────────────────────────────────────────────────────────────────
-// Null-pointer formatting — buffer-path-only because the specifiers path
-// routes through libc printf which emits "(nil)" for null pointers, while
-// std::format (and our buffer-path implementation) emit "0x0".
+// Null pointers print "0x0": the specifiers path writes "0x" itself rather
+// than use %p, which prints "(nil)" on glibc.
 RUN(PRINT("{}\n",         static_cast<void*>(nullptr)));
 RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
 
@@ -99,5 +97,13 @@ RUN(PRINT("{}{}{}\n", FILL120, FILL120, 12345));              // already full
 // next "Test N" header was glued onto the truncated line.
 RUN(PRINTLN("{}{}", FILL120, FILL120));
 #undef FILL120
+
+// The specifiers path writes "0x" itself also with '<' ("0x%-18llx").
+RUN(PRINT("[{:<20p}]\n",  static_cast<void*>(nullptr)));
+RUN(PRINT("[{:<20}]\n",   reinterpret_cast<void*>(0xdeadbeef)));
+RUN(PRINT("[{:p}]\n",     static_cast<const char*>(nullptr)));
+// A null pointer right-aligned in a width: "0x0" padded, as {fmt}.
+RUN(PRINT("[{:20}]\n",    static_cast<void*>(nullptr)));
+RUN(PRINT("[{:>20p}]\n",  static_cast<void*>(nullptr)));
 
 #endif

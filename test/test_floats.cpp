@@ -295,12 +295,20 @@ RUN(PRINT("{:e}\n", 5e-324));
 RUN(PRINT("{:g}\n", 5e-324));
 
 // ── Float formatting fixes ────────────────────────────────────────────────────
-// '+' on NaN. Buffer path only: on the specifiers path the sign of a NaN is
-// up to the printf implementation (glibc: "+nan", macOS libc: "nan").
+// '+' on NaN. The specifiers path writes the sign itself through %c: %+g
+// prints "nan" on macOS.
 RUN(PRINT("[{:+}]\n", std::numeric_limits<float>::quiet_NaN()));
 // '0' is ignored for inf/nan.
 RUN(PRINT("[{:010}]\n", std::numeric_limits<double>::infinity()));
 RUN(PRINT("[{:010f}]\n", -std::numeric_limits<double>::infinity()));
 RUN(PRINT("[{:010e}]\n", std::numeric_limits<double>::quiet_NaN()));
+
+// '+' and ' ' through %c on the specifiers path (no width, or '<').
+RUN(PRINT("[{: }] [{:<+10}] [{:< 10F}]\n", std::numeric_limits<double>::quiet_NaN(),
+          std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
+RUN(PRINT("[{:+}] [{:+.2f}] [{:+e}] [{:<+12.3e}] [{: g}] [{:+#g}]\n", -0.0, 3.14159, 1.5,
+          -2.5, 4.0f, 1.0));
+RUN(PRINT("[{:+}] [{:<+6}]\n", -std::numeric_limits<double>::infinity(),
+          std::numeric_limits<float>::infinity()));
 
 #endif
