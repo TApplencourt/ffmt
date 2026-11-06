@@ -16,7 +16,8 @@ compare ffmt against it, both the output and which format strings compile.
 - Accept what {fmt} accepts, reject (at compile time) what {fmt} rejects,
   and print the same bytes. Do not invent extensions or extra restrictions.
   The only exceptions are the backend limits documented in the README
-  (see "Two formatting paths").
+  (see "Two formatting paths"), and a null `const char*`, which {fmt}
+  reports as an error and ffmt prints as `(null)` (README, "Spec target").
 - When unsure how {fmt} behaves, compile a small program against the pinned
   {fmt} and check; do not answer from memory. `test/run_id.sh` fetches it
   into `third_party/fmt` on first use (or set `FMT_DIR` to a checkout).

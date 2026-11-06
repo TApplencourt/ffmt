@@ -240,6 +240,12 @@ reference because implementations disagree with each other and with
 | `{:a}` of a subnormal | `0x0.0000000000001p-1022` | libc++ and libstdc++ differ |
 | `{:+}` on `5u` (any sign on an unsigned or `bool`) | compile error | `+5` (valid per the standard) |
 
+One deliberate difference: a null `const char*`. `fmt::format` reports it
+as an error (throws `format_error`, or aborts without exceptions), which a
+device can do neither of. ffmt prints it on both paths as the string
+`(null)`, as `fmt::printf` does, spec included: `{:>10}` gives
+`    (null)` and `{:.3}` gives `(nu`.
+
 ### Buffer-path size limit
 
 The buffer-path output buffer defaults to 128 characters. Output longer

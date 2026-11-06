@@ -8,16 +8,18 @@
 #include "../test_select_body.inc"
 #else
 
-// A null const char* is undefined in std::format/{fmt}; on a GPU it is an illegal
-// access. The buffer path prints glibc's "(null)" instead of faulting.
+// fmt::format reports a null const char* as an error, which a device can
+// neither throw nor abort on. ffmt prints it as the string "(null)", spec
+// included, as fmt::printf does (README), so {fmt} formatting "(null)" is
+// the reference.
 #ifdef FFMT_STD_PATH
-RUN(printf("(null)\n"));
-RUN(printf("[    (null)]\n"));
-RUN(printf("[(nu]\n"));
+#define NULL_STRING "(null)"
 #else
-RUN(PRINT("{}\n", static_cast<const char*>(nullptr)));
-RUN(PRINT("[{:>10}]\n", static_cast<const char*>(nullptr)));
-RUN(PRINT("[{:.3}]\n", static_cast<const char*>(nullptr)));
+#define NULL_STRING static_cast<const char*>(nullptr)
 #endif
+RUN(PRINT("{}\n", NULL_STRING));
+RUN(PRINT("[{:>10}]\n", NULL_STRING));
+RUN(PRINT("[{:.3}]\n", NULL_STRING));
+#undef NULL_STRING
 
 #endif
