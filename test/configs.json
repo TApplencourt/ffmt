@@ -162,7 +162,7 @@
     "id": 2,
     "setup": "test/setup/setup_2.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -266,7 +266,7 @@
     "id": 3,
     "setup": "test/setup/setup_3.sh",
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -360,7 +360,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings_spirv_o0:17"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
@@ -711,7 +712,7 @@
     "id": 10,
     "setup": "test/setup/setup_10.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -813,7 +814,7 @@
     "id": 11,
     "setup": "test/setup/setup_11.sh",
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "0f717bfc9a35641991279be4a5a75369615fc4d0",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -905,7 +906,8 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings_spirv_o0:17"
+        "strings_spirv_o0:17",
+        "null_string:3"
       ]
     }
   },
