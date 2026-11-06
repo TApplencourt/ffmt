@@ -9,8 +9,10 @@ every expected failure that did not happen, then exits 1 if there is any.
 test/run_id.sh exits non-zero whenever a test fails, expected or not, so CI
 ignores its status and lets this script decide.
 
-Names: a test is <file>:<number> (floats:104, null_string:3); a file that
-does not compile is isolated:<name> or negative:<name>.
+Names: a test is <file>:<number> (floats:104, null_string:3); a binary that
+does not finish (a sanitizer report, a fault: any exit status but 0 and 88,
+see run_failures) is <file>:crash, or main:crash for the main binary; a file
+that does not compile is isolated:<name> or negative:<name>.
 """
 import json
 import os
@@ -28,6 +30,21 @@ def tap_failures(path):
             for m in re.finditer(r"^not ok (\d+) - (\S+)", text, re.M)]
 
 
+# Exit status of a test binary that finished and saw a failing test
+# (TEST_FAILED in test/capture.hpp).
+TEST_FAILED = 88
+
+
+def run_failures(log, status, name):
+    """The failing tests of one binary's run, plus <name>:crash unless it
+    exited 0 with none or TEST_FAILED with some: any other status (1 from a
+    sanitizer, 128+n from a signal, ...) means it did not finish."""
+    fails = tap_failures(log) if os.path.exists(log) else []
+    if status != (TEST_FAILED if fails else 0):
+        fails.append(name + ":crash")
+    return fails
+
+
 def check(id_, goal):
     row = {r["id"]: r for r in json.load(open("test/configs.json"))}[id_]
     logs = "results/id-%d" % id_
@@ -36,9 +53,10 @@ def check(id_, goal):
     compile_fails, runtime_fails = set(), set()
 
     if ran:
-        run_log = os.path.join(logs, "run.log")
-        if os.path.exists(run_log):
-            runtime_fails.update(tap_failures(run_log))
+        run_status = os.path.join(logs, "run.status")
+        if os.path.exists(run_status):
+            runtime_fails.update(run_failures(os.path.join(logs, "run.log"),
+                                              int(open(run_status).read()), "main"))
         else:
             problems.append("the main binary did not build or did not run")
 
@@ -50,9 +68,9 @@ def check(id_, goal):
             status, step, name = line.split()
             if step == "build" and status != "0":
                 compile_fails.add("isolated:" + stem(name))
-            elif step == "run" and status != "0":
-                fails = tap_failures(os.path.join(logs, "isolated-%s.log" % name))
-                runtime_fails.update(fails or [stem(name) + ":run"])  # died before reporting
+            elif step == "run":
+                runtime_fails.update(run_failures(os.path.join(logs, "isolated-%s.log" % name),
+                                                  int(status), stem(name)))
 
     negative_log = os.path.join(logs, "negative.log")
     if not os.path.exists(negative_log):

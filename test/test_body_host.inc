@@ -49,6 +49,6 @@ bool CONCAT(test_, TEST_NAME)() {
 
 #ifndef TEST_NO_MAIN
 int main() {
-  return CONCAT(test_, TEST_NAME)() ? 0 : 1;
+  return CONCAT(test_, TEST_NAME)() ? 0 : TEST_FAILED;
 }
 #endif

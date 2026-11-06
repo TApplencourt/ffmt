@@ -27,6 +27,11 @@
 
 constexpr int N = 2;
 
+// Exit status of a test binary that ran to the end and saw a failing test.
+// Unlike 1 (ASan, UBSan), 23 (LSan) or 128+n (a signal), it cannot come from
+// a crash, so test/check_id.py can tell the two apart.
+constexpr int TEST_FAILED = 88;
+
 static std::string capture_stdout(auto&& fn) {
   std::cout.flush();
   fflush(stdout);

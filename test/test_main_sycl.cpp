@@ -20,5 +20,5 @@ int main() {
   ok &= test_formatter(q);
   ok &= test_escape_percent(q);
 
-  return ok ? 0 : 1;
+  return ok ? 0 : TEST_FAILED;
 }

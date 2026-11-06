@@ -17,5 +17,5 @@ int main() {
   ok &= test_misc();
   ok &= test_formatter();
   ok &= test_escape_percent();
-  return ok ? 0 : 1;
+  return ok ? 0 : TEST_FAILED;
 }

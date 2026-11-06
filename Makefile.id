@@ -167,8 +167,10 @@ isolated: $(ISO_DONE)
 	done | tee $(LOGS)/isolated.log
 
 # Runs after isolated has finished, so again only one program on the GPU.
-# TAP goes to stderr, hence 2>&1.
+# TAP goes to stderr, hence 2>&1. tee hides the exit status, which
+# test/check_id.py needs to tell a crash from a failing test, so it goes to
+# run.status; the recipe still fails with it.
 test: $(BIN) negative isolated
-	./$(BIN) 2>&1 | tee $(LOGS)/run.log
+	./$(BIN) 2>&1 | tee $(LOGS)/run.log; s=$${PIPESTATUS[0]}; echo $$s > $(LOGS)/run.status; exit $$s
 
 endif

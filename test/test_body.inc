@@ -50,6 +50,6 @@ bool CONCAT(test_, TEST_NAME)(::sycl::queue& q) {
 #ifndef TEST_NO_MAIN
 int main() {
   ::sycl::queue q;
-  return CONCAT(test_, TEST_NAME)(q) ? 0 : 1;
+  return CONCAT(test_, TEST_NAME)(q) ? 0 : TEST_FAILED;
 }
 #endif
