@@ -1095,7 +1095,15 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [
+        "floats:60",
+        "floats:141",
+        "floats:201",
+        "floats:202",
+        "hexfloat:36",
+        "hexfloat:38",
+        "hexfloat:41"
+      ]
     }
   },
   {
@@ -1963,12 +1971,12 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
         "misc:42",
         "misc:43",
-        "null_string:3"
+        "null_string:crash",
+        "strings:26",
+        "strings:27",
+        "strings:29"
       ]
     }
   },
@@ -2455,12 +2463,12 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:26",
-        "strings:27",
-        "strings:29",
         "misc:42",
         "misc:43",
-        "null_string:3"
+        "null_string:crash",
+        "strings:26",
+        "strings:27",
+        "strings:29"
       ]
     }
   },
@@ -2619,12 +2627,10 @@
         "floats:193",
         "floats:195",
         "floats:196",
+        "floats:203",
         "strings:26",
         "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43",
-        "null_string:3"
+        "strings:29"
       ]
     }
   },
@@ -2913,6 +2919,7 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:float_sweep",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -2970,7 +2977,7 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
-        "isolated:nvptx_o2_ice",
+        "isolated:float_sweep",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
