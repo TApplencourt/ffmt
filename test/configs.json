@@ -2471,7 +2471,7 @@
     "id": 32,
     "setup": "test/setup/setup_32.sh",
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -2573,7 +2573,7 @@
     "id": 33,
     "setup": "test/setup/setup_33.sh",
     "notes": "macOS Apple clang (libc++), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
@@ -3422,7 +3422,7 @@
     "id": 44,
     "setup": "test/setup/setup_44.sh",
     "notes": "icpx SYCL (DPC++) on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
-    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3523,7 +3523,7 @@
     "id": 45,
     "setup": "test/setup/setup_45.sh",
     "notes": "icpx OpenMP offload to SPIR-V on Aurora PVC, oneapi/release/2026.1.0, -O2, no fast-math",
-    "tested_commit": "ac70be984afd812348d25961f68e7baf1291b7d3",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3626,7 +3626,7 @@
     "id": 46,
     "setup": "test/setup/setup_46.sh",
     "notes": "Aurora g++ 14.3 (module gcc/14.3.0), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:alternate",
@@ -3728,7 +3728,7 @@
     "id": 47,
     "setup": "test/setup/setup_47.sh",
     "notes": "Aurora g++ 14.3 (module gcc/14.3.0), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "fa15b5d96b8b7c41825c3e95876c80ff5a383087",
     "expected_fail": {
       "compile": [
         "isolated:sycl_types",
