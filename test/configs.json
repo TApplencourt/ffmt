@@ -97,7 +97,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -256,7 +256,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -358,7 +360,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -801,7 +803,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -901,7 +905,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -1003,7 +1007,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29",
+        "strings_spirv_o0:17",
         "floats:60",
         "floats:141",
         "floats:201",
@@ -1172,7 +1176,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -1272,7 +1278,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -1374,7 +1380,9 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:crash",
+        "nvptx_o2_ice:crash",
+        "null_string:3"
       ]
     }
   },
@@ -1476,7 +1484,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -1921,7 +1929,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2080,7 +2088,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2239,7 +2247,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2398,7 +2406,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2557,7 +2565,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -2716,7 +2724,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3046,7 +3054,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3146,7 +3154,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3248,7 +3256,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3350,7 +3358,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
@@ -3506,7 +3514,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29",
+        "strings_spirv_o0:17",
         "null_string:3"
       ]
     }
@@ -3609,7 +3617,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29",
+        "strings_spirv_o0:17",
         "null_string:3"
       ]
     }
@@ -3712,7 +3720,7 @@
         "floats:193",
         "floats:195",
         "floats:196",
-        "strings:29"
+        "strings_spirv_o0:17"
       ]
     }
   },
