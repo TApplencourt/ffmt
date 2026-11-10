@@ -61,3 +61,128 @@ mi300x:
     matrix: [{ID: [7, 8]}]
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+
+# Expanded configurations run separately from the established gated jobs.
+# New device IDs share a versioned runtime rather than a user checkout.
+.jlse-extended:
+  extends: .jlse-batch
+  variables:
+    FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: false
+
+.jlse-unqualified:
+  extends: .jlse-extended
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: false
+
+# Fast-math DPC++ and Intel LLVM 7.2 produce crashes or empty main-suite output.
+# Keep the affected targets visible without gating on empty output or waiving examples.
+chiatta-dpcpp-unqualified:
+  extends: .jlse-unqualified
+  resource_group: chiatta
+  parallel:
+    matrix: [{ID: [14, 15, 16, 17, 64, 65, 82, 83]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+
+a100-extended:
+  extends: .jlse-extended
+  resource_group: a100
+  parallel:
+    matrix: [{ID: [18, 23]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+
+a100-omp-fast-math-unqualified:
+  extends: .jlse-unqualified
+  resource_group: a100
+  parallel:
+    matrix: [{ID: [19, 20]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+
+mi300x-omp-fast-math-unqualified:
+  extends: .jlse-unqualified
+  resource_group: mi300x
+  parallel:
+    matrix: [{ID: [21, 22]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+
+# The baseline header does not yet tag native HIP entry points FMT_HD. Keep
+# these total-build failures visible without waiving them or changing library code.
+mi300x-hip-unqualified:
+  extends: .jlse-unqualified
+  resource_group: mi300x
+  parallel:
+    matrix: [{ID: [48, 49, 80, 81]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+
+h100-extended:
+  extends: .jlse-extended
+  resource_group: h100
+  parallel:
+    matrix: [{ID: [50, 51, 54, 55, 56, 57]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_h100"
+
+a40-extended:
+  extends: .jlse-extended
+  resource_group: a40
+  parallel:
+    matrix: [{ID: [78, 79]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a40"
+
+# AdaptiveCpp stays manual while cold generic/SSCP JIT and CI users are qualified.
+adaptivecpp-a40-unqualified:
+  extends: .jlse-unqualified
+  resource_group: a40
+  parallel:
+    matrix: [{ID: [70, 71]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_a40"
+
+adaptivecpp-mi300x-unqualified:
+  extends: .jlse-unqualified
+  resource_group: mi300x
+  parallel:
+    matrix: [{ID: [72, 73]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_amd_mi300x"
+
+# chipStar remains manual pending native HIP support and dual-account CI qualification.
+chipstar-unqualified:
+  extends: .jlse-unqualified
+  resource_group: chiatta
+  parallel:
+    matrix: [{ID: [74, 75]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+
+gh200-extended:
+  extends: .jlse-extended
+  resource_group: gh200
+  parallel:
+    matrix: [{ID: [52, 53, 58, 59, 62, 63, 68, 69]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gh200"
+  script:
+    - test/run_id.sh $ID || true
+    - /usr/bin/python3.12 test/check_id.py $ID
+
+rome-extended:
+  extends: .jlse-extended
+  resource_group: rome
+  parallel:
+    matrix: [{ID: [60, 61, 66, 67, 76, 77]}]
+  variables:
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q rome_7742"

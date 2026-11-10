@@ -3,6 +3,7 @@
 
     python3 test/check_id.py 4          after test/run_id.sh 4
     python3 test/check_id.py 39 build   after test/run_id.sh 39 build
+    python3 test/check_id.py 72 extra-test  after test/run_id.sh 72 extra-test
 
 Reads results/id-<id>/ and prints every failure that is not expected and
 every expected failure that did not happen, then exits 1 if there is any.
@@ -21,7 +22,10 @@ import sys
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 id_ = int(sys.argv[1])
-ran = (sys.argv[2] if len(sys.argv) > 2 else "test") == "test"
+mode = sys.argv[2] if len(sys.argv) > 2 else "test"
+if mode not in ("test", "build", "extra-test"):
+    sys.exit("usage: python3 test/check_id.py <id> [test|build|extra-test]")
+ran = mode in ("test", "extra-test")
 row = {r["id"]: r for r in json.load(open("test/configs.json"))}[id_]
 logs = "results/id-%d/" % id_
 problems, compile_fails, runtime_fails = [], set(), set()
@@ -47,6 +51,13 @@ def lines(log):
     return []
 
 
+if mode == "build":
+    if os.path.exists(logs + "build.status"):
+        status = int(open(logs + "build.status").read())
+        if status != 0:
+            problems.append("the build failed (exit %d, see build.log)" % status)
+    else:
+        problems.append("no build.status: the build did not run to completion")
 if ran:
     if os.path.exists(logs + "run.status"):
         runtime_fails.update(run_failures("run.log", int(open(logs + "run.status").read()), "main"))
@@ -75,10 +86,21 @@ for status, kind, name in lines("negative.log"):
 
 # FFMT_EXTRA_FILES (e.g. the README examples) are not tests: no expected
 # failure, so any that does not build or run is a problem.
+extra_builds, extra_runs = {}, set()
 for status, step, name in lines("extra.log"):
     if status != "0":
         problems.append("extra file %s does not %s (exit %s, see extra-%s.log)"
                         % (name, step, status, name))
+    if step == "build":
+        extra_builds[name] = status
+    elif step == "run":
+        extra_runs.add(name)
+if ran:
+    for name, status in extra_builds.items():
+        if status == "0" and name not in extra_runs:
+            problems.append("extra file %s built but did not run" % name)
+    for name in extra_runs - extra_builds.keys():
+        problems.append("extra file %s ran without a current build" % name)
 
 expected = row["expected_fail"]
 for what, actual, exp in (("compile", compile_fails, expected["compile"]),

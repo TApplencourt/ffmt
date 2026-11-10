@@ -8,7 +8,23 @@
 #define CONCAT(a, b) CONCAT2(a, b)
 
 bool CONCAT(test_, TEST_NAME)(TEST_PARAM) {
+#ifdef FFMT_TEST_SYCL_QUEUE
+  if (!q.get_device().is_gpu()) {
+    std::fprintf(stderr, "%s: refusing SYCL CPU fallback\n", TEST_INC);
+    return false;
+  }
+#endif
+#ifdef FFMT_TEST_OPENMP
+  int on_initial_device = 1;
+#pragma omp target map(from : on_initial_device)
+  { on_initial_device = omp_is_initial_device(); }
+  if (on_initial_device) {
+    std::fprintf(stderr, "%s: refusing OpenMP host fallback\n", TEST_INC);
+    return false;
+  }
+#endif
   int _test_id = 0;
+  [[maybe_unused]] bool runtime_ok = true;
 
   auto std_out = capture_stdout([&]() {
 #define FFMT_STD_PATH
@@ -37,9 +53,17 @@ bool CONCAT(test_, TEST_NAME)(TEST_PARAM) {
 #undef PRINT
   });
 
-  return diff_output(TEST_INC, std_out, device_out);
+  return diff_output(TEST_INC, std_out, device_out) && runtime_ok;
 }
 
 #ifndef TEST_NO_MAIN
-int main() { return CONCAT(test_, TEST_NAME)(TEST_ARG) ? 0 : TEST_FAILED; }
+int main() {
+  try {
+    FFMT_TEST_MAIN_GUARD;
+    return CONCAT(test_, TEST_NAME)(TEST_ARG) ? 0 : TEST_FAILED;
+  } catch (const std::exception& error) {
+    std::fprintf(stderr, "%s: device test exception: %s\n", TEST_INC, error.what());
+    return 1;
+  }
+}
 #endif
