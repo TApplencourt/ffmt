@@ -2,6 +2,7 @@
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
+module use /soft/modulefiles
 module load rocm/7.0.2
 export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host
 export CXX=$ROCM_PATH/llvm/bin/clang++
