@@ -66,6 +66,7 @@ mi300x:
 # New device IDs share a versioned runtime rather than a user checkout.
 .jlse-extended:
   extends: .jlse-batch
+  timeout: 4h
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   rules:
