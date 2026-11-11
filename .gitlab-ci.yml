@@ -66,7 +66,8 @@ mi300x:
 # New device IDs share a versioned runtime rather than a user checkout.
 .jlse-extended:
   extends: .jlse-batch
-  timeout: 4h
+  # GitLab time includes Cobalt waits on single-node queues.
+  timeout: 24h
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   rules:
@@ -129,8 +130,6 @@ mi300x-hip-unqualified:
 
 h100-extended:
   extends: .jlse-extended
-  # The single H100 can have multi-hour allocations already queued.
-  timeout: 24h
   resource_group: h100
   parallel:
     matrix: [{ID: [50, 51, 54, 55, 56, 57]}]
