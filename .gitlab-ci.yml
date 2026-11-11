@@ -131,10 +131,10 @@ mi300x-hip-unqualified:
 h100-extended:
   extends: .jlse-extended
   resource_group: h100
-  parallel:
-    matrix: [{ID: [50, 51, 54, 55, 56, 57]}]
+  script:
+    - test/run_ids.sh 50 51 54 55 56 57
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_h100"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
 a40-extended:
   extends: .jlse-extended
