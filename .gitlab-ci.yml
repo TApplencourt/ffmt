@@ -129,6 +129,8 @@ mi300x-hip-unqualified:
 
 h100-extended:
   extends: .jlse-extended
+  # The single H100 can have multi-hour allocations already queued.
+  timeout: 24h
   resource_group: h100
   parallel:
     matrix: [{ID: [50, 51, 54, 55, 56, 57]}]
