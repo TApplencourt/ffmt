@@ -1,4 +1,5 @@
-# ffmt on JLSE GPUs. Each job builds and runs one id of test/configs.json
+# ffmt on JLSE GPUs. The expanded H100 job runs one allocation through
+# test/run_ids.sh; other jobs build and run one id of test/configs.json
 # with test/run_id.sh, on the batch queue that has the id's hardware; the
 # id's setup script (test/setup/setup_<id>.sh) does the module loads and
 # sets the compiler and flags. test/check_id.py then compares the results
