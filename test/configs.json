@@ -428,7 +428,36 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [
+        "float_sweep:1",
+        "float_sweep:10",
+        "float_sweep:11",
+        "float_sweep:12",
+        "float_sweep:13",
+        "float_sweep:14",
+        "float_sweep:15",
+        "float_sweep:16",
+        "float_sweep:17",
+        "float_sweep:18",
+        "float_sweep:19",
+        "float_sweep:2",
+        "float_sweep:20",
+        "float_sweep:21",
+        "float_sweep:22",
+        "float_sweep:23",
+        "float_sweep:24",
+        "float_sweep:25",
+        "float_sweep:26",
+        "float_sweep:27",
+        "float_sweep:28",
+        "float_sweep:3",
+        "float_sweep:4",
+        "float_sweep:5",
+        "float_sweep:6",
+        "float_sweep:7",
+        "float_sweep:8",
+        "float_sweep:9"
+      ]
     }
   },
   {
@@ -714,7 +743,36 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [
+        "float_sweep:1",
+        "float_sweep:10",
+        "float_sweep:11",
+        "float_sweep:12",
+        "float_sweep:13",
+        "float_sweep:14",
+        "float_sweep:15",
+        "float_sweep:16",
+        "float_sweep:17",
+        "float_sweep:18",
+        "float_sweep:19",
+        "float_sweep:2",
+        "float_sweep:20",
+        "float_sweep:21",
+        "float_sweep:22",
+        "float_sweep:23",
+        "float_sweep:24",
+        "float_sweep:25",
+        "float_sweep:26",
+        "float_sweep:27",
+        "float_sweep:28",
+        "float_sweep:3",
+        "float_sweep:4",
+        "float_sweep:5",
+        "float_sweep:6",
+        "float_sweep:7",
+        "float_sweep:8",
+        "float_sweep:9"
+      ]
     }
   },
   {
