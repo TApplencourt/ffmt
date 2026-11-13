@@ -1,10 +1,8 @@
-# ffmt on JLSE GPUs. The expanded H100 job runs one allocation through
-# test/run_ids.sh; other jobs build and run one id of test/configs.json
-# with test/run_id.sh, on the batch queue that has the id's hardware; the
-# id's setup script (test/setup/setup_<id>.sh) does the module loads and
-# sets the compiler and flags. test/check_id.py then compares the results
-# with the id's expected failures and decides pass or fail, so run_id.sh's
-# own exit status (non-zero whenever any test fails) is ignored.
+# ffmt on JLSE GPUs. Each job runs its IDs sequentially in one allocation
+# through test/run_ids.sh. Each ID gets a fresh test/run_id.sh process and
+# independent results; test/check_id.py decides its status after comparing
+# complete artifacts with test/configs.json. A failed check does not skip
+# later IDs, and the batch fails only after every ID has run.
 
 include:
   - project: 'ci-resources/defaults'
@@ -25,8 +23,7 @@ workflow:
   extends: .batch-runner
   stage: test
   script:
-    - test/run_id.sh $ID || true
-    - python3 test/check_id.py $ID
+    - test/run_ids.sh $IDS
   artifacts:
     when: always          # a failed run still leaves usable logs
     expire_in: 1 month
@@ -37,31 +34,27 @@ workflow:
 # (10, 11), on PVC.
 chiatta:
   extends: .jlse-batch
-  parallel:
-    matrix: [{ID: [2, 3, 10, 11]}]
   variables:
+    IDS: "2 3 10 11"
     # runners.yml has per-queue templates (.ice-runner, .v100-runner, ...)
     # but none for chiatta, so set the queue here.
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q chiatta"
 
 # clang CUDA at -O2/-O0 (4, 9) and clang OpenMP offload to NVPTX at -O0/-O2
 # (5, 6), on A100.
 a100:
   extends: .jlse-batch
-  # gpu_a100 allows 2 jobs per user; run the A100 jobs one at a time.
   resource_group: a100
-  parallel:
-    matrix: [{ID: [4, 5, 6, 9]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+    IDS: "4 5 6 9"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a100"
 
 # ROCm clang OpenMP offload at -O0/-O2 (7, 8), on MI300X.
 mi300x:
   extends: .jlse-batch
-  parallel:
-    matrix: [{ID: [7, 8]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+    IDS: "7 8"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:20:0 -q gpu_amd_mi300x"
 
 # Expanded configurations run separately from the established gated jobs.
 # New device IDs share a versioned runtime rather than a user checkout.
@@ -90,102 +83,89 @@ mi300x:
 chiatta-dpcpp-unqualified:
   extends: .jlse-unqualified
   resource_group: chiatta
-  parallel:
-    matrix: [{ID: [14, 15, 16, 17, 64, 65, 82, 83]}]
   variables:
+    IDS: "14 15 16 17 64 65 82 83"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
 
 a100-extended:
   extends: .jlse-extended
   resource_group: a100
-  parallel:
-    matrix: [{ID: [18, 23]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+    IDS: "18 23"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
 a100-omp-fast-math-unqualified:
   extends: .jlse-unqualified
   resource_group: a100
-  parallel:
-    matrix: [{ID: [19, 20]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a100"
+    IDS: "19 20"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
 mi300x-omp-fast-math-unqualified:
   extends: .jlse-unqualified
   resource_group: mi300x
-  parallel:
-    matrix: [{ID: [21, 22]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+    IDS: "21 22"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_amd_mi300x"
 
 # The baseline header does not yet tag native HIP entry points FMT_HD. Keep
 # these total-build failures visible without waiving them or changing library code.
 mi300x-hip-unqualified:
   extends: .jlse-unqualified
   resource_group: mi300x
-  parallel:
-    matrix: [{ID: [48, 49, 80, 81]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_amd_mi300x"
+    IDS: "48 49 80 81"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
 
 h100-extended:
   extends: .jlse-extended
   resource_group: h100
-  script:
-    - test/run_ids.sh 50 51 54 55 56 57
   variables:
+    IDS: "50 51 54 55 56 57"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
 a40-extended:
   extends: .jlse-extended
   resource_group: a40
-  parallel:
-    matrix: [{ID: [78, 79]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_a40"
+    IDS: "78 79"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a40"
 
 # AdaptiveCpp stays manual while cold generic/SSCP JIT and CI users are qualified.
 adaptivecpp-a40-unqualified:
   extends: .jlse-unqualified
   resource_group: a40
-  parallel:
-    matrix: [{ID: [70, 71]}]
   variables:
+    IDS: "70 71"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_a40"
 
 adaptivecpp-mi300x-unqualified:
   extends: .jlse-unqualified
   resource_group: mi300x
-  parallel:
-    matrix: [{ID: [72, 73]}]
   variables:
+    IDS: "72 73"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_amd_mi300x"
 
 # chipStar remains manual pending native HIP support and dual-account CI qualification.
 chipstar-unqualified:
   extends: .jlse-unqualified
   resource_group: chiatta
-  parallel:
-    matrix: [{ID: [74, 75]}]
   variables:
+    IDS: "74 75"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
 
 gh200-extended:
   extends: .jlse-extended
   resource_group: gh200
-  parallel:
-    matrix: [{ID: [52, 53, 58, 59, 62, 63, 68, 69]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q gpu_gh200"
-  script:
-    - test/run_id.sh $ID || true
-    - /usr/bin/python3.12 test/check_id.py $ID
+    IDS: "52 53 58 59 62 63 68 69"
+    PYTHON: /usr/bin/python3.12
+    # Eight measured runs fit within two hours, including slow NVCC diagnostics.
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_gh200"
 
 rome-extended:
   extends: .jlse-extended
   resource_group: rome
-  parallel:
-    matrix: [{ID: [60, 61, 66, 67, 76, 77]}]
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q rome_7742"
+    IDS: "60 61 66 67 76 77"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
