@@ -5573,6 +5573,10 @@
       "runtime": [
         "null_string:crash",
         "nvptx_o2_ice:crash"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   },
@@ -5639,6 +5643,10 @@
       ],
       "runtime": [
         "nvptx_o2_ice:crash"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   },
@@ -6792,6 +6800,10 @@
       "runtime": [
         "null_string:crash",
         "nvptx_o2_ice:crash"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   },
@@ -6859,6 +6871,10 @@
       ],
       "runtime": [
         "nvptx_o2_ice:crash"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   }
