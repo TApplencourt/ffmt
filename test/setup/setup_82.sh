@@ -11,7 +11,7 @@ module load intel_compute_runtime/release/821.36
 export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:$FFMT_RUNTIME_ROOT/software/chiatta/install/intel-llvm/lib:${LD_LIBRARY_PATH:-}
 export PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/intel-llvm/bin:$PATH
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
-export ZE_AFFINITY_MASK=0.0
+unset ZE_AFFINITY_MASK
 kokkos_prefix=$FFMT_RUNTIME_ROOT/software/chiatta/install/kokkos-sycl
 kokkos_libdir=lib
 if [ ! -d "$kokkos_prefix/lib" ]; then kokkos_libdir=lib64; fi
