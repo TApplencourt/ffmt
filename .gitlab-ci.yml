@@ -94,15 +94,15 @@ a100-extended:
     IDS: "18 23"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
-a100-omp-fast-math-unqualified:
-  extends: .jlse-unqualified
+a100-omp-fast-math:
+  extends: .jlse-extended
   resource_group: a100
   variables:
     IDS: "19 20"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
-mi300x-omp-fast-math-unqualified:
-  extends: .jlse-unqualified
+mi300x-omp-fast-math:
+  extends: .jlse-extended
   resource_group: mi300x
   variables:
     IDS: "21 22"
@@ -110,8 +110,8 @@ mi300x-omp-fast-math-unqualified:
 
 # The baseline header does not yet tag native HIP entry points FMT_HD. Keep
 # these total-build failures visible without waiving them or changing library code.
-mi300x-hip-unqualified:
-  extends: .jlse-unqualified
+mi300x-hip:
+  extends: .jlse-extended
   resource_group: mi300x
   variables:
     IDS: "48 49 80 81"
@@ -131,7 +131,7 @@ a40-extended:
     IDS: "78 79"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a40"
 
-# AdaptiveCpp stays manual while cold generic/SSCP JIT and CI users are qualified.
+# AdaptiveCpp A40 stays manual while cold generic/SSCP JIT and CI users are qualified.
 adaptivecpp-a40-unqualified:
   extends: .jlse-unqualified
   resource_group: a40
@@ -139,16 +139,16 @@ adaptivecpp-a40-unqualified:
     IDS: "70 71"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_a40"
 
-adaptivecpp-mi300x-unqualified:
-  extends: .jlse-unqualified
+adaptivecpp-mi300x:
+  extends: .jlse-extended
   resource_group: mi300x
   variables:
     IDS: "72 73"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_amd_mi300x"
 
-# chipStar remains manual pending native HIP support and dual-account CI qualification.
-chipstar-unqualified:
-  extends: .jlse-unqualified
+# HIP source through chipStar and Level Zero on Chiatta Max 1550.
+chipstar:
+  extends: .jlse-extended
   resource_group: chiatta
   variables:
     IDS: "74 75"
