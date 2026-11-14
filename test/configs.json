@@ -260,11 +260,18 @@
         "floats:193",
         "floats:195",
         "floats:196",
+        "misc:42",
+        "misc:43",
+        "null_string:crash",
+        "nvptx_o2_ice:crash",
         "strings:26",
         "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings:29"
+      ],
+      "structural": [
+        "extra:readme1_omp:run",
+        "extra:readme2_omp:run",
+        "main:crash"
       ]
     }
   },
@@ -366,11 +373,16 @@
         "floats:193",
         "floats:195",
         "floats:196",
+        "misc:42",
+        "misc:43",
+        "nvptx_o2_ice:crash",
         "strings:26",
         "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings:29"
+      ],
+      "structural": [
+        "extra:readme1_omp:run",
+        "main:crash"
       ]
     }
   },
@@ -467,6 +479,7 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:float_sweep",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -514,7 +527,57 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [
+        "alternate:1",
+        "alternate:10",
+        "alternate:11",
+        "alternate:12",
+        "alternate:16",
+        "alternate:17",
+        "alternate:18",
+        "alternate:19",
+        "alternate:3",
+        "alternate:4",
+        "alternate:5",
+        "alternate:6",
+        "alternate:7",
+        "alternate:8",
+        "alternate:9",
+        "binary:10",
+        "binary:11",
+        "binary:12",
+        "binary:13",
+        "binary:17",
+        "binary:23",
+        "binary:24",
+        "binary:3",
+        "binary:30",
+        "binary:8",
+        "binary:9",
+        "dynamic:crash",
+        "fast_math:crash",
+        "fill:10",
+        "fill:11",
+        "fill:12",
+        "fill:15",
+        "fill:16",
+        "fill:17",
+        "fill:18",
+        "hexfloat:26",
+        "hexfloat:42",
+        "hexfloat:43",
+        "nvptx_o2_ice:2",
+        "strings:13",
+        "strings:28",
+        "strings:29",
+        "strings:30",
+        "strings:31",
+        "strings:32",
+        "strings:33"
+      ],
+      "structural": [
+        "main:crash"
+      ]
     }
   },
   {
@@ -524,6 +587,11 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
         "isolated:nvptx_o2_ice",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
@@ -572,7 +640,11 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_omp:build",
+        "main:build"
+      ]
     }
   },
   {
@@ -582,6 +654,17 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:escape_percent_inplace",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -629,7 +712,12 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_omp:build",
+        "extra:readme2_omp:build",
+        "main:build"
+      ]
     }
   },
   {
@@ -639,6 +727,17 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:escape_percent_inplace",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -686,7 +785,12 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_omp:build",
+        "extra:readme2_omp:build",
+        "main:build"
+      ]
     }
   },
   {
@@ -871,11 +975,17 @@
         "floats:193",
         "floats:195",
         "floats:196",
+        "misc:42",
+        "misc:43",
+        "null_string:crash",
+        "nvptx_o2_ice:crash",
         "strings:26",
         "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings:29"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   },
@@ -975,11 +1085,16 @@
         "floats:193",
         "floats:195",
         "floats:196",
+        "misc:42",
+        "misc:43",
+        "nvptx_o2_ice:crash",
         "strings:26",
         "strings:27",
-        "strings:29",
-        "misc:42",
-        "misc:43"
+        "strings:29"
+      ],
+      "structural": [
+        "extra:readme1_sycl:run",
+        "main:crash"
       ]
     }
   },
@@ -4120,6 +4235,16 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4167,7 +4292,13 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_cuda:build",
+        "extra:readme2_cuda:build",
+        "main:build",
+        "negative-control:accept_valid:ffmt"
+      ]
     }
   },
   {
@@ -4177,6 +4308,16 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4224,7 +4365,13 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_cuda:build",
+        "extra:readme2_cuda:build",
+        "main:build",
+        "negative-control:accept_valid:ffmt"
+      ]
     }
   },
   {
@@ -4234,6 +4381,16 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4281,7 +4438,13 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_cuda:build",
+        "extra:readme2_cuda:build",
+        "main:build",
+        "negative-control:accept_valid:ffmt"
+      ]
     }
   },
   {
@@ -4291,6 +4454,16 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:fast_math",
+        "isolated:fill",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:null_string",
+        "isolated:nvptx_o2_ice",
+        "isolated:signed_radix",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4338,7 +4511,13 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_cuda:build",
+        "extra:readme2_cuda:build",
+        "main:build",
+        "negative-control:accept_valid:ffmt"
+      ]
     }
   },
   {
@@ -4520,6 +4699,7 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:float_sweep",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4567,7 +4747,57 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [
+        "alternate:1",
+        "alternate:10",
+        "alternate:11",
+        "alternate:12",
+        "alternate:16",
+        "alternate:17",
+        "alternate:18",
+        "alternate:19",
+        "alternate:3",
+        "alternate:4",
+        "alternate:5",
+        "alternate:6",
+        "alternate:7",
+        "alternate:8",
+        "alternate:9",
+        "binary:10",
+        "binary:11",
+        "binary:12",
+        "binary:13",
+        "binary:17",
+        "binary:23",
+        "binary:24",
+        "binary:3",
+        "binary:30",
+        "binary:8",
+        "binary:9",
+        "dynamic:crash",
+        "fast_math:crash",
+        "fill:10",
+        "fill:11",
+        "fill:12",
+        "fill:15",
+        "fill:16",
+        "fill:17",
+        "fill:18",
+        "hexfloat:26",
+        "hexfloat:42",
+        "hexfloat:43",
+        "nvptx_o2_ice:2",
+        "strings:13",
+        "strings:28",
+        "strings:29",
+        "strings:30",
+        "strings:31",
+        "strings:32",
+        "strings:33"
+      ],
+      "structural": [
+        "main:crash"
+      ]
     }
   },
   {
@@ -4577,6 +4807,12 @@
     "tested_commit": "N/A",
     "expected_fail": {
       "compile": [
+        "isolated:alternate",
+        "isolated:binary",
+        "isolated:dynamic",
+        "isolated:float_sweep",
+        "isolated:hexfloat",
+        "isolated:nvptx_o2_ice",
         "isolated:sycl_types",
         "isolated:sycl_usm_string",
         "isolated:to_underlying",
@@ -4624,7 +4860,11 @@
         "negative:reject_zero_on_pointer",
         "negative:reject_zero_on_string"
       ],
-      "runtime": []
+      "runtime": [],
+      "structural": [
+        "extra:readme1_omp:build",
+        "main:build"
+      ]
     }
   },
   {
