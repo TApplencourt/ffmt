@@ -164,7 +164,7 @@ def report(metadata, artifact_root, configs):
               "| Batch | ID | Configuration | Status | Expected failures / diagnostics | GitLab job | Cobalt submission |",
               "| --- | ---: | --- | --- | --- | --- | ---: |"]
     for row in rows:
-        output.append("| %s | %d | %s | %s | %s | %s | %s |" %
+        output.append("| %s | %02d | %s | %s | %s | %s | %s |" %
                       (row["batch"], row["id"], markdown(row["notes"]), row["status"],
                        row["details"], row["job"], row["cobalt"]))
     if job_notes:

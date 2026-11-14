@@ -61,6 +61,7 @@ class AggregateJlseTest(unittest.TestCase):
         self.assertIn("**Unexpected or incomplete: 0.**", output)
         self.assertIn(self.configs[2]["notes"], output)
         self.assertIn("expected structural failure: main:crash (exit 139)", output)
+        self.assertIn("| chiatta | 02 |", output)
         self.assertIn("[1](https://gitlab.example/jobs/1)", output)
         self.assertIn("900001", output)
         self.assertEqual(output.count("| chiatta |"), 4)
@@ -84,7 +85,7 @@ class AggregateJlseTest(unittest.TestCase):
         self.assertIn("54 PASS, 0 XFAIL, 1 XPASS, 1 FAIL, 0 incomplete", output)
         self.assertIn("unexpected compile pass (XPASS): isolated:alternate", output)
         self.assertIn("unexpected runtime failure: floats:104", output)
-        self.assertIn("| a100 | 9 |", output)
+        self.assertIn("| a100 | 09 |", output)
 
     def test_missing_artifacts_are_incomplete(self):
         self.write_batch("a100-extended", [18])  # ID 23 has no batch row or summary.
@@ -100,7 +101,7 @@ class AggregateJlseTest(unittest.TestCase):
         self.assertIn("missing ID row in results/batch-status.tsv", output)
         self.assertIn("batch-status.tsv", output)
         self.assertIn("| a100-extended | 23 |", output)
-        self.assertIn("| mi300x | 7 |", output)
+        self.assertIn("| mi300x | 07 |", output)
 
     def test_unexplained_batch_failure_is_not_hidden(self):
         self.metadata["mi300x"]["status"] = "failed"
