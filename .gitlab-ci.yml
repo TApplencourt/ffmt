@@ -12,6 +12,7 @@ include:
 
 stages:
   - test
+  - report
 
 workflow:
   rules:
@@ -161,3 +162,37 @@ rome-extended:
   variables:
     IDS: "60 61 66 67 76 77"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
+
+# Merge each job's artifacts through the API so same-named batch-status.tsv
+# files cannot overwrite one another. This shell job submits no Cobalt work.
+jlse-summary:
+  extends: .shell-runner
+  stage: report
+  when: always
+  needs:
+    - {job: chiatta, artifacts: false}
+    - {job: a100, artifacts: false}
+    - {job: mi300x, artifacts: false}
+    - {job: chiatta-dpcpp, artifacts: false}
+    - {job: a100-extended, artifacts: false}
+    - {job: a100-omp-fast-math, artifacts: false}
+    - {job: mi300x-omp-fast-math, artifacts: false}
+    - {job: mi300x-hip, artifacts: false}
+    - {job: h100-extended, artifacts: false}
+    - {job: a40-extended, artifacts: false}
+    - {job: adaptivecpp-a40, artifacts: false}
+    - {job: adaptivecpp-mi300x, artifacts: false}
+    - {job: chipstar, artifacts: false}
+    - {job: gh200-extended, artifacts: false}
+    - {job: rome-extended, artifacts: false}
+  script:
+    - set +e
+    - python3 test/aggregate_jlse.py --fetch
+    - summary_status=$?
+    - cat results/jlse-summary.md
+    - exit "$summary_status"
+  artifacts:
+    when: always
+    expire_in: 1 month
+    paths:
+      - results/jlse-summary.md
