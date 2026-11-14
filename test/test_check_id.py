@@ -245,12 +245,15 @@ class BatchTest(unittest.TestCase):
                 "i = int(sys.argv[1])\n"
                 "pathlib.Path('results/id-%d/summary.md' % i).write_text(str(i))\n"
                 "sys.exit(1 if i == 2 else 0)\n")
-            result = subprocess.run(["test/run_ids.sh", "1", "2", "3"], cwd=root,
+            env = os.environ.copy()
+            env["COBALT_JOBID"] = "1015999"
+            result = subprocess.run(["test/run_ids.sh", "1", "2", "3"], cwd=root, env=env,
                                     text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertEqual((root / "invoked").read_text().splitlines(), ["1", "2", "3"])
             self.assertEqual((root / "results/batch-status.tsv").read_text().splitlines()[1:],
                              ["1\t1\t0", "2\t2\t1", "3\t3\t0"])
+            self.assertEqual((root / "results/cobalt-job-id").read_text(), "1015999\n")
             for id_ in (1, 2, 3):
                 self.assertTrue((root / "results" / ("id-%d" % id_) / "summary.md").exists())
 

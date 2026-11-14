@@ -164,7 +164,8 @@ rome-extended:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
 
 # Merge each job's artifacts through the API so same-named batch-status.tsv
-# files cannot overwrite one another. This shell job submits no Cobalt work.
+# files cannot overwrite one another. Each batch records its Cobalt ID because
+# CI_JOB_TOKEN cannot read other jobs' traces. This shell job submits no work.
 jlse-summary:
   extends: .shell-runner
   stage: report

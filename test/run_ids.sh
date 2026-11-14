@@ -10,6 +10,7 @@ fi
 python=${PYTHON:-python3}
 mkdir -p results || exit 1
 printf 'id\trun_id_status\tcheck_id_status\n' > results/batch-status.tsv || exit 1
+printf '%s\n' "${COBALT_JOBID:-}" > results/cobalt-job-id || exit 1
 failed=0
 
 for id in "$@"; do

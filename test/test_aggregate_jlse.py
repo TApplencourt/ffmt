@@ -21,6 +21,8 @@ class AggregateJlseTest(unittest.TestCase):
                 "cobalt_id": str(900000 + number),
             }
             self.write_batch(batch, aggregate_jlse.BATCHES[batch])
+            cobalt = self.root / batch / "results/cobalt-job-id"
+            cobalt.write_text(self.metadata[batch]["cobalt_id"] + "\n")
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -47,6 +49,7 @@ class AggregateJlseTest(unittest.TestCase):
         return aggregate_jlse.report(self.metadata, self.root, self.configs)
 
     def test_complete_batches(self):
+        self.metadata["chiatta"]["cobalt_id"] = "trace-fallback"
         self.write_summary("chiatta", 2, "XFAIL", [
             "XFAIL (55 compile, 2 runtime, 3 structural expected failures)",
             "expected structural failure: main:crash (exit 139)",

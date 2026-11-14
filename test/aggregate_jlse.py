@@ -88,8 +88,14 @@ def report(metadata, artifact_root, configs):
             job_cell = str(job_id)
         else:
             job_cell = "missing"
-        cobalt = str(job.get("cobalt_id") or "not recorded")
         results = artifact_root / batch / "results"
+        cobalt = str(job.get("cobalt_id") or "not recorded")
+        try:
+            artifact_cobalt = (results / "cobalt-job-id").read_text().strip()
+            if re.fullmatch(r"[0-9]+", artifact_cobalt):
+                cobalt = artifact_cobalt
+        except OSError:
+            pass
         statuses = None
         batch_error = None
         try:
