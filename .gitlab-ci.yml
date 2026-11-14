@@ -80,8 +80,8 @@ mi300x:
 
 # Fast-math DPC++ and Intel LLVM 7.2 produce crashes or empty main-suite output.
 # Keep the affected targets visible without gating on empty output or waiving examples.
-chiatta-dpcpp-unqualified:
-  extends: .jlse-unqualified
+chiatta-dpcpp:
+  extends: .jlse-extended
   resource_group: chiatta
   variables:
     IDS: "14 15 16 17 64 65 82 83"
