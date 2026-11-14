@@ -172,7 +172,8 @@ else
 # FFMT_LANGUAGE_RESET ends a language override before the default oracle link.
 $(BIN): test/main.cpp $(SRCS) $(HDRS) $(SETUP) $(FMT_OBJ) $(LOGS)/config.txt | $(OUT)/.dir
 	$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) -DTEST_NO_MAIN $(TEST_LIST_FLAG) \
-	  test/main.cpp $(SRCS) $(FFMT_LANGUAGE_RESET) $(FFMT_ORACLE_LINK) $(FFMT_LDFLAGS) -o $@ 2>&1 | tee $(LOGS)/build.log
+	  test/main.cpp $(SRCS) $(FFMT_LANGUAGE_RESET) $(FFMT_ORACLE_LINK) $(FFMT_LDFLAGS) -o $@ 2>&1 | tee $(LOGS)/build.log; \
+	  s=$${PIPESTATUS[0]}; echo $$s > $(LOGS)/main-build.status; exit $$s
 
 $(LOGS)/isolated/%.build: test/isolated/%.cpp $(HDRS) $(SETUP) $(FMT_OBJ) | $(OUT)/.dir
 	@mkdir -p $(@D) $(OUT)/isolated

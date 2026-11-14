@@ -29,11 +29,12 @@ case "$GOAL" in
     mkdir -p "results/id-$ID"
     rm -f "results/id-$ID/run.status" "results/id-$ID/run.log" \
       "results/id-$ID/negative.log" "results/id-$ID/isolated.log" \
-      "results/id-$ID/extra.log" "results/id-$ID/build.status"
+      "results/id-$ID/extra.log" "results/id-$ID/build.status" \
+      "results/id-$ID/run_id.status" "results/id-$ID/main-build.status"
     ;;
   extra-test)
     mkdir -p "results/id-$ID"
-    rm -f "results/id-$ID/extra.log"
+    rm -f "results/id-$ID/extra.log" "results/id-$ID/extra-test.status"
     ;;
 esac
 
@@ -44,6 +45,11 @@ esac
 # getconf, not nproc: macOS has no nproc.
 make --keep-going -j"$(getconf _NPROCESSORS_ONLN)" -f Makefile.id id="$ID" "$GOAL"
 status=$?
+if [ "$GOAL" = extra-test ]; then
+  echo "$status" > "results/id-$ID/extra-test.status"
+else
+  echo "$status" > "results/id-$ID/run_id.status"
+fi
 if [ "$GOAL" = build ]; then
   echo "$status" > "results/id-$ID/build.status"
 fi

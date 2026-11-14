@@ -94,6 +94,13 @@ jobs:
       - uses: actions/checkout@v6
       - run: python3 test/check_readme.py
 
+  checker:
+    name: result classification
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 -m unittest test/test_check_id.py -v
+
   coverage:
     # Region coverage of base.hpp, as the union over the coverage ids' binaries
     # (34 specifiers path, 35 buffer path; main and isolated binaries both),
