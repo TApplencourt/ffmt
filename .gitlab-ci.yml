@@ -71,13 +71,6 @@ mi300x:
       when: manual
       allow_failure: false
 
-.jlse-unqualified:
-  extends: .jlse-extended
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual
-      allow_failure: false
-
 # Fast-math DPC++ and Intel LLVM 7.2 produce crashes or empty main-suite output.
 # Keep the affected targets visible without gating on empty output or waiving examples.
 chiatta-dpcpp:
@@ -131,9 +124,8 @@ a40-extended:
     IDS: "78 79"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a40"
 
-# AdaptiveCpp A40 stays manual while cold generic/SSCP JIT and CI users are qualified.
-adaptivecpp-a40-unqualified:
-  extends: .jlse-unqualified
+adaptivecpp-a40:
+  extends: .jlse-extended
   resource_group: a40
   variables:
     IDS: "70 71"
