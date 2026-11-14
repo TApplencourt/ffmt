@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
-      - run: python3 -m unittest test/test_check_id.py -v
+      - run: python3 -m unittest discover -s test -p 'test_check_id.py' -v
 
   coverage:
     # Region coverage of base.hpp, as the union over the coverage ids' binaries
