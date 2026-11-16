@@ -244,6 +244,8 @@ def check(row, counts, accept):
     results. Returns (problems, the test counts the run reported)."""
     res = Results(row["id"], counts)
     problems = list(res.problems)
+    reason = (not_this_tree(res.commit)
+              if accept and not res.commit.endswith("-dirty") else None)
     if not accept:
         problems += [f"{name} holds {n} tests, {TESTS} says {counts.get(name)}"
                      for name, n in sorted(res.counts.items()) if counts.get(name) != n]
@@ -271,7 +273,7 @@ def check(row, counts, accept):
         # tested_commit must name the tree that was tested.
         problems.append("not accepted: these results come from uncommitted changes "
                         f"({res.commit}); commit, run again, then accept")
-    elif reason := not_this_tree(res.commit):
+    elif reason:
         problems.append(f"not accepted: {reason}")
     elif problems:
         problems.append("not accepted: the config cannot express the above")
