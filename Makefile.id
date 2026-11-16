@@ -14,8 +14,10 @@
 # It only records what happened (exit statuses and logs); which failures
 # are expected is judged by test/check_id.py, not here.
 #
-# Binaries go to build/id-<id>/; the config and the logs go to
-# results/id-<id>/.
+# Binaries, and make's own state (the status file of each compile, which
+# is its target), go to build/id-<id>/; the config and the logs go to
+# results/id-<id>/, which is what CI uploads and what one downloads a CI
+# run into, so nothing make decides from may live there.
 
 SHELL       := /bin/bash
 .SHELLFLAGS := -o pipefail -c
@@ -127,11 +129,11 @@ config: $(FMT_PIN) | $(OUT)/.dir
 # the same for every id, like fmt.o, and leaves out FFMT_FLAGS: {fmt}'s
 # headers in an offload compile hit llvm/llvm-project#52699.
 # Each file is its own target, so make -j compiles them in parallel.
-NEG_DONE     := $(patsubst test/negative/%.cpp,$(LOGS)/negative/%.status,$(wildcard test/negative/*.cpp))
+NEG_DONE     := $(patsubst test/negative/%.cpp,$(OUT)/negative/%.status,$(wildcard test/negative/*.cpp))
 NEG_COMPILE   = $(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) $(COMPILE_ONLY)
 NEG_FMT       = $(FFMT_ORACLE_CXX) $(INCLUDES) -std=c++20 -Wall -Werror -DNEG_CHECK_FMT -c
 
-$(LOGS)/negative/%.status: test/negative/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir
+$(OUT)/negative/%.status: test/negative/%.cpp $(HDRS) $(SETUP) | $(OUT)/.dir
 	@mkdir -p $(@D)
 	@{ $(NEG_COMPILE) -DNEG_SYNTAX_CHECK $< -o /dev/null >/dev/null 2>&1; echo "$$? syntax $*"; \
 	   $(NEG_FMT) $< -o /dev/null >/dev/null 2>&1; echo "$$? fmt $*"; \
@@ -158,13 +160,15 @@ endif
 # tests. One status line per file and step goes to tests.log
 # (`<exit status> build|run <name>`), each file's compiler output to
 # <name>.build.log and its TAP output to <name>.run.log. The builds are
-# separate targets and run in parallel under make -j.
-TEST_DONE := $(patsubst %,$(LOGS)/tests/%.build,$(NAMES))
+# separate targets and run in parallel under make -j: each one's target is
+# its status line, in build/id-<id>/tests/ beside its compiler output, and
+# build copies both to the logs.
+TEST_DONE := $(patsubst %,$(OUT)/tests/%.build,$(NAMES))
 
-$(LOGS)/tests/%.build: test/test_%.cpp $(HDRS) $(SETUP) $(TEST_DEPS) | $(OUT)/.dir
+$(OUT)/tests/%.build: test/test_%.cpp $(HDRS) $(SETUP) $(TEST_DEPS) | $(OUT)/.dir
 	@mkdir -p $(@D) $(OUT)/bin
 	@$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) $< $(TEST_OUT) \
-	  >$(LOGS)/$*.build.log 2>&1; echo "$$? build $*" > $@
+	  >$(@D)/$*.build.log 2>&1; echo "$$? build $*" > $@
 
 # FFMT_EXTRA_FILES, optional in the setup: more programs, such as the README
 # examples, built with the id's flags and run by the test goal. Not tests:
@@ -178,6 +182,7 @@ extra: | $(OUT)/.dir
 	done | tee $(LOGS)/extra.log
 
 build: config negative extra $(TEST_DONE)
+	@cp $(TEST_DONE:.build=.build.log) $(LOGS)/
 	@cat $(TEST_DONE) | tee $(LOGS)/tests.log
 
 ifdef FFMT_COMPILE_ONLY
