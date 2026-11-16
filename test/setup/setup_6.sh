@@ -2,6 +2,7 @@
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
+module use /soft/modulefiles
 module load cuda/12.3.0
 module load llvm/release-22.1.8
 export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host

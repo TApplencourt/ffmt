@@ -304,9 +304,15 @@ python3 test/check_id.py 1    # compare with id 1's expected failures
 
 Every id builds every test. `test/check_id.py` passes when the failures are
 exactly the ones listed under the id's `expected_fail`: `compile` for files
-that do not build, `runtime` for tests whose output differs from `{fmt}`.
-It reports anything else in either direction: an unexpected failure, or an
-expected one that did not happen.
+that do not build, and `runtime` for individual tests or isolated binaries.
+`structural` lists exact per-ID signatures for backend, whole-main-binary, or
+example failures. An exact structural match is an XFAIL: the batch succeeds,
+but its summary keeps the failure visible with a warning glyph. An unexpected
+signature fails, as does an expected signature that disappears (XPASS).
+Missing logs and interrupted or incomplete runs always fail; they cannot be
+expected structural failures. A main crash does not turn tests it never
+reached into unexpected passes, while every observed individual failure is
+still compared exactly.
 
 Output is TAP-style: one line per test, `ok N - file` or `not ok N - file`.
 
