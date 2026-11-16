@@ -64,7 +64,7 @@ explicitly instead (`static_cast`, `std::to_underlying`).
   exceptions, no heap allocation, no `std::string`, no virtual calls, no
   runtime recursion (SYCL rejects it at compile time). Format strings are
   validated at compile time (`consteval`). Functions reachable from the
-  entry points need `FMT_HD` (CUDA).
+  entry points need `FMT_HD` (CUDA, HIP).
 - Match the surrounding style: terse comments that explain *why*, and the
   existing naming.
 

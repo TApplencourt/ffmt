@@ -110,7 +110,7 @@ mi300x-omp-fast-math:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_amd_mi300x"
 
-# The header does not yet tag native HIP entry points FMT_HD: nothing builds.
+# Native HIP (hipcc) and Kokkos HIP, on MI300X.
 mi300x-hip:
   extends: .jlse-extended
   resource_group: mi300x
