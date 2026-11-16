@@ -120,7 +120,9 @@ config: $(FMT_PIN) | $(OUT)/.dir
 	@$(CXX) --version | sed -n 1p | tee -a $(LOGS)/config.txt
 	@echo "commit=$$(git describe --always --dirty --abbrev=40)" | tee -a $(LOGS)/config.txt
 	@echo "goal=$(or $(filter build,$(MAKECMDGOALS)),test)" | tee -a $(LOGS)/config.txt
-	@echo "fmt=$$(git -C $(FMT_DIR) rev-parse HEAD 2>/dev/null || echo unknown) pinned=$(FMT_REF)" | tee -a $(LOGS)/config.txt
+	@# safe.directory: a shared FMT_DIR (FFMT_RUNTIME_ROOT) belongs to another
+	@# user, and git refuses to read it otherwise.
+	@echo "fmt=$$(git -c safe.directory=$(abspath $(FMT_DIR)) -C $(FMT_DIR) rev-parse HEAD 2>/dev/null || echo unknown) pinned=$(FMT_REF)" | tee -a $(LOGS)/config.txt
 
 # Negative tests: each test/negative/reject_*.cpp makes one format call that
 # must not compile (accept_valid.cpp, the control, makes one that must, in
