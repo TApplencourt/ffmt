@@ -187,7 +187,7 @@
   },
   {
     "id": 7,
-    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O0, no fast-math",
+    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -219,7 +219,7 @@
   },
   {
     "id": 8,
-    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O2, no fast-math",
+    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O2, no fast-math",
     "ci": "jlse:mi300x",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -587,7 +587,7 @@
   },
   {
     "id": 21,
-    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O0, fast-math",
+    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, fast-math",
     "ci": "jlse:mi300x-omp-fast-math",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -619,7 +619,7 @@
   },
   {
     "id": 22,
-    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 7.0.2, -O2, fast-math",
+    "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O2, fast-math",
     "ci": "jlse:mi300x-omp-fast-math",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -1147,7 +1147,7 @@
   },
   {
     "id": 48,
-    "notes": "native HIP on MI300X (gfx942), rocm 7.0.2 hipcc, -O0, no fast-math",
+    "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O0, no fast-math",
     "ci": "jlse:mi300x-hip",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -1177,7 +1177,7 @@
   },
   {
     "id": 49,
-    "notes": "native HIP on MI300X (gfx942), rocm 7.0.2 hipcc, -O2, no fast-math",
+    "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O2, no fast-math",
     "ci": "jlse:mi300x-hip",
     "tested_commit": "N/A",
     "failed_to_compile": [
