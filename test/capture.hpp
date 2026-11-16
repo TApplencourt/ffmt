@@ -68,8 +68,8 @@ using device_properties = cudaDeviceProp;
 [[maybe_unused]] static std::string cuda_hip_device_name() {
   int device = 0;
   device_properties properties{};
-  DEVICE_API(GetDevice)(&device);
-  DEVICE_API(GetDeviceProperties)(&properties, device);
+  (void)DEVICE_API(GetDevice)(&device);
+  (void)DEVICE_API(GetDeviceProperties)(&properties, device);
   return properties.name;
 }
 [[maybe_unused]] static bool device_sync() {
