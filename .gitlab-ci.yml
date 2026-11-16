@@ -5,12 +5,23 @@
 # decides. The results/ artifact of a job, unpacked in a checkout, is what
 # test/check_id.py reads: to review a run and accept it locally
 # (--accept-and-update-config).
+#
+# A pipeline runs one CI of test/configs.json, JLSE_CI. Scheduled and pushed
+# pipelines run jlse; jlse-h100 is a pipeline of its own, started by hand
+# (Build > Pipelines > Run pipeline, JLSE_CI = jlse-h100), because a gpu_h100
+# node can take hours to get.
 
 include:
   - project: 'ci-resources/defaults'
     ref: main
     file:
       - '/runners.yml'
+
+variables:
+  JLSE_CI:
+    value: jlse
+    options: [jlse, jlse-h100]
+    description: "jlse: every JLSE job but h100-extended. jlse-h100: h100-extended alone."
 
 stages:
   - test
@@ -26,7 +37,11 @@ workflow:
   extends: .batch-runner
   stage: test
   script:
-    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "jlse:$CI_JOB_NAME")
+    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "$JLSE_CI:$CI_JOB_NAME")
+  rules:
+    - if: '$JLSE_CI != "jlse"'
+      when: never
+    - when: on_success
   artifacts:
     when: always          # a failed run still leaves usable logs
     expire_in: 1 month
@@ -63,6 +78,8 @@ mi300x:
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   rules:
+    - if: '$JLSE_CI != "jlse"'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
       when: on_success
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -100,9 +117,13 @@ mi300x-hip:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
 
+# Alone in a jlse-h100 pipeline (see the top). Its job status is the verdict:
+# no summary or wiki there, which would replace the jlse report.
 h100-extended:
   extends: .jlse-extended
   resource_group: h100
+  rules:
+    - if: '$JLSE_CI == "jlse-h100"'
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
@@ -150,7 +171,9 @@ rome-extended:
 jlse-summary:
   extends: .shell-runner
   stage: report
-  when: always
+  rules:
+    - if: '$JLSE_CI == "jlse"'
+      when: always
   needs:
     - chiatta
     - a100
@@ -160,7 +183,6 @@ jlse-summary:
     - a100-omp-fast-math
     - mi300x-omp-fast-math
     - mi300x-hip
-    - h100-extended
     - a40-extended
     - adaptivecpp-a40
     - adaptivecpp-mi300x
@@ -188,7 +210,7 @@ jlse-wiki:
   needs:
     - {job: jlse-summary, artifacts: true}
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$JLSE_CI == "jlse" && ($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule")'
       when: always
   script:
     - python3 test/publish_jlse_wiki.py results/jlse-summary.md

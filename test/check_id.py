@@ -27,8 +27,9 @@ tests are not judged).
 test/configs.json is the one description of every id. Per id: every test
 that is not expected to pass, under its state; `device`, what its tests ran
 on when its results were last accepted, and `tested_commit`, at which
-commit; `ci`, the CI job that runs it (github:<runner> or jlse:<job>; none
-for an id run by hand), and `goal` if that job only builds it.
+commit; `ci`, the CI job that runs it (github:<runner>, jlse:<job>, or
+jlse-h100:<job> for the hand-started JLSE pipeline; none for an id run by
+hand), and `goal` if that job only builds it.
 test/tests.json holds the number of tests of each file, which is how the
 tests of a file that did not build are known.
 

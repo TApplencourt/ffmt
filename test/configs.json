@@ -1208,7 +1208,7 @@
   {
     "id": 50,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O0, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "N/A",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1240,7 +1240,7 @@
   {
     "id": 51,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O2, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "N/A",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1336,7 +1336,7 @@
   {
     "id": 54,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-22.1.8, -O0, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "N/A",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1351,7 +1351,7 @@
   {
     "id": 55,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-22.1.8, -O2, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "N/A",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1366,7 +1366,7 @@
   {
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-22.1.8, -O0, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "a32093412b8a87dc6fcad449bec7b636ba872343",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -1399,7 +1399,7 @@
   {
     "id": 57,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-22.1.8, -O2, no fast-math",
-    "ci": "jlse:h100-extended",
+    "ci": "jlse-h100:h100-extended",
     "tested_commit": "a32093412b8a87dc6fcad449bec7b636ba872343",
     "device": "OpenMP device 0",
     "failed_to_compile": [

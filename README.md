@@ -336,4 +336,6 @@ report is published to the JLSE wiki.
 
 CI runs the ids whose `ci` is `github:<runner>`
 ([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
-`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)).
+`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)). The H100 ids,
+`jlse-h100:h100-extended`, wait hours for a node, so they run only in a
+GitLab pipeline started by hand with `JLSE_CI=jlse-h100`.
