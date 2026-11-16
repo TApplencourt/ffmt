@@ -4,12 +4,10 @@
 import argparse
 import json
 import os
-from pathlib import Path
-import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-
+from pathlib import Path
 
 PAGE_TITLE = "JLSE Results"
 PAGE_SLUG = "JLSE-Results"
@@ -26,7 +24,7 @@ def request(method, path, token, content=None):
             "format": "markdown",
         }).encode()
     http_request = urllib.request.Request(
-        "%s/projects/%s/wikis%s" % (base, project, path), data=data, method=method)
+        f"{base}/projects/{project}/wikis{path}", data=data, method=method)
     http_request.add_header("PRIVATE-TOKEN", token)
     if data is not None:
         http_request.add_header("Content-Type", "application/x-www-form-urlencoded")
@@ -54,7 +52,7 @@ def publish(content):
     if result.get("slug") not in (None, PAGE_SLUG):
         raise RuntimeError("GitLab returned an unexpected wiki slug")
     project_url = os.environ.get("CI_PROJECT_URL", "GitLab project")
-    print("Published JLSE results to %s/-/wikis/%s" % (project_url, PAGE_SLUG))
+    print(f"Published JLSE results to {project_url}/-/wikis/{PAGE_SLUG}")
 
 
 def main():
@@ -64,7 +62,7 @@ def main():
     try:
         publish(args.report.read_text())
     except (OSError, KeyError, RuntimeError, ValueError, urllib.error.URLError) as error:
-        parser.exit(1, "JLSE wiki publication failed: %s\n" % error)
+        parser.exit(1, f"JLSE wiki publication failed: {error}\n")
 
 
 if __name__ == "__main__":

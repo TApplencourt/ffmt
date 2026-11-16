@@ -1,10 +1,10 @@
 // Differential sweep against {fmt}: deterministic pseudo-random floats.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME float_sweep
-#define TEST_INC "isolated/test_float_sweep.cpp"
-#include "../test_body.inc"
+#define TEST_INC "test_float_sweep.cpp"
+#include "test_body.inc"
 #else
 // ── Differential sweep against {fmt} (host only) ───────────────────────────
 // Deterministic pseudo-random doubles/floats (raw bit patterns, so every

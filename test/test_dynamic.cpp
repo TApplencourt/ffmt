@@ -1,10 +1,10 @@
 // Cases using dynamic width and precision ({:{}} and {:.{}}). The specifiers path cannot express these with printf.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME dynamic
-#define TEST_INC "isolated/test_dynamic.cpp"
-#include "../test_body.inc"
+#define TEST_INC "test_dynamic.cpp"
+#include "test_body.inc"
 #else
 // ── Strings ───────────────────────────────────────────────────────────────────
 RUN(PRINT("┌{0:─^{2}}┐\n│{1: ^{2}}│\n", "", "Hello", 9));

@@ -293,29 +293,49 @@ clang++ -x cuda --cuda-gpu-arch=sm_80 -std=c++20 my_kernel.cu -lcudart -o my_ker
 Each test configuration has an id in [`test/configs.json`](test/configs.json):
 a compiler, its flags, a device, the modules to load, all set by
 `test/setup/setup_<id>.sh`. Ids 0 and 1 are the host references (g++, the
-specifiers path and the buffer path); every other id behaves like one of
-the two, apart from the failures it lists.
+specifiers path and the buffer path).
 
 ```bash
 test/run_id.sh 1              # build and run id 1; results in results/id-1/
 test/run_id.sh 39 build       # build only, for a device this machine lacks
-python3 test/check_id.py 1    # compare with id 1's expected failures
+python3 test/check_id.py 1    # compare with what test/configs.json expects of id 1
+python3 test/check_id.py --summary   # which ids share which failures
 ```
 
-Every id builds every test. `test/check_id.py` passes when the failures are
-exactly the ones listed under the id's `expected_fail`: `compile` for files
-that do not build, and `runtime` for individual tests or isolated binaries.
-`structural` lists exact per-ID signatures for backend, whole-main-binary, or
-example failures. An exact structural match is an XFAIL: the batch succeeds,
-but its summary keeps the failure visible with a warning glyph. An unexpected
-signature fails, as does an expected signature that disappears (XPASS).
-Missing logs and interrupted or incomplete runs always fail; they cannot be
-expected structural failures. A main crash does not turn tests it never
-reached into unexpected passes, while every observed individual failure is
-still compared exactly.
+Every id builds every test file, each as its own binary. A test is
+`<file>:<number>` (`floats:104` is the 104th `RUN` of
+`test/test_floats.cpp`), and `test/configs.json` lists, per id, every test
+that is not expected to pass:
 
-Output is TAP-style: one line per test, `ok N - file` or `not ok N - file`.
+- `failed_to_compile`: its file does not build;
+- `failed_to_run`: it prints something else than `{fmt}`, or crashes;
+- `compiled_but_not_run`: an earlier test of its file crashed the binary.
 
-CI runs the ids a GitHub runner can handle
-([`.github/workflows/test.yml`](.github/workflows/test.yml)) and the JLSE
-GPU ids ([`.gitlab-ci.yml`](.gitlab-ci.yml)).
+A row also says which CI job runs the id (`ci`) and on which device its
+tests ran when its results were last accepted (`device`).
+
+`test/check_id.py` fails when a test is in another state than listed, in
+either direction, or when the tests ran on another device. `test/check_id.py <id> --accept-and-update-config`
+rewrites the id's lists from its results instead: review the diff.
+[`test/tests.json`](test/tests.json), the number of tests of each file, is
+generated the same way.
+
+`PASS — results match config` requires complete artifacts and matching
+observed states, even when the expected failure-state counts are nonzero.
+Per-ID summaries separate matched expected states from unexpected state
+differences, whose test IDs remain visible in both directions. Missing or
+interrupted artifacts are hard failures, and `compiled_but_not_run` keeps tests
+after a crash explicit rather than dropping them as coverage.
+
+Output is TAP: the plan `1..N`, then per test `# start N` and `ok N - file`
+or `not ok N - file`. Raw `not ok` lines describe observed failures, including
+expected ones; checker success means those failures match the config.
+Negative compile rejections are passing behavior, not XFAILs. The `--table`
+report repeats this legend with its PASS/FAIL/incomplete totals, and the same
+report is published to the JLSE wiki.
+
+CI runs the ids whose `ci` is `github:<runner>`
+([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
+`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)). The H100 ids,
+`jlse-h100:h100-extended`, wait hours for a node, so they run only in a
+GitLab pipeline started by hand with `JLSE_CI=jlse-h100`.

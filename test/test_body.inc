@@ -1,49 +1,38 @@
-// The body of every test file: test_<TEST_NAME>() prints each RUN(...) case
-// of TEST_INC through {fmt} on the host, then through ffmt on the device, and
-// diffs the two. Only how a case reaches the device depends on the
-// programming model: DEVICE_RUN, in capture.hpp.
+// The body of every test file, each its own binary: main() prints each
+// RUN(...) case of TEST_INC through {fmt} on the host (the reference pass),
+// then through ffmt on the device, one case at a time, and compares the two
+// as it goes (tap_reporter, capture.hpp). Only how a case reaches the device
+// depends on the programming model: DEVICE_RUN, in capture.hpp. An exception
+// (a SYCL error, say) ends the binary like a crash: in the test it names.
 #include "capture.hpp"
 
-#define CONCAT2(a, b) a##b
-#define CONCAT(a, b) CONCAT2(a, b)
+#define STR2(a) #a
+#define STR(a) STR2(a)
 
-bool CONCAT(test_, TEST_NAME)(TEST_PARAM) {
-#ifdef FFMT_TEST_SYCL_QUEUE
-  if (!q.get_device().is_gpu()) {
-    std::fprintf(stderr, "%s: refusing SYCL CPU fallback\n", TEST_INC);
-    return false;
-  }
-#endif
-#ifdef FFMT_TEST_OPENMP
-  int on_initial_device = 1;
-#pragma omp target map(from : on_initial_device)
-  { on_initial_device = omp_is_initial_device(); }
-  if (on_initial_device) {
-    std::fprintf(stderr, "%s: refusing OpenMP host fallback\n", TEST_INC);
-    return false;
-  }
-#endif
-  int _test_id = 0;
-  [[maybe_unused]] bool runtime_ok = true;
+int main() try {
+  TEST_SETUP
+  tap_reporter _t{STR(TEST_NAME)};
+  fprintf(stderr, "# device: %s\n", std::string(TEST_DEVICE).c_str());
 
-  auto std_out = capture_stdout([&]() {
+  // Each pass in its own lambda: a file's own declarations stay local to
+  // the pass, and RUN(...) sits at the top level of a function body.
+  [&]() {
 #define FFMT_STD_PATH
 // The buffer path cuts each print at FFMT_BUFFER_SIZE: so does the reference.
 #define PRINT(fmt_str, ...) std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__) \
   .substr(0, FFMT_BUFFER_PATH ? static_cast<size_t>(FFMT_BUFFER_SIZE) : std::string::npos)
 #define PRINTLN(fmt_str, ...) PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__) << '\n'
-#define RUN(...) do { printf("Test %d\n", ++_test_id); \
-  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } } while (0)
+#define RUN(...) do { _t.reference_begin(); \
+  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } _t.reference_end(); } while (0)
 #include TEST_INC
 #undef RUN
 #undef PRINTLN
 #undef PRINT
 #undef FFMT_STD_PATH
-  });
+  }();
+  _t.plan();
 
-  _test_id = 0;
-
-  auto device_out = capture_stdout([&]() {
+  [&]() {
 #define PRINT(fmt_str, ...) FFMT_PRINT(fmt_str __VA_OPT__(,) __VA_ARGS__)
 #define PRINTLN(fmt_str, ...) FFMT_PRINTLN(fmt_str __VA_OPT__(,) __VA_ARGS__)
 #define RUN DEVICE_RUN
@@ -51,19 +40,10 @@ bool CONCAT(test_, TEST_NAME)(TEST_PARAM) {
 #undef RUN
 #undef PRINTLN
 #undef PRINT
-  });
+  }();
 
-  return diff_output(TEST_INC, std_out, device_out) && runtime_ok;
+  return _t.status();
+} catch (const std::exception& error) {
+  fprintf(stderr, "# exception: %s\n", error.what());
+  return 1;
 }
-
-#ifndef TEST_NO_MAIN
-int main() {
-  try {
-    FFMT_TEST_MAIN_GUARD;
-    return CONCAT(test_, TEST_NAME)(TEST_ARG) ? 0 : TEST_FAILED;
-  } catch (const std::exception& error) {
-    std::fprintf(stderr, "%s: device test exception: %s\n", TEST_INC, error.what());
-    return 1;
-  }
-}
-#endif

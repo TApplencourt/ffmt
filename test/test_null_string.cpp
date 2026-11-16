@@ -1,11 +1,11 @@
 // A null const char*. g++ with -Werror rejects it on the specifiers path:
 // printf's %s with a null argument is diagnosed at compile time.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME null_string
-#define TEST_INC "isolated/test_null_string.cpp"
-#include "../test_body.inc"
+#define TEST_INC "test_null_string.cpp"
+#include "test_body.inc"
 #else
 
 // fmt::format reports a null const char* as an error, which a device can

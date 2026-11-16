@@ -1,12 +1,12 @@
 // SYCL types (sycl::range, sycl::id) through their formatters.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME sycl_types
-#define TEST_INC "isolated/test_sycl_types.cpp"
-#include "../capture.hpp"
-#include "../sycl_std_formatters.hpp"
-#include "../test_body.inc"
+#define TEST_INC "test_sycl_types.cpp"
+#include "capture.hpp"
+#include "sycl_std_formatters.hpp"
+#include "test_body.inc"
 #else
 RUN(PRINTLN("range = {}", sycl::range<1>{4}));
 RUN(PRINTLN("range = {}", sycl::range<2>{4, 8}));

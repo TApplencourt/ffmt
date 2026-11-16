@@ -1,10 +1,10 @@
 // Cases using {:b} / {:B}, binary integers. The specifiers path cannot express these with printf.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME binary
-#define TEST_INC "isolated/test_binary.cpp"
-#include "../test_body.inc"
+#define TEST_INC "test_binary.cpp"
+#include "test_body.inc"
 #else
 // ── Integers ──────────────────────────────────────────────────────────────────
 RUN(PRINT("{:b}\n", 255));

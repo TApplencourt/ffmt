@@ -1,9 +1,9 @@
 name: test
 
 # Every id of test/configs.json that a GitHub runner can run, each through
-# test/run_id.sh. test/check_id.py then compares the id's results with its
-# expected failures and decides pass or fail, so run_id.sh's own exit status
-# (non-zero whenever any test fails, expected or not) is ignored.
+# test/run_id.sh, which only records what happens. test/check_id.py then
+# compares the id's results with what test/configs.json expects and decides
+# pass or fail.
 
 on:
   push:
@@ -12,15 +12,9 @@ on:
 
 jobs:
   matrix:
-    # Builds the matrix below with each id's notes from test/configs.json,
-    # so the job names say what each id is (a name cannot read a file).
-    # ubuntu: host references (0 specifiers path, 1 buffer path), fast-math
-    # (12, 13), ASan+UBSan with g++ and clang++ at -O0 and -O2 (24-31), C++23
-    # (43). Then the GPU routes, built but not run as there is no GPU here:
-    # clang-22 CUDA (36), clang-22 OpenMP NVPTX -O0/-O2 (37, 38, compile
-    # only), icpx SYCL and OpenMP ahead-of-time for PVC -O0/-O2 (39-42).
-    # Their setup scripts install their own toolchains.
-    # macos: Apple clang with libc++ (32 specifiers path, 33 buffer path).
+    # The ids of test/configs.json whose `ci` is github:<runner>, with their
+    # notes, so the job names say what each id is (a name cannot read a
+    # file). `goal` is build for the GPU routes, as there is no GPU here.
     runs-on: ubuntu-24.04
     outputs:
       ids: ${{ steps.m.outputs.ids }}
@@ -30,11 +24,9 @@ jobs:
         run: |
           python3 - >> "$GITHUB_OUTPUT" <<'EOF'
           import json
-          notes = {r["id"]: r["notes"] for r in json.load(open("test/configs.json"))}
-          def ids(os, goal, *l): return [{"id": i, "os": os, "goal": goal, "notes": notes[i]} for i in l]
-          print("ids=" + json.dumps(ids("ubuntu-24.04", "test", 0, 1, 12, 13, 24, 25, 26, 27, 28, 29, 30, 31, 43)
-                                    + ids("ubuntu-24.04", "build", 36, 37, 38, 39, 40, 41, 42)
-                                    + ids("macos-latest", "test", 32, 33)))
+          print("ids=" + json.dumps([
+              {"id": r["id"], "os": r["ci"].split(":")[1], "goal": r.get("goal", "test"), "notes": r["notes"]}
+              for r in json.load(open("test/configs.json")) if r.get("ci", "").startswith("github:")]))
           EOF
 
   id:
@@ -46,20 +38,29 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.matrix.outputs.ids) }}
     steps:
+      # The pull request's own commit, not the merge commit GitHub makes for
+      # it: config.txt records the commit tested, and an accept
+      # (--accept-and-update-config) takes only results of a commit of the
+      # branch.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       # GNU Make from Homebrew: macOS's is 3.81, which ignores .SHELLFLAGS, so
       # pipefail would be lost and tee would hide failures.
       - if: runner.os == 'macOS'
         run: |
           brew install make
           echo "$(brew --prefix)/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
-      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
-      - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
+      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }}
+      - run: python3 test/check_id.py ${{ matrix.id }}
       - if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: summary-${{ matrix.id }}
-          path: results/id-${{ matrix.id }}/summary.md
+          # The id's logs, named so that `gh run download <run> --dir results`
+          # puts them where test/check_id.py reads them, to review a run and
+          # accept it locally (--accept-and-update-config).
+          name: id-${{ matrix.id }}
+          path: results/id-${{ matrix.id }}/
           # The summary job reports a missing row itself.
           if-no-files-found: ignore
 
@@ -70,20 +71,14 @@ jobs:
     if: always()
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8
         with:
-          pattern: summary-*
+          pattern: id-*
+          path: results
       - env:
           IDS: ${{ needs.matrix.outputs.ids }}
-        run: |
-          python3 - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
-          import json, os
-          print("| id | config | result |\n|---|---|---|")
-          for r in json.loads(os.environ["IDS"]):
-              f = "summary-%d/summary.md" % r["id"]
-              print(open(f).read().strip() if os.path.exists(f) else
-                    "| ⚠️ %d | %s | no result: check_id.py did not run |" % (r["id"], r["notes"]))
-          EOF
+        run: python3 test/check_id.py --table $(jq -r '.[].id' <<< "$IDS") >> "$GITHUB_STEP_SUMMARY" || true
 
   readme:
     # Every whole program in README.md is a copy of a file in examples/,
@@ -95,7 +90,7 @@ jobs:
       - run: python3 test/check_readme.py
 
   checker:
-    name: result classification
+    name: unit tests of the test scripts
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -103,7 +98,7 @@ jobs:
 
   coverage:
     # Region coverage of base.hpp, as the union over the coverage ids' binaries
-    # (34 specifiers path, 35 buffer path; main and isolated binaries both),
+    # (34 specifiers path, 35 buffer path; every test binary),
     # must not drop against the base branch.
     name: coverage non-regression
     runs-on: ubuntu-24.04
@@ -129,9 +124,11 @@ jobs:
           git worktree add ../base ${{ steps.base.outputs.ref }}
           cd ../base
           if [ -x test/run_id.sh ]; then
+            # Test binaries are in build/id-<id>/bin/; a base that predates
+            # that has build/id-<id>/test and build/id-<id>/isolated/.
             test/run_id.sh 34 build || true
             test/run_id.sh 35 build || true
-            mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+            mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -path '*/bin/*' -o -name test -o -path '*/isolated/*' \))
           else
             # A base that predates test/run_id.sh: the old Makefile's build.
             make CXX=clang++ -j$(nproc) coverage
@@ -146,7 +143,7 @@ jobs:
         run: |
           test/run_id.sh 34 build || true
           test/run_id.sh 35 build || true
-          mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+          mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -path '*/bin/*' -o -name test -o -path '*/isolated/*' \))
           python3 .github/scripts/coverage_union.py \
             "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
             include/ffmt/base.hpp "${BINS[@]}" > head.txt
