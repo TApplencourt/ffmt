@@ -64,7 +64,34 @@ class CheckIdTest(unittest.TestCase):
     def test_all_pass(self):
         result = self.check()
         self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("PASS — results match config", result.stdout)
+        self.assertIn("unexpected state differences: 0", result.stdout)
+        self.assertNotIn("XFAIL", result.stdout)
         self.assertIn("✅ 1", (self.logs / "summary.md").read_text())
+
+    def test_negative_rejections_are_matching_passes(self):
+        result = self.check()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("PASS — results match config", result.stdout)
+        self.assertNotIn("negative:reject_x", result.stdout)
+        self.assertNotIn("XFAIL", result.stdout)
+
+    def test_mixed_state_mismatches_preserve_ids_and_counts(self):
+        self.configure(failed_to_compile=["a:1"], failed_to_run=["b:1"],
+                       compiled_but_not_run=["b:2"])
+        self.write("tests.log", "0 build a\n0 build b\n0 run a\n88 run b\n")
+        self.write("b.run.log", tap(2, not_ok=[2]))
+        result = self.check()
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("a:1: expected failed_to_compile, got passed", result.stdout)
+        self.assertIn("b:1: expected failed_to_run, got passed", result.stdout)
+        self.assertIn("b:2: expected compiled_but_not_run, got failed_to_run", result.stdout)
+        self.assertIn("matched expected states: 0 failed_to_compile, 0 failed_to_run, "
+                      "0 compiled_but_not_run", result.stdout)
+        self.assertIn("unexpected state differences: 3", result.stdout)
+        table = self.check("--table")
+        self.assertEqual(table.returncode, 1)
+        self.assertIn("1 IDs — 0 PASS, 1 FAIL, 0 incomplete", table.stdout)
 
     def test_unexpected_failure_and_unexpected_pass(self):
         self.write("tests.log", "0 build a\n0 build b\n88 run a\n0 run b\n")
@@ -90,7 +117,20 @@ class CheckIdTest(unittest.TestCase):
         self.assertIn("a:2: expected passed, got failed_to_run", result.stdout)
         self.assertIn("a:3: expected passed, got compiled_but_not_run", result.stdout)
         self.configure(failed_to_run=["a:2"], compiled_but_not_run=["a:3"])
-        self.assertEqual(self.check().returncode, 0)
+        result = self.check()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("matched expected states: 0 failed_to_compile, 1 failed_to_run, "
+                      "1 compiled_but_not_run", result.stdout)
+        self.assertIn("unexpected state differences: 0", result.stdout)
+
+    def test_incomplete_artifact_is_not_an_unexpected_pass(self):
+        self.configure(failed_to_run=["a:2"])
+        (self.logs / "a.run.log").unlink()
+        result = self.check()
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("no results/id-1/a.run.log", result.stdout)
+        self.assertIn("unexpected state differences: 0", result.stdout)
+        self.assertNotIn("a:2: expected failed_to_run, got passed", result.stdout)
 
     def test_what_no_state_can_express_always_fails(self):
         for name, contents, message in [
@@ -148,7 +188,8 @@ class CheckIdTest(unittest.TestCase):
         result = subprocess.run([sys.executable, "test/check_id.py", "--all"], cwd=self.root,
                                 capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertEqual([line.split()[1] for line in result.stdout.splitlines()], ["1", "3"])
+        self.assertEqual([line.split()[1] for line in result.stdout.splitlines()
+                          if line.startswith("id ")], ["1", "3"])
 
     def test_another_device_is_a_problem(self):
         self.configure(device="gpu")
@@ -174,9 +215,14 @@ class CheckIdTest(unittest.TestCase):
         self.assertEqual(self.check().returncode, 0)
         result = self.check("--table")
         self.assertEqual(result.returncode, 0)
-        self.assertIn("| ✅ 1 | config 1 | as expected", result.stdout)
+        self.assertIn("1 IDs — 1 PASS, 0 FAIL, 0 incomplete", result.stdout)
+        self.assertIn("| ✅ 1 | config 1 | PASS — results match config", result.stdout)
+        self.assertIn("matched expected states: 0 failed_to_compile", result.stdout)
+        self.assertIn("Raw TAP `not ok` lines describe observed failures", result.stdout)
+        self.assertIn("Negative compile rejections are passing behavior", result.stdout)
         result = self.check("2", "--table")
         self.assertEqual(result.returncode, 1)
+        self.assertIn("2 IDs — 1 PASS, 0 FAIL, 1 incomplete", result.stdout)
         self.assertIn("| ⚠️ 2 | config 2 | no result", result.stdout)
 
     def test_accept_refuses_uncommitted_results_and_problems(self):

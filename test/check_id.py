@@ -239,7 +239,7 @@ def check(row, counts, accept):
     expected = {t: s for s in states for t in row[s]}
     actual = {t: s for t, s in res.states.items() if s in states}
     moved = collections.defaultdict(list)
-    for t in () if res.missing else set(expected) | set(actual):
+    for t in () if res.problems else set(expected) | set(actual):
         if expected.get(t) != actual.get(t):
             moved[expected.get(t, "passed"), actual.get(t, "passed")].append(t)
     changes = [f"{r}: expected {exp}, got {got}"
@@ -259,18 +259,25 @@ def check(row, counts, accept):
         row["tested_commit"] = res.commit
         if res.ran:
             row["device"] = device
+        expected = {t: s for s in states for t in row[s]}
+        moved = {}
 
-    n = collections.Counter(actual.values())
-    result = (f"{len(problems)} problem(s)" if problems else
-              "as expected (" + ", ".join(f"{n[s]} {s}" for s in states) + ")")
+    matched = collections.Counter(state for t, state in actual.items()
+                                  if expected.get(t) == state)
+    differences = sum(map(len, moved.values()))
+    result = ("FAIL — configuration conformance failed" if problems else
+              "PASS — results match config")
+    matched_states = ", ".join(f"{matched[s]} {s}" for s in states)
+    detail = [f"matched expected states: {matched_states}",
+              f"unexpected state differences: {differences}"]
     print(f"id {row['id']} ({row['notes']}): {result}")
-    for line in problems or [f"accepted: {c}" for c in changes]:
+    for line in detail + (problems or [f"accepted: {c}" for c in changes]):
         print("  " + line)
 
     # The id's row of --table, so a failing id can be read without its log.
     if os.path.isdir(res.logs):
         with open(res.logs + "summary.md", "w") as f:
-            cell = "<br>".join([result, *problems]).replace("|", "\\|")
+            cell = "<br>".join([result, *detail, *problems]).replace("|", "\\|")
             f.write(f"| {'❌' if problems else '✅'} {row['id']} | {row['notes']} | {cell} |\n")
     return problems, res.counts
 
@@ -309,18 +316,31 @@ def summary(rows):
 def table(by_id, ids):
     """One Markdown table of ids already checked. Returns whether any of them
     has problems or was not checked at all."""
-    print("| id | config | result |\n|---|---|---|")
-    bad = False
+    records = []
+    passed = failed = incomplete = 0
     for id_ in ids:
         path = f"results/id-{id_}/summary.md"
         if os.path.exists(path):
             with open(path) as f:
                 row = f.read().strip()
+            if row.startswith("| ✅"):
+                passed += 1
+            else:
+                failed += 1
         else:
             row = f"| ⚠️ {id_} | {by_id[id_]['notes']} | no result: test/check_id.py did not run |"
-        bad |= not row.startswith("| ✅")
-        print(row)
-    return bad
+            incomplete += 1
+        records.append(row)
+    print(f"**Configuration conformance:** {len(ids)} IDs — {passed} PASS, "
+          f"{failed} FAIL, {incomplete} incomplete.\n")
+    print("**Legend:** `PASS — results match config` requires complete artifacts and matching "
+          "observed states. Matched expected failure-state counts are separate from unexpected "
+          "state differences. Raw TAP `not ok` lines describe observed failures, including "
+          "expected ones; checker success means they match `test/configs.json`. Negative "
+          "compile rejections are passing behavior, not XFAILs. Incomplete artifacts fail.\n")
+    print("| id | config | overall result and state comparison |\n|---|---|---|")
+    print(*records, sep="\n")
+    return bool(failed + incomplete)
 
 
 def main():

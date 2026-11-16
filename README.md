@@ -320,8 +320,19 @@ rewrites the id's lists from its results instead: review the diff.
 [`test/tests.json`](test/tests.json), the number of tests of each file, is
 generated the same way.
 
+`PASS — results match config` requires complete artifacts and matching
+observed states, even when the expected failure-state counts are nonzero.
+Per-ID summaries separate matched expected states from unexpected state
+differences, whose test IDs remain visible in both directions. Missing or
+interrupted artifacts are hard failures, and `compiled_but_not_run` keeps tests
+after a crash explicit rather than dropping them as coverage.
+
 Output is TAP: the plan `1..N`, then per test `# start N` and `ok N - file`
-or `not ok N - file`.
+or `not ok N - file`. Raw `not ok` lines describe observed failures, including
+expected ones; checker success means those failures match the config.
+Negative compile rejections are passing behavior, not XFAILs. The `--table`
+report repeats this legend with its PASS/FAIL/incomplete totals, and the same
+report is published to the JLSE wiki.
 
 CI runs the ids whose `ci` is `github:<runner>`
 ([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
