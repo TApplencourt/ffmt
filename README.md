@@ -336,6 +336,9 @@ report is published to the JLSE wiki.
 
 CI runs the ids whose `ci` is `github:<runner>`
 ([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
-`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)). The H100 ids,
-`jlse-h100:h100-extended`, wait hours for a node, so they run only in a
-GitLab pipeline started by hand with `JLSE_CI=jlse-h100`.
+`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)). The six H100 ids belong to
+the optional manual `h100-extended` job in that same GitLab pipeline because a
+node can take hours to get. Without it, a successful pipeline reports the other
+50 ids. For all 56, run `h100-extended` and, after it finishes, retry
+`jlse-summary`, then `jlse-wiki`. The retried summary fetches the H100 artifacts;
+completed downstream jobs do not rerun automatically.

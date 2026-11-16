@@ -141,9 +141,8 @@ Reuse the existing framework; do not add a new test harness.
 
 An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
 every compile flag) plus its row in `test/configs.json`. The row's `ci` is
-the CI job that runs the id (`github:<runner>`, or `jlse:<job>` /
-`jlse-h100:<job>` for a job of `.gitlab-ci.yml`, the second only in a
-pipeline started by hand; none for an id run by hand) and `goal` is `build` if that
+the CI job that runs the id (`github:<runner>` or `jlse:<job>` for a job of
+`.gitlab-ci.yml`; none for an id run by hand) and `goal` is `build` if that
 job only builds it: both CI files read them, so an id is added to a job
 there and nowhere else. The row's
 `tested_commit` is the commit of the results last accepted for the id

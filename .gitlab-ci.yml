@@ -6,22 +6,16 @@
 # test/check_id.py reads: to review a run and accept it locally
 # (--accept-and-update-config).
 #
-# A pipeline runs one CI of test/configs.json, JLSE_CI. Scheduled and pushed
-# pipelines run jlse; jlse-h100 is a pipeline of its own, started by hand
-# (Build > Pipelines > Run pipeline, JLSE_CI = jlse-h100), because a gpu_h100
-# node can take hours to get.
+# h100-extended is an optional manual job because a gpu_h100 node can take
+# hours to get. An untriggered pipeline passes with the other 50 ids. After
+# H100 finishes, retry jlse-summary, then jlse-wiki, for the full 56-id report;
+# completed downstream jobs do not rerun automatically.
 
 include:
   - project: 'ci-resources/defaults'
     ref: main
     file:
       - '/runners.yml'
-
-variables:
-  JLSE_CI:
-    value: jlse
-    options: [jlse, jlse-h100]
-    description: "jlse: every JLSE job but h100-extended. jlse-h100: h100-extended alone."
 
 stages:
   - test
@@ -37,11 +31,7 @@ workflow:
   extends: .batch-runner
   stage: test
   script:
-    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "$JLSE_CI:$CI_JOB_NAME")
-  rules:
-    - if: '$JLSE_CI != "jlse"'
-      when: never
-    - when: on_success
+    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "jlse:$CI_JOB_NAME")
   artifacts:
     when: always          # a failed run still leaves usable logs
     expire_in: 1 month
@@ -78,8 +68,6 @@ mi300x:
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   rules:
-    - if: '$JLSE_CI != "jlse"'
-      when: never
     - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
       when: on_success
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -117,13 +105,24 @@ mi300x-hip:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
 
-# Alone in a jlse-h100 pipeline (see the top). Its job status is the verdict:
-# no summary or wiki there, which would replace the jlse report.
+# The dotenv artifact makes an attempted H100 run visible to a retried summary,
+# including a failed run whose per-id artifacts are incomplete.
 h100-extended:
   extends: .jlse-extended
   resource_group: h100
   rules:
-    - if: '$JLSE_CI == "jlse-h100"'
+    - when: manual
+      allow_failure: true
+  script:
+    - echo JLSE_H100_ATTEMPTED=1 > jlse-h100.env
+    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "jlse:$CI_JOB_NAME")
+  artifacts:
+    when: always
+    expire_in: 1 month
+    paths:
+      - results/
+    reports:
+      dotenv: jlse-h100.env
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
@@ -172,8 +171,7 @@ jlse-summary:
   extends: .shell-runner
   stage: report
   rules:
-    - if: '$JLSE_CI == "jlse"'
-      when: always
+    - when: always
   needs:
     - chiatta
     - a100
@@ -183,6 +181,9 @@ jlse-summary:
     - a100-omp-fast-math
     - mi300x-omp-fast-math
     - mi300x-hip
+    - job: h100-extended
+      artifacts: true
+      optional: true
     - a40-extended
     - adaptivecpp-a40
     - adaptivecpp-mi300x
@@ -192,7 +193,18 @@ jlse-summary:
   script:
     - set +e
     - mkdir -p results
-    - python3 test/check_id.py --table $(python3 test/check_id.py --list jlse:) > results/jlse-summary.md
+    - summary_ids=
+    - h100_ids=" $(python3 test/check_id.py --list jlse:h100-extended) "
+    - |
+      for id in $(python3 test/check_id.py --list jlse:); do
+        case "$h100_ids" in
+          *" $id "*)
+            # Omit H100 only before its optional job has been attempted.
+            [ "${JLSE_H100_ATTEMPTED:-0}" = 1 ] && summary_ids="$summary_ids $id" ;;
+          *) summary_ids="$summary_ids $id" ;;
+        esac
+      done
+    - python3 test/check_id.py --table $summary_ids > results/jlse-summary.md
     - summary_status=$?
     - cat results/jlse-summary.md
     - exit "$summary_status"
@@ -210,7 +222,7 @@ jlse-wiki:
   needs:
     - {job: jlse-summary, artifacts: true}
   rules:
-    - if: '$JLSE_CI == "jlse" && ($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule")'
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
       when: always
   script:
     - python3 test/publish_jlse_wiki.py results/jlse-summary.md
