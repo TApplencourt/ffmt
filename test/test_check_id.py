@@ -147,7 +147,11 @@ class CheckIdTest(unittest.TestCase):
     def test_what_no_state_can_express_always_fails(self):
         for name, contents, message in [
                 ("tests.log", "0 build a\n0 build b\n0 run b\n", "a did not finish"),
-                ("tests.log", "0 build a\n0 build b\n1 run a\n0 run b\n", "a: exit status 1 after test 3"),
+                ("tests.log", "0 build a\n0 build b\n1 run a\n0 run b\n",
+                 "a: exit status 1 after test 3 of 3"),
+                # The device pass ran fewer tests than the plan says.
+                ("a.run.log", tap(3).replace("# start 3\nok 3 - x\n", ""),
+                 "a: exit status 0 after test 2 of 3"),
                 ("a.run.log", "", "a: exit status 0 before its first test"),
                 ("a.run.log", tap(4), "a holds 4 tests, test/tests.json says 3"),
                 ("negative.log", "0 syntax reject_x\n1 fmt reject_x\n0 ffmt reject_x\n",

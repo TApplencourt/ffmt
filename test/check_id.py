@@ -193,7 +193,7 @@ class Results:
         last = started[-1]
         if last in result:
             # Not in a test: nothing a test's state can express.
-            self.problems.append(f"{name}: exit status {status} after test {last} "
+            self.problems.append(f"{name}: exit status {status} after test {last} of {count} "
                                  f"(see {name}.run.log)")
             return
         # It died in test `last`: that one failed, the ones after it did not run.

@@ -206,7 +206,7 @@ struct tap_reporter {
   // device_ok: false if the launch itself reported an error (device_sync).
   void end(bool device_ok = true) {
     std::string actual = cap.stop();
-    bool known = id >= 1 && static_cast<size_t>(id) <= expected.size();
+    bool known = static_cast<size_t>(id) <= expected.size();
     if (device_ok && known && actual == expected[id - 1]) {
       fprintf(stderr, "ok %d - %s\n", id, name);
       return;
@@ -222,13 +222,7 @@ struct tap_reporter {
     show("Actual", actual);
   }
 
-  // The exit status: both passes must have seen the same number of tests.
-  int status() const {
-    if (static_cast<size_t>(id) != expected.size()) {
-      fprintf(stderr, "Bail out! %s: %d tests ran, the reference pass has %zu\n",
-              name, id, expected.size());
-      return 1;
-    }
-    return failed ? TEST_FAILED : 0;
-  }
+  // The exit status. A device pass that runs another number of tests than
+  // the plan says is told by test/check_id.py, from the TAP.
+  int status() const { return failed ? TEST_FAILED : 0; }
 };
