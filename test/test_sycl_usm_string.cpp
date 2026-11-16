@@ -1,12 +1,12 @@
 // A string in SYCL USM shared memory (sycl::malloc_shared), printed from
 // the device.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME sycl_usm_string
-#define TEST_INC "isolated/test_sycl_usm_string.cpp"
+#define TEST_INC "test_sycl_usm_string.cpp"
 #include <cstring>
-#include "../test_body.inc"
+#include "test_body.inc"
 #else
 {
   const char *env = "cpu-char-* copied";

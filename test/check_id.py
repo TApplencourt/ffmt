@@ -1,190 +1,334 @@
 #!/usr/bin/env python3
-"""Compare one id's results with its expected failures in test/configs.json.
+"""Compare the results of ids with what test/configs.json expects of them.
 
-    python3 test/check_id.py 4          after test/run_id.sh 4
-    python3 test/check_id.py 39 build   after test/run_id.sh 39 build
-    python3 test/check_id.py 72 extra-test  after test/run_id.sh 72 extra-test
+    python3 test/check_id.py 4       after test/run_id.sh 4
+    python3 test/check_id.py 2 3 10  several ids, e.g. from downloaded CI artifacts
+    python3 test/check_id.py 4 --accept-and-update-config
+    python3 test/check_id.py --summary
+    python3 test/check_id.py --table 2 3 10
 
-Reads results/id-<id>/ and prints every failure that is not expected and
-every expected failure that did not happen, then exits 1 if there is any.
-test/run_id.sh exits non-zero whenever a test fails, expected or not, so CI
-ignores its status and lets this script decide.
+Reads results/id-<id>/ (written by test/run_id.sh, or unpacked from a CI
+artifact) and gives every test one state:
 
-Names: a test is <file>:<number> (floats:104, null_string:3); an isolated
-binary that does not finish is <file>:crash; a file that does not compile is
-isolated:<name> or negative:<name>. Backend and harness failures that do not
-fit those categories use exact expected_fail.structural signatures, such as
-main:crash, main:build, negative-control:accept_valid:ffmt, and
-extra:<name>:build. Missing logs and an interrupted run_id.sh are always
-failures, never expected structural failures.
+    passed                it ran and printed what {fmt} prints
+    failed_to_compile     its file did not build
+    failed_to_run         it ran and printed something else, or crashed
+    compiled_but_not_run  an earlier test of its file crashed the binary
+
+A test is <file>:<number> (floats:104 is the 104th RUN of
+test/test_floats.cpp). Two more things have a state, as they fail on some
+ids: extra:<name>, a program of the id's FFMT_EXTRA_FILES (it passes when it
+builds and exits 0), and negative:accept_valid, the control of the negative
+tests (when it does not build through ffmt, nothing does, and the negative
+tests are not judged).
+
+test/configs.json lists, per id, every test that is not expected to pass,
+under its state; test/tests.json holds the number of tests of each file,
+which is how the tests of a file that did not build are known. The check
+fails if a test is in another state than expected, in either direction, or
+if the logs do not explain themselves (a missing log, an interrupted run, a
+crash outside a test, a negative test that compiles, ...): that is never
+expected.
+
+--accept-and-update-config rewrites the id's row (and test/tests.json) from
+the results instead of comparing: review the diff before you commit it.
+--summary reads only test/configs.json and prints which ids share which
+failures. --table prints one Markdown table of ids already checked, from the
+row each check left in results/id-<id>/summary.md: for a CI summary page.
 """
-import glob
+
+import argparse
+import collections
 import json
 import os
 import re
 import sys
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-id_ = int(sys.argv[1])
-mode = sys.argv[2] if len(sys.argv) > 2 else "test"
-if mode not in ("test", "build", "extra-test"):
-    sys.exit("usage: python3 test/check_id.py <id> [test|build|extra-test]")
-ran = mode in ("test", "extra-test")
-row = {r["id"]: r for r in json.load(open("test/configs.json"))}[id_]
-logs = "results/id-%d/" % id_
-problems, compile_fails, runtime_fails = [], set(), set()
-structural_fails = {}
+CONFIGS, TESTS = "test/configs.json", "test/tests.json"
+STATES = ("failed_to_compile", "failed_to_run", "compiled_but_not_run")
+STATE_OF_STEP = {"build": "failed_to_compile", "run": "failed_to_run"}
+TEST_FAILED = 88  # test/capture.hpp: ran to the end, some test failed
 
 
-def structural(signature, detail):
-    structural_fails[signature] = detail
+def key(test):
+    """Sort key of a test: floats:9 before floats:10. extra:<name> and
+    negative:accept_valid have a name where the others have a number."""
+    name, n = test.split(":", 1)
+    return name, int(n) if n.isdigit() else n
 
 
-def stem(name):
-    return os.path.basename(name).replace("test_", "", 1).replace(".cpp", "")
+def tests_of(name, numbers):
+    return [f"{name}:{n}" for n in numbers]
 
 
-def run_failures(log, status, name):
-    """Return a binary's test failures and record abnormal completion."""
-    if not os.path.exists(logs + log):
-        problems.append("no %s: cannot evaluate %s (exit %d)" % (log, name, status))
-        return []
-    fails = ["%s:%s" % (stem(f), n) for n, f in
-             re.findall(r"^not ok (\d+) - (\S+)", open(logs + log, errors="replace").read(), re.M)]
-    if status == (88 if fails else 0):
-        return fails
-    if name == "main":
-        structural("main:crash", "the main binary did not complete normally (exit %d)" % status)
+def ranges(tests):
+    """floats:1 floats:2 floats:3 floats:7 -> ['floats:1-3,7'], one item per file."""
+    by_file = collections.defaultdict(list)
+    for name, n in sorted(map(key, tests)):
+        by_file[name].append(n)
+    out = [f"{name}:{n}" for name in ("extra", "negative") for n in by_file.pop(name, [])]
+    for name, ns in by_file.items():
+        spans, start = [], ns[0]
+        for n, following in zip(ns, [*ns[1:], None]):
+            if following != n + 1:
+                spans.append(str(start) if start == n else f"{start}-{n}")
+                start = following
+        out.append(f"{name}:{','.join(spans)}")
+    return out
+
+
+def dump_configs(rows):
+    """test/configs.json: plain JSON, each list with one line per test file."""
+
+    def tests(names):
+        by_file = collections.defaultdict(list)
+        for t in sorted(names, key=key):
+            by_file[key(t)[0]].append(json.dumps(t))
+        lines = ",\n".join("      " + ", ".join(v) for v in by_file.values())
+        return f"[\n{lines}\n    ]" if names else "[]"
+
+    out = []
+    for r in rows:
+        fields = [(k, json.dumps(r[k], ensure_ascii=False)) for k in r if k not in STATES]
+        fields += [(s, tests(r[s])) for s in STATES]
+        out.append("  {\n" + ",\n".join(f'    "{k}": {v}' for k, v in fields) + "\n  }")
+    with open(CONFIGS, "w") as f:
+        f.write("[\n" + ",\n".join(out) + "\n]\n")
+
+
+class Results:
+    """What results/id-<id>/ says: the state of every test that did not pass
+    (states), the test count of every file that ran far enough to say it
+    (counts), and what the logs cannot explain (problems)."""
+
+    def __init__(self, id_, counts):
+        self.logs = f"results/id-{id_}/"
+        self.problems, self.states, self.counts = [], {}, {}
+        config = dict(re.findall(r"^(goal|commit)=(.*)$", self.read("config.txt"), re.MULTILINE))
+        self.commit = config.get("commit", "")
+        self.ran = config.get("goal") == "test"
+        if config.get("goal") not in ("test", "build"):
+            self.problems.append(f"no goal in {self.logs}config.txt: test/run_id.sh did not run")
+
+        status = collections.defaultdict(dict)
+        for code, step, name in self.lines("tests.log"):
+            status[name][step] = int(code)
+        for name, st in sorted(status.items()):
+            if st["build"] == 0:
+                if self.ran:
+                    self.run(name, st.get("run"))
+            elif name in counts:
+                self.set(name, range(1, counts[name] + 1), "failed_to_compile")
+            else:
+                self.problems.append(f"{name} does not build and {TESTS} does not know how many "
+                                     "tests it holds: accept an id that builds it first")
+        for name in sorted(set(counts) - set(status)):
+            self.problems.append(f"{name} is in {TESTS} but was not built: "
+                                 "remove it there if the file is gone")
+        self.negative()
+        # FFMT_EXTRA_FILES (e.g. the README examples): see extra-<name>.log.
+        for code, step, name in self.lines("extra.log"):
+            if code != "0":
+                self.states[f"extra:{name}"] = STATE_OF_STEP[step]
+
+    def read(self, log):
+        if os.path.exists(self.logs + log):
+            with open(self.logs + log, errors="replace") as f:
+                return f.read()
+        self.problems.append(f"no {self.logs}{log}: that step did not run")
+        return ""
+
+    def lines(self, log):
+        """The fields of each `<exit status> <step> <name>` line of a status log."""
+        return [line.split() for line in self.read(log).splitlines()]
+
+    def set(self, name, numbers, state):
+        self.states.update((t, state) for t in tests_of(name, numbers))
+
+    def run(self, name, status):
+        """One binary's TAP log (tap_reporter, test/capture.hpp)."""
+        log = self.read(f"{name}.run.log")
+        plan = re.search(r"^1\.\.(\d+)$", log, re.MULTILINE)
+        started = [int(n) for n in re.findall(r"^# start (\d+)$", log, re.MULTILINE)]
+        if status is None:
+            self.problems.append(f"{name} did not finish: the run was interrupted")
+            return
+        if not plan or not started:
+            self.problems.append(f"{name}: exit status {status} before its first test "
+                                 f"(see {name}.run.log)")
+            return
+        count = self.counts[name] = int(plan.group(1))
+        result = {int(n): r for r, n in re.findall(r"^(ok|not ok) (\d+) - ", log, re.MULTILINE)}
+        failed = [n for n, r in result.items() if r == "not ok"]
+        self.set(name, failed, "failed_to_run")
+        finished = sorted(result) == list(range(1, count + 1))
+        if finished and status == (TEST_FAILED if failed else 0):
+            return
+        last = started[-1]
+        if last in result:
+            # Not in a test: nothing a test's state can express.
+            self.problems.append(f"{name}: exit status {status} after test {last} "
+                                 f"(see {name}.run.log)")
+            return
+        # It died in test `last`: that one failed, the ones after it did not run.
+        self.set(name, [last], "failed_to_run")
+        self.set(name, range(last + 1, count + 1), "compiled_but_not_run")
+
+    def negative(self):
+        """Each test/negative/reject_*.cpp passes when ffmt rejects it. No id
+        may expect otherwise, so anything else is a problem."""
+        status = {(name, kind): code == "0" for code, kind, name in self.lines("negative.log")}
+        for kind in ("syntax", "fmt"):
+            if not status.pop(("accept_valid", kind), True):
+                self.problems.append(f"the negative control does not compile ({kind} pass)")
+        if not status.pop(("accept_valid", "ffmt"), True):
+            # Nothing compiles through ffmt here: every rejection is void.
+            self.states["negative:accept_valid"] = "failed_to_compile"
+            return
+        for (name, kind), compiled in sorted(status.items()):
+            if kind == "syntax" and not compiled:
+                self.problems.append(f"negative:{name} is broken: it fails to compile even "
+                                     "with the format call made a no-op")
+            elif kind == "fmt" and compiled:
+                self.problems.append(f"negative:{name}: {{fmt}} accepts it, so it is not a "
+                                     "real restriction")
+            elif kind == "ffmt" and compiled:
+                self.problems.append(f"negative:{name}: ffmt accepts what {{fmt}} rejects")
+
+
+def check(row, counts, accept):
+    """Check one id against its row, or with accept rewrite the row from the
+    results. Returns (problems, the test counts the run reported)."""
+    res = Results(row["id"], counts)
+    problems = list(res.problems)
+    if not accept:
+        problems += [f"{name} holds {n} tests, {TESTS} says {counts.get(name)}"
+                     for name, n in sorted(res.counts.items()) if counts.get(name) != n]
+
+    # A build-only run knows nothing about the run states.
+    states = STATES if res.ran else STATES[:1]
+    expected = {t: s for s in states for t in row[s]}
+    actual = {t: s for t, s in res.states.items() if s in states}
+    moved = collections.defaultdict(list)
+    for t in set(expected) | set(actual):
+        if expected.get(t) != actual.get(t):
+            moved[expected.get(t, "passed"), actual.get(t, "passed")].append(t)
+    changes = [f"{r}: expected {exp}, got {got}"
+               for (exp, got), tests in sorted(moved.items()) for r in ranges(tests)]
+
+    if not accept:
+        problems += changes
+    elif res.commit.endswith("-dirty"):
+        # tested_commit must name the tree that was tested.
+        problems.append("not accepted: these results come from uncommitted changes "
+                        f"({res.commit}); commit, run again, then accept")
+    elif problems:
+        problems.append("not accepted: the config cannot express the above")
     else:
-        fails.append(name + ":crash")
-    return fails
+        for s in states:
+            row[s] = sorted((t for t, st in actual.items() if st == s), key=key)
+        row["tested_commit"] = res.commit
+
+    n = collections.Counter(actual.values())
+    result = (f"{len(problems)} problem(s)" if problems else
+              "as expected (" + ", ".join(f"{n[s]} {s}" for s in states) + ")")
+    print(f"id {row['id']} ({row['notes']}): {result}")
+    for line in problems or [f"accepted: {c}" for c in changes]:
+        print("  " + line)
+
+    # The id's row of --table, so a failing id can be read without its log.
+    if os.path.isdir(res.logs):
+        with open(res.logs + "summary.md", "w") as f:
+            cell = "<br>".join([result, *problems]).replace("|", "\\|")
+            f.write(f"| {'❌' if problems else '✅'} {row['id']} | {row['notes']} | {cell} |\n")
+    return problems, res.counts
 
 
-def lines(log):
-    """The fields of each line of a status log, or a problem if it is missing."""
-    if os.path.exists(logs + log):
-        return [line.split() for line in open(logs + log)]
-    problems.append("no %s: that step did not run" % log)
-    return []
+def resize(rows, name, old, new):
+    """A file went from old to new tests: the ids that cannot build it fail
+    to compile all of them, which needs no run to know."""
+    was = set(tests_of(name, range(1, old + 1)))
+    for r in rows:
+        if was and was <= set(r["failed_to_compile"]):
+            now = set(r["failed_to_compile"]) - was | set(tests_of(name, range(1, new + 1)))
+            r["failed_to_compile"] = sorted(now, key=key)
 
 
-if mode == "build":
-    if os.path.exists(logs + "build.status"):
-        status = int(open(logs + "build.status").read())
-        if status != 0:
-            problems.append("the build failed (exit %d, see build.log)" % status)
-    else:
-        problems.append("no build.status: the build did not run to completion")
-if mode == "test" and os.path.exists(logs + "run.status") and not os.path.exists(logs + "run_id.status"):
-    problems.append("no run_id.status: the full test invocation did not complete")
-if mode == "extra-test" and not os.path.exists(logs + "extra-test.status"):
-    problems.append("no extra-test.status: the example invocation did not complete")
-if ran:
-    if os.path.exists(logs + "run.status"):
-        runtime_fails.update(run_failures("run.log", int(open(logs + "run.status").read()), "main"))
-    elif os.path.exists(logs + "run.log"):
-        problems.append("run.log exists but run.status is missing: the run did not complete")
-    elif not os.path.exists(logs + "build.log") or os.path.getsize(logs + "build.log") == 0:
-        problems.append("no nonempty build.log or run.status: the main build did not run to completion")
-    elif not os.path.exists(logs + "run_id.status"):
-        problems.append("no run_id.status: cannot distinguish a main build failure from an interrupted run")
-    elif int(open(logs + "run_id.status").read()) == 0:
-        problems.append("run_id.sh succeeded but run.status is missing")
-    elif not os.path.exists(logs + "main-build.status"):
-        problems.append("no main-build.status: cannot establish that the main binary failed to build")
-    elif int(open(logs + "main-build.status").read()) == 0:
-        problems.append("the main binary built but run.status is missing: the run did not complete")
-    else:
-        structural("main:build", "the main binary did not build in a completed run_id.sh invocation")
+def summary(rows):
+    """Which ids share which failures, from test/configs.json alone."""
+    print(f"{'id':>4}  {STATES[0]:>17}  {STATES[1]:>13}  {STATES[2]:>20}  notes")
+    for r in rows:
+        a, b, c = (len(r[s]) for s in STATES)
+        print(f"{r['id']:>4}  {a:>17}  {b:>13}  {c:>20}  {r['notes']}")
+    # Tests that are in the same state on the same set of ids go together.
+    ids_of = collections.defaultdict(list)
+    for r in rows:
+        for s in STATES:
+            for t in r[s]:
+                ids_of[s, t].append(r["id"])
+    groups = collections.defaultdict(list)
+    for (s, t), ids in ids_of.items():
+        groups[s, tuple(ids)].append(t)
+    for (s, ids), tests in sorted(groups.items(), key=lambda g: (-len(g[0][1]), g[0])):
+        print(f"\n{s} on {len(ids)} id(s): {' '.join(map(str, ids))}")
+        for r in ranges(tests):
+            print("  " + r)
 
-for status, step, name in lines("isolated.log"):
-    if step == "build" and status != "0":
-        compile_fails.add("isolated:" + stem(name))
-    elif step == "run":
-        runtime_fails.update(run_failures("isolated-%s.log" % name, int(status), stem(name)))
 
-for status, kind, name in lines("negative.log"):
-    compiled = status == "0"
-    if name == "accept_valid":
-        if not compiled:
-            structural("negative-control:accept_valid:%s" % kind,
-                       "the negative control does not compile (%s pass), "
-                       "so the negative results mean nothing" % kind)
-    elif kind == "syntax" and not compiled:
-        structural("negative-control:%s:syntax" % name,
-                   "negative:%s is broken: it fails to compile even with "
-                   "the format call made a no-op" % name)
-    elif kind == "fmt" and compiled:
-        structural("negative-control:%s:fmt" % name,
-                   "negative:%s: {fmt} accepts it, so it is not a real restriction" % name)
-    elif kind == "ffmt" and not compiled:
-        compile_fails.add("negative:" + name)
+def table(by_id, ids):
+    """One Markdown table of ids already checked. Returns whether any of them
+    has problems or was not checked at all."""
+    print("| id | config | result |\n|---|---|---|")
+    bad = False
+    for id_ in ids:
+        path = f"results/id-{id_}/summary.md"
+        if os.path.exists(path):
+            with open(path) as f:
+                row = f.read().strip()
+        else:
+            row = f"| ⚠️ {id_} | {by_id[id_]['notes']} | no result: test/check_id.py did not run |"
+        bad |= not row.startswith("| ✅")
+        print(row)
+    return bad
 
-# FFMT_EXTRA_FILES (e.g. the README examples) use separate structural
-# signatures rather than individual compile/runtime expectations.
-extra_builds, extra_runs = {}, set()
-for status, step, name in lines("extra.log"):
-    if status != "0":
-        structural("extra:%s:%s" % (name, step),
-                   "extra file %s does not %s (exit %s, see extra-%s.log)"
-                   % (name, step, status, name))
-    if step == "build":
-        extra_builds[name] = status
-    elif step == "run":
-        extra_runs.add(name)
-if ran:
-    for name, status in extra_builds.items():
-        if status == "0" and name not in extra_runs:
-            if mode != "test" or "main:build" not in structural_fails:
-                structural("extra:%s:not-run" % name, "extra file %s built but did not run" % name)
-    for name in extra_runs - extra_builds.keys():
-        problems.append("extra file %s ran without a current build" % name)
 
-expected = row["expected_fail"]
-expected_compile = set(expected["compile"])
-if "negative-control:accept_valid:ffmt" in structural_fails:
-    compile_fails = {n for n in compile_fails if not n.startswith("negative:")}
-    expected_compile = {n for n in expected_compile if not n.startswith("negative:")}
-expected_runtime = set(expected["runtime"] if ran else [])
-for what, actual, exp in (("compile", compile_fails, expected_compile),
-                          ("runtime", runtime_fails, expected_runtime)):
-    problems += ["unexpected %s failure: %s" % (what, n) for n in sorted(actual - set(exp))]
-    if what == "runtime" and structural_fails.keys() & {"main:crash", "main:build"}:
-        main_tests = {stem(path) for path in glob.glob("test/test_*.cpp")}
-        exp = {n for n in exp if n.split(":", 1)[0] not in main_tests}
-    problems += ["unexpected %s pass (XPASS): %s" % (what, n) for n in sorted(set(exp) - actual)]
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("ids", type=int, nargs="*", help="ids to check, from results/id-<id>/")
+    ap.add_argument("--accept-and-update-config", action="store_true", dest="accept",
+                    help=f"rewrite the ids' rows of {CONFIGS}, and {TESTS}, from the results")
+    ap.add_argument("--summary", action="store_true",
+                    help="print which ids share which failures and exit")
+    ap.add_argument("--table", action="store_true",
+                    help="print the Markdown table of ids already checked")
+    args = ap.parse_args()
+    with open(CONFIGS) as f:
+        rows = json.load(f)
+    if args.summary:
+        return summary(rows)
+    if not args.ids:
+        ap.error("give at least one id, or --summary")
+    by_id = {r["id"]: r for r in rows}
+    if args.table:
+        return int(table(by_id, args.ids))
+    with open(TESTS) as f:
+        counts = json.load(f)
+    failed = False
+    for id_ in args.ids:
+        problems, seen = check(by_id[id_], counts, args.accept)
+        failed |= bool(problems)
+        if args.accept and not problems:
+            for name, n in seen.items():
+                resize(rows, name, counts.get(name, 0), n)
+            counts.update(seen)
+    if args.accept:
+        dump_configs(rows)
+        with open(TESTS, "w") as f:
+            json.dump(counts, f, indent=2, sort_keys=True)
+            f.write("\n")
+    return 1 if failed else 0
 
-expected_structural = expected.get("structural", [])
-if not isinstance(expected_structural, list):
-    problems.append("expected_fail.structural must be a list of exact signatures")
-    expected_structural = []
-expected_structural = set(expected_structural)
-matched_structural = structural_fails.keys() & expected_structural
-problems += ["unexpected structural failure: %s (%s)" % (n, structural_fails[n])
-             for n in sorted(structural_fails.keys() - expected_structural)]
-problems += ["unexpected structural pass (XPASS): %s" % n
-             for n in sorted(expected_structural - structural_fails.keys())]
 
-counts = "%d compile, %d runtime, %d structural expected failures" % (
-    len(compile_fails), len(runtime_fails), len(matched_structural))
-if problems:
-    outcome, glyph = "FAIL", "❌"
-    result = "FAIL (%d problem(s)); observed %s" % (len(problems), counts)
-elif structural_fails:
-    outcome, glyph = "XFAIL", "⚠️"
-    result = "XFAIL (%s)" % counts
-else:
-    outcome, glyph = "PASS", "✅"
-    result = "PASS (%s)" % counts
-expected_details = ["expected structural failure: %s (%s)" % (n, structural_fails[n])
-                    for n in sorted(matched_structural)]
-print("id %d (%s): %s" % (id_, row["notes"], result))
-for p in problems + expected_details:
-    print("  " + p)
-
-# The id's row of the table on the CI run's summary page (the workflow's
-# summary job), so a failing id can be read without opening its log.
-with open(logs + "summary.md", "w") as f:
-    f.write("| %s %d | %s | %s |\n" % (glyph, id_, row["notes"],
-                                     "<br>".join([result] + problems + expected_details).replace("|", "\\|")))
-sys.exit(1 if problems else 0)
+if __name__ == "__main__":
+    sys.exit(main())

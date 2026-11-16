@@ -1,13 +1,13 @@
 // Cases clang-22 OpenMP offload to NVPTX at -O2 cannot compile: OpenMPOpt's
 // AAPointerInfoFloating asserts in Casting.h:572 when a format call mixes a
 // string-literal argument with other argument types.
-// Built as its own binary (test/isolated/): ids that cannot compile it list
-// it under expected_fail.compile in test/configs.json.
+// Ids that cannot compile it list its tests under failed_to_compile in
+// test/configs.json.
 #ifndef TEST_INC
 #define TEST_NAME nvptx_o2_ice
-#define TEST_INC "isolated/test_nvptx_o2_ice.cpp"
+#define TEST_INC "test_nvptx_o2_ice.cpp"
 
-#include "../capture.hpp"
+#include "capture.hpp"
 
 namespace test_fmt {
 struct boxed { int v; };
@@ -28,7 +28,7 @@ struct ffmt::formatter<test_fmt::boxed> {
   }
 };
 
-#include "../test_body.inc"
+#include "test_body.inc"
 #else
 
 RUN(PRINT("{1} {0}\n", "hello", "world"));

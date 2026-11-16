@@ -2,9 +2,9 @@ import io
 import json
 import os
 import unittest
-from unittest import mock
 import urllib.error
 import urllib.parse
+from unittest import mock
 
 import publish_jlse_wiki
 

@@ -10,6 +10,7 @@ module use /soft/modulefiles
 module load gcc/13.3.0
 module load rocm/7.0.2
 export HIP_VISIBLE_DEVICES=0
+export ACPP_VISIBILITY_MASK=hip   # the GPU backend only: fail rather than fall back to the host
 export PATH=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/bin:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/bin:$PATH
 export LD_LIBRARY_PATH=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/lib:$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/lib64:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib/x86_64-unknown-linux-gnu:$FFMT_RUNTIME_ROOT/software/mi300x/install/host-runtime/lib:${LD_LIBRARY_PATH:-}
 export CXX=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/bin/acpp

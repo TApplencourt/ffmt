@@ -11,8 +11,8 @@ os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 examples = {open(f).read() for f in glob.glob("examples/*")}
 readme = open("README.md").read()
 bad = [readme.count("\n", 0, m.start()) + 1
-       for m in re.finditer(r"```cpp\n(.*?)```", readme, re.S)
+       for m in re.finditer(r"```cpp\n(.*?)```", readme, re.DOTALL)
        if "int main(" in m.group(1) and m.group(1) not in examples]
 for line in bad:
-    print("README.md:%d: a program that is not a copy of a file in examples/" % line)
+    print(f"README.md:{line}: a program that is not a copy of a file in examples/")
 sys.exit(1 if bad else 0)

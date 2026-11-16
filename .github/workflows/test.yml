@@ -1,9 +1,9 @@
 name: test
 
 # Every id of test/configs.json that a GitHub runner can run, each through
-# test/run_id.sh. test/check_id.py then compares the id's results with its
-# expected failures and decides pass or fail, so run_id.sh's own exit status
-# (non-zero whenever any test fails, expected or not) is ignored.
+# test/run_id.sh, which only records what happens. test/check_id.py then
+# compares the id's results with what test/configs.json expects and decides
+# pass or fail.
 
 on:
   push:
@@ -53,13 +53,16 @@ jobs:
         run: |
           brew install make
           echo "$(brew --prefix)/opt/make/libexec/gnubin" >> "$GITHUB_PATH"
-      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }} || true
-      - run: python3 test/check_id.py ${{ matrix.id }} ${{ matrix.goal }}
+      - run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }}
+      - run: python3 test/check_id.py ${{ matrix.id }}
       - if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: summary-${{ matrix.id }}
-          path: results/id-${{ matrix.id }}/summary.md
+          # The id's logs, named so that `gh run download <run> --dir results`
+          # puts them where test/check_id.py reads them, to review a run and
+          # accept it locally (--accept-and-update-config).
+          name: id-${{ matrix.id }}
+          path: results/id-${{ matrix.id }}/
           # The summary job reports a missing row itself.
           if-no-files-found: ignore
 
@@ -70,20 +73,14 @@ jobs:
     if: always()
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8
         with:
-          pattern: summary-*
+          pattern: id-*
+          path: results
       - env:
           IDS: ${{ needs.matrix.outputs.ids }}
-        run: |
-          python3 - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
-          import json, os
-          print("| id | config | result |\n|---|---|---|")
-          for r in json.loads(os.environ["IDS"]):
-              f = "summary-%d/summary.md" % r["id"]
-              print(open(f).read().strip() if os.path.exists(f) else
-                    "| ⚠️ %d | %s | no result: check_id.py did not run |" % (r["id"], r["notes"]))
-          EOF
+        run: python3 test/check_id.py --table $(jq -r '.[].id' <<< "$IDS") >> "$GITHUB_STEP_SUMMARY" || true
 
   readme:
     # Every whole program in README.md is a copy of a file in examples/,
@@ -95,7 +92,7 @@ jobs:
       - run: python3 test/check_readme.py
 
   checker:
-    name: result classification
+    name: unit tests of the test scripts
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -103,7 +100,7 @@ jobs:
 
   coverage:
     # Region coverage of base.hpp, as the union over the coverage ids' binaries
-    # (34 specifiers path, 35 buffer path; main and isolated binaries both),
+    # (34 specifiers path, 35 buffer path; every test binary),
     # must not drop against the base branch.
     name: coverage non-regression
     runs-on: ubuntu-24.04
@@ -129,9 +126,11 @@ jobs:
           git worktree add ../base ${{ steps.base.outputs.ref }}
           cd ../base
           if [ -x test/run_id.sh ]; then
+            # Test binaries are in build/id-<id>/bin/; a base that predates
+            # that has build/id-<id>/test and build/id-<id>/isolated/.
             test/run_id.sh 34 build || true
             test/run_id.sh 35 build || true
-            mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+            mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -path '*/bin/*' -o -name test -o -path '*/isolated/*' \))
           else
             # A base that predates test/run_id.sh: the old Makefile's build.
             make CXX=clang++ -j$(nproc) coverage
@@ -146,7 +145,7 @@ jobs:
         run: |
           test/run_id.sh 34 build || true
           test/run_id.sh 35 build || true
-          mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -name test -o -path '*/isolated/*' \))
+          mapfile -t BINS < <(find build/id-34 build/id-35 -type f -executable \( -path '*/bin/*' -o -name test -o -path '*/isolated/*' \))
           python3 .github/scripts/coverage_union.py \
             "$(clang++ -print-prog-name=llvm-cov)" "$(clang++ -print-prog-name=llvm-profdata)" \
             include/ffmt/base.hpp "${BINS[@]}" > head.txt

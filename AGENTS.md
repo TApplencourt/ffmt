@@ -103,34 +103,49 @@ differences.
 Reuse the existing framework; do not add a new test harness.
 
 - `test/test_<name>.cpp`: each `RUN(PRINT(...))` line is printed by ffmt and
-  by the pinned {fmt}, and the outputs are diffed. Add cases to the file
-  that fits. Every id compiles and runs every case.
-- `test/isolated/test_<name>.cpp`: cases that some ids cannot compile
-  (specs the specifiers path rejects, C++23, SYCL types, a compiler crash).
-  Each file is built as its own binary, so a compile failure stays
-  contained. A case goes here only if it does not compile somewhere; group
-  cases by the reason.
+  by the pinned {fmt}, and the outputs are compared. Every id builds every
+  file, each as its own binary, and runs every case. A file that does not
+  compile on an id, or a case that crashes its binary, takes down only that
+  file's tests: keep cases that some ids cannot compile (specs the
+  specifiers path rejects, C++23, SYCL types, a compiler crash) or that
+  crash in files of their own, grouped by the reason. Add other cases to the file that fits, at its end: a test is
+  named by its position, so one added in the middle renames those after it.
 - `test/negative/reject_*.cpp`: one `NEG_EXPECT_REJECTED(...)` per file.
   Every id compiles it three ways: it must compile with the call made a
   no-op, and fail to compile through ffmt *and* through {fmt}.
-- The tests use no condition but `FFMT_ID_<id>`. A case that fails on an id
-  is listed under that id's `expected_fail` in `test/configs.json`:
-  `compile` for a file that does not build (`isolated:<name>`,
-  `negative:<name>`), `runtime` for a test whose output differs
-  (`<file>:<number>`). Never change expected output to hide a bug. For a
-  new compiler bug, add a reproducer to `implementation_limitation/`.
+- The test harness never selects a device: the id's setup script does,
+  through the runtime's environment (`ONEAPI_DEVICE_SELECTOR`,
+  `OMP_TARGET_OFFLOAD=MANDATORY`, `ACPP_VISIBILITY_MASK`,
+  `CUDA_VISIBLE_DEVICES`, ...), so that a missing device is an error and
+  not a silent run on the host.
+- The tests use no condition but `FFMT_ID_<id>`. A test is
+  `<file>:<number>` (`floats:104`), and each id's row in
+  `test/configs.json` lists every test that is not expected to pass there:
+  `failed_to_compile` (its file does not build), `failed_to_run` (its
+  output differs, or it crashes), `compiled_but_not_run` (an earlier test
+  of its file crashed the binary). The same lists hold `extra:<name>`, a
+  program of the id's `FFMT_EXTRA_FILES` that does not build or run, and
+  `negative:accept_valid` where nothing builds through ffmt. A negative
+  test passes when ffmt rejects it; no id may expect otherwise. Never change expected output to hide a
+  bug. For a new compiler bug, add a reproducer to
+  `implementation_limitation/`.
+- Do not edit the lists of `test/configs.json` or `test/tests.json` (the
+  number of tests of each file) by hand:
+  `test/check_id.py <id> --accept-and-update-config` rewrites them from the
+  id's results. For an id that only CI can run, download the job's results
+  artifact into `results/` first (GitHub: `gh run download <run> --dir
+  results`; GitLab: unpack the job's artifact in the checkout). Review the
+  diff before committing it: every new entry is a test that does not pass.
 - The README programs are copies of files in `examples/`, built and run
   by each id that lists them in `FFMT_EXTRA_FILES`; `test/check_readme.py`
   (in CI) fails if a README program is not an exact copy: edit both.
 
 An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
 every compile flag) plus its row in `test/configs.json`. The row's
-`tested_commit` is the commit at which the id last ran and matched its
-`expected_fail` (`N/A` if it never has); `results/id-<id>/config.txt`
-records the commit of each run, so update the field when you run an id. Ids 0 and 1 are the
-host references (g++; specifiers path and buffer path); start a new id's
-`expected_fail` from the reference for its path. A new toolchain or machine
-gets a new id.
+`tested_commit` is the commit of the results last accepted for the id
+(`N/A` if none ever was). Ids 0 and 1 are the host references (g++;
+specifiers path and buffer path). A new toolchain or machine gets a new id:
+add a row with empty lists, run it, and accept its results.
 
 ```sh
 test/run_id.sh 1;  python3 test/check_id.py 1    # host, buffer path: run first
@@ -138,9 +153,10 @@ test/run_id.sh 0;  python3 test/check_id.py 0    # host, specifiers path
 test/run_id.sh 26; python3 test/check_id.py 26   # g++ ASan+UBSan, as CI
 ```
 
-`test/run_id.sh` exits non-zero whenever a test fails, expected or not;
-`test/check_id.py` is what decides. Valgrind has no target: run it on
-`build/id-<id>/test`.
+`test/run_id.sh` only records what happens in `results/id-<id>/`;
+`test/check_id.py` is what decides. `test/check_id.py --summary` prints
+which ids share which failures. Valgrind has no target: run it on a binary
+of `build/id-<id>/bin/`.
 
 Host tests are not enough for device-facing changes: say which ids you
 actually ran, and which you did not.
@@ -149,6 +165,6 @@ actually ran, and which you did not.
 
 Never relax the CI to make it pass: do not skip, loosen or delete a check,
 lower the coverage gate (region coverage of `base.hpp` must not drop), or
-add to an `expected_fail` list just to avoid implementing a fix. The GitHub
+accept a new failure into `test/configs.json` just to avoid implementing a fix. The GitHub
 device ids (36-42) only build, as GitHub has no GPU: green there means the
 device code builds, not that it runs correctly.

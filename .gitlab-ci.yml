@@ -1,8 +1,9 @@
-# ffmt on JLSE GPUs. Each job runs its IDs sequentially in one allocation
-# through test/run_ids.sh. Each ID gets a fresh test/run_id.sh process and
-# independent results; test/check_id.py decides its status after comparing
-# complete artifacts with test/configs.json. A failed check does not skip
-# later IDs, and the batch fails only after every ID has run.
+# ffmt on JLSE GPUs. Each job runs its ids one after another in one
+# allocation through test/run_ids.sh: test/run_id.sh records what each id
+# does, then test/check_id.py compares them all with test/configs.json and
+# decides. The results/ artifact of a job, unpacked in a checkout, is what
+# test/check_id.py reads: to review a run and accept it locally
+# (--accept-and-update-config).
 
 include:
   - project: 'ci-resources/defaults'
@@ -72,8 +73,6 @@ mi300x:
       when: manual
       allow_failure: false
 
-# Fast-math DPC++ and Intel LLVM 7.2 produce crashes or empty main-suite output.
-# Keep the affected targets visible without gating on empty output or waiving examples.
 chiatta-dpcpp:
   extends: .jlse-extended
   resource_group: chiatta
@@ -102,8 +101,7 @@ mi300x-omp-fast-math:
     IDS: "21 22"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_amd_mi300x"
 
-# The baseline header does not yet tag native HIP entry points FMT_HD. Keep
-# these total-build failures visible without waiving them or changing library code.
+# The header does not yet tag native HIP entry points FMT_HD: nothing builds.
 mi300x-hip:
   extends: .jlse-extended
   resource_group: mi300x
@@ -163,32 +161,33 @@ rome-extended:
     IDS: "60 61 66 67 76 77"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
 
-# Merge each job's artifacts through the API so same-named batch-status.tsv
-# files cannot overwrite one another. Each batch records its Cobalt ID because
-# CI_JOB_TOKEN cannot read other jobs' traces. This shell job submits no work.
+# One table of every id: each job's results/id-<id>/summary.md, which GitLab
+# puts back in place for a job that needs them. Submits no work. The ids are
+# the IDS of the jobs above.
 jlse-summary:
   extends: .shell-runner
   stage: report
   when: always
   needs:
-    - {job: chiatta, artifacts: false}
-    - {job: a100, artifacts: false}
-    - {job: mi300x, artifacts: false}
-    - {job: chiatta-dpcpp, artifacts: false}
-    - {job: a100-extended, artifacts: false}
-    - {job: a100-omp-fast-math, artifacts: false}
-    - {job: mi300x-omp-fast-math, artifacts: false}
-    - {job: mi300x-hip, artifacts: false}
-    - {job: h100-extended, artifacts: false}
-    - {job: a40-extended, artifacts: false}
-    - {job: adaptivecpp-a40, artifacts: false}
-    - {job: adaptivecpp-mi300x, artifacts: false}
-    - {job: chipstar, artifacts: false}
-    - {job: gh200-extended, artifacts: false}
-    - {job: rome-extended, artifacts: false}
+    - chiatta
+    - a100
+    - mi300x
+    - chiatta-dpcpp
+    - a100-extended
+    - a100-omp-fast-math
+    - mi300x-omp-fast-math
+    - mi300x-hip
+    - h100-extended
+    - a40-extended
+    - adaptivecpp-a40
+    - adaptivecpp-mi300x
+    - chipstar
+    - gh200-extended
+    - rome-extended
   script:
     - set +e
-    - python3 test/aggregate_jlse.py --fetch
+    - mkdir -p results
+    - python3 test/check_id.py --table $(sed -n 's/^ *IDS: "\(.*\)"/\1/p' .gitlab-ci.yml) > results/jlse-summary.md
     - summary_status=$?
     - cat results/jlse-summary.md
     - exit "$summary_status"
