@@ -105,7 +105,7 @@ mi300x-hip:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
 
-# The dotenv artifact makes an attempted H100 run visible to a retried summary,
+# This results marker makes an attempted H100 run visible to a retried summary,
 # including a failed run whose per-id artifacts are incomplete.
 h100-extended:
   extends: .jlse-extended
@@ -114,15 +114,9 @@ h100-extended:
     - when: manual
       allow_failure: true
   script:
-    - echo JLSE_H100_ATTEMPTED=1 > jlse-h100.env
+    - mkdir -p results
+    - touch results/h100-extended.attempted
     - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "jlse:$CI_JOB_NAME")
-  artifacts:
-    when: always
-    expire_in: 1 month
-    paths:
-      - results/
-    reports:
-      dotenv: jlse-h100.env
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
@@ -166,30 +160,14 @@ rome-extended:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
 
 # One table of every id: each job's results/id-<id>/summary.md, which GitLab
-# puts back in place for a job that needs them. Submits no work.
+# puts back in place from the previous stage. Do not add needs:optional for the
+# manual H100 job: GitLab then starts this job before the required artifacts are
+# ready. Default stage ordering also downloads H100 artifacts on a later retry.
 jlse-summary:
   extends: .shell-runner
   stage: report
   rules:
     - when: always
-  needs:
-    - chiatta
-    - a100
-    - mi300x
-    - chiatta-dpcpp
-    - a100-extended
-    - a100-omp-fast-math
-    - mi300x-omp-fast-math
-    - mi300x-hip
-    - job: h100-extended
-      artifacts: true
-      optional: true
-    - a40-extended
-    - adaptivecpp-a40
-    - adaptivecpp-mi300x
-    - chipstar
-    - gh200-extended
-    - rome-extended
   script:
     - set +e
     - mkdir -p results
@@ -200,7 +178,7 @@ jlse-summary:
         case "$h100_ids" in
           *" $id "*)
             # Omit H100 only before its optional job has been attempted.
-            [ "${JLSE_H100_ATTEMPTED:-0}" = 1 ] && summary_ids="$summary_ids $id" ;;
+            [ -f results/h100-extended.attempted ] && summary_ids="$summary_ids $id" ;;
           *) summary_ids="$summary_ids $id" ;;
         esac
       done
