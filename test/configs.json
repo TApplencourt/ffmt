@@ -703,7 +703,7 @@
   {
     "id": 32,
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "5be83383dbac478da649d2a947d416208dc1219d",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -727,7 +727,7 @@
   {
     "id": 33,
     "notes": "macOS Apple clang (libc++), buffer path, -O2, no fast-math",
-    "tested_commit": "N/A",
+    "tested_commit": "5be83383dbac478da649d2a947d416208dc1219d",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
