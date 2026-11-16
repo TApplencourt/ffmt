@@ -38,7 +38,13 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.matrix.outputs.ids) }}
     steps:
+      # The pull request's own commit, not the merge commit GitHub makes for
+      # it: config.txt records the commit tested, and an accept
+      # (--accept-and-update-config) takes only results of a commit of the
+      # branch.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       # GNU Make from Homebrew: macOS's is 3.81, which ignores .SHELLFLAGS, so
       # pipefail would be lost and tee would hide failures.
       - if: runner.os == 'macOS'

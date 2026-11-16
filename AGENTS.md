@@ -198,10 +198,12 @@ CI:
 4. Review `git diff test/configs.json` and commit. Every added entry is a
    test that does not pass: do not accept one to avoid fixing it.
 
-Accepting is refused for results from an uncommitted tree, and for
-anything a state cannot express: a missing log, an interrupted run, a crash
-outside a test, a negative test that compiles, a {fmt} that is not the
-pinned one.
+Accepting is refused for results from an uncommitted tree, for results of
+a commit whose files differ from the checkout's (apart from
+`test/configs.json` and `test/tests.json`, so that several accepts can
+follow one run), and for anything a state cannot express: a missing log, an
+interrupted run, a crash outside a test, a negative test that compiles, a
+{fmt} that is not the pinned one.
 
 `python3 test/check_id.py --summary` prints which ids share which failures.
 

@@ -39,7 +39,9 @@ negative test that compiles, a {fmt} that is not the pinned one, ...): that
 is never expected.
 
 --accept-and-update-config rewrites the id's row (and test/tests.json) from
-the results instead of comparing: review the diff before you commit it.
+the results instead of comparing: review the diff before you commit it. It
+takes only results of a commit whose tree is the one checked out, apart from
+those two files.
 --summary reads only test/configs.json and prints which ids share which
 failures. --table prints one Markdown table of ids already checked, from the
 row each check left in results/id-<id>/summary.md: for a CI summary page.
@@ -52,6 +54,7 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -219,6 +222,23 @@ class Results:
                 self.problems.append(f"negative:{name}: ffmt accepts what {{fmt}} rejects")
 
 
+def not_this_tree(commit):
+    """Why results of `commit` cannot be accepted into this checkout, or None.
+    The rows describe the files next to them, so the tree tested must be
+    this one, apart from the two files an accept writes: results of an
+    older commit are fine as long as only those changed since."""
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, check=False).returncode
+
+    if git("cat-file", "-e", f"{commit}^{{commit}}"):
+        return (f"these results come from {commit}, which is not in this clone "
+                "(a merge commit a CI made for its run?)")
+    if git("diff", "--quiet", commit, "--", ".", f":!{CONFIGS}", f":!{TESTS}"):
+        return (f"these results come from {commit}, and this checkout differs from it "
+                f"(git diff {commit}); check it out, or run again here")
+    return None
+
+
 def check(row, counts, accept):
     """Check one id against its row, or with accept rewrite the row from the
     results. Returns (problems, the test counts the run reported)."""
@@ -251,6 +271,8 @@ def check(row, counts, accept):
         # tested_commit must name the tree that was tested.
         problems.append("not accepted: these results come from uncommitted changes "
                         f"({res.commit}); commit, run again, then accept")
+    elif reason := not_this_tree(res.commit):
+        problems.append(f"not accepted: {reason}")
     elif problems:
         problems.append("not accepted: the config cannot express the above")
     else:

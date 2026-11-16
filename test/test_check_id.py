@@ -61,6 +61,18 @@ class CheckIdTest(unittest.TestCase):
     def row(self):
         return json.loads((self.root / "test/configs.json").read_text())[0]
 
+    def commit(self):
+        """Makes the root a git repository with test/ committed, as an accept
+        needs, and returns the commit."""
+        git = lambda *args: subprocess.run(
+            ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+             *args], cwd=self.root, capture_output=True, text=True, check=True).stdout.strip()
+        if not (self.root / ".git").exists():
+            git("init", "-q")
+        git("add", "test")
+        git("commit", "-q", "--allow-empty", "-m", "x")
+        return git("rev-parse", "HEAD")
+
     def test_all_pass(self):
         result = self.check()
         self.assertEqual(result.returncode, 0, result.stdout)
@@ -170,12 +182,14 @@ class CheckIdTest(unittest.TestCase):
         self.assertEqual(self.check().returncode, 0)
 
     def test_accept_rewrites_the_row_and_the_counts(self):
+        commit = self.commit()
+        self.write("config.txt", config(commit=commit))
         self.write("tests.log", "0 build a\n1 build b\n139 run a\n")
         self.write("a.run.log", tap(4, not_ok=[1], stop_in=3))
         result = self.check("--accept-and-update-config")
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertEqual(self.row(), {
-            "id": 1, "notes": "synthetic", "tested_commit": "abc", "device": "gpu",
+            "id": 1, "notes": "synthetic", "tested_commit": commit, "device": "gpu",
             "failed_to_compile": ["b:1", "b:2"], "failed_to_run": ["a:1", "a:3"],
             "compiled_but_not_run": ["a:4"]})
         self.assertEqual(json.loads((self.root / "test/tests.json").read_text()), {"a": 4, "b": 2})
@@ -230,10 +244,31 @@ class CheckIdTest(unittest.TestCase):
         self.write("tests.log", "0 build a\n0 build b\n88 run a\n0 run b\n")
         self.write("config.txt", config(commit="abc-dirty"))
         self.assertIn("uncommitted changes", self.check("--accept-and-update-config").stdout)
-        self.write("config.txt", config())
+        self.write("config.txt", config(commit=self.commit()))
         self.write("tests.log", "0 build a\n0 build b\n88 run a\n")
         self.assertIn("not accepted", self.check("--accept-and-update-config").stdout)
         self.assertEqual(self.row()["failed_to_run"], [])
+
+    def test_accept_needs_results_of_this_tree(self):
+        accept = lambda: self.check("--accept-and-update-config")
+        # A commit this clone does not have, such as a CI's merge commit.
+        self.commit()
+        self.write("config.txt", config(commit="1d53f164f790164338ea585e4b8c6c8fb6941c3d"))
+        self.assertIn("which is not in this clone", accept().stdout)
+        # An older commit, of which only the files an accept writes changed.
+        tested = self.commit()
+        self.configure(device="gpu")
+        (self.root / "test/tests.json").write_text(json.dumps({"a": 3, "b": 2}, indent=2))
+        self.commit()
+        self.write("config.txt", config(commit=tested))
+        result = accept()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        # An older commit with another test file, committed or not.
+        (self.root / "test/check_id.py").write_text(
+            (self.root / "test/check_id.py").read_text() + "\n")
+        self.assertIn("this checkout differs from it", accept().stdout)
+        self.commit()
+        self.assertIn("this checkout differs from it", accept().stdout)
 
 
 if __name__ == "__main__":
