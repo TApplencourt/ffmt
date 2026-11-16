@@ -1706,7 +1706,7 @@
   },
   {
     "id": 72,
-    "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, -O0, no fast-math",
+    "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O0, no fast-math",
     "ci": "jlse:adaptivecpp-mi300x",
     "tested_commit": "d77335cd1238c7d0e5c3410cc94c5c2ee74d073a",
     "device": "AMD Radeon Graphics",
@@ -1724,7 +1724,7 @@
   },
   {
     "id": 73,
-    "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, -O2, no fast-math",
+    "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O2, no fast-math",
     "ci": "jlse:adaptivecpp-mi300x",
     "tested_commit": "d77335cd1238c7d0e5c3410cc94c5c2ee74d073a",
     "device": "AMD Radeon Graphics",
@@ -1860,7 +1860,7 @@
   },
   {
     "id": 80,
-    "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 7.0.2 hipcc, -O0, no fast-math",
+    "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O0, no fast-math",
     "ci": "jlse:mi300x-hip",
     "tested_commit": "N/A",
     "failed_to_compile": [
@@ -1890,7 +1890,7 @@
   },
   {
     "id": 81,
-    "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 7.0.2 hipcc, -O2, no fast-math",
+    "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O2, no fast-math",
     "ci": "jlse:mi300x-hip",
     "tested_commit": "N/A",
     "failed_to_compile": [
