@@ -3,6 +3,7 @@
 
     python3 test/check_id.py 4       after test/run_id.sh 4
     python3 test/check_id.py 2 3 10  several ids, e.g. from downloaded CI artifacts
+    python3 test/check_id.py --all   every id that has a results/id-<id>/
     python3 test/check_id.py 4 --accept-and-update-config
     python3 test/check_id.py --summary
     python3 test/check_id.py --table 2 3 10
@@ -47,6 +48,7 @@ row each check left in results/id-<id>/summary.md: for a CI summary page.
 
 import argparse
 import collections
+import glob
 import json
 import os
 import re
@@ -324,6 +326,8 @@ def table(by_id, ids):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("ids", type=int, nargs="*", help="ids to check, from results/id-<id>/")
+    ap.add_argument("--all", action="store_true",
+                    help="every id that has a results/id-<id>/, in place of a list of ids")
     ap.add_argument("--accept-and-update-config", action="store_true", dest="accept",
                     help=f"rewrite the ids' rows of {CONFIGS}, and {TESTS}, from the results")
     ap.add_argument("--summary", action="store_true",
@@ -343,8 +347,10 @@ def main():
         print(*(r["id"] for r in rows if "ci" in r
                 and (r["ci"].startswith(args.list) if whole else r["ci"] == args.list)))
         return 0
+    if args.all:
+        args.ids = sorted(int(d.split("-")[1]) for d in glob.glob("results/id-*"))
     if not args.ids:
-        ap.error("give at least one id, or --summary")
+        ap.error("no results/id-<id>/ to check" if args.all else "give ids, --all or --summary")
     by_id = {r["id"]: r for r in rows}
     if args.table:
         return int(table(by_id, args.ids))

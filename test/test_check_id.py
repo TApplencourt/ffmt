@@ -141,6 +141,15 @@ class CheckIdTest(unittest.TestCase):
         self.assertEqual(json.loads((self.root / "test/tests.json").read_text()), {"a": 4, "b": 2})
         self.assertEqual(self.check().returncode, 0)
 
+    def test_all_checks_every_id_that_has_results(self):
+        rows = [{"id": i, "notes": "", "tested_commit": "N/A", **EMPTY} for i in (1, 2, 3)]
+        (self.root / "test/configs.json").write_text(json.dumps(rows))
+        shutil.copytree(self.logs, self.root / "results/id-3")
+        result = subprocess.run([sys.executable, "test/check_id.py", "--all"], cwd=self.root,
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual([line.split()[1] for line in result.stdout.splitlines()], ["1", "3"])
+
     def test_another_device_is_a_problem(self):
         self.configure(device="gpu")
         self.assertEqual(self.check().returncode, 0)
