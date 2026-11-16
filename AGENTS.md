@@ -131,7 +131,7 @@ Reuse the existing framework; do not add a new test harness.
   `negative:accept_valid` where nothing builds through ffmt. A negative
   test passes when ffmt rejects it; no id may expect otherwise. Never change expected output to hide a
   bug. For a new compiler bug, add a reproducer to
-  `implementation_limitation/`.
+  `toolchain_bugs/`.
 - Do not edit the lists of `test/configs.json` or `test/tests.json` (the
   number of tests of each file) by hand: see "Updating `test/configs.json`
   from a run" below.
