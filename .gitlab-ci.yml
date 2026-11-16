@@ -10,6 +10,10 @@
 # hours to get. An untriggered pipeline passes with the other 50 ids. After
 # H100 finishes, retry jlse-summary, then jlse-wiki, for the full 56-id report;
 # completed downstream jobs do not rerun automatically.
+#
+# GitLab's existing pull mirror imports every GitHub branch, but only a
+# default-branch push may launch hardware. GitHub Actions can request a
+# mirrored ref through a trigger pipeline; RUN_H100=true makes H100 required.
 
 include:
   - project: 'ci-resources/defaults'
@@ -23,9 +27,13 @@ stages:
 
 workflow:
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
 
 .jlse-batch:
   extends: .batch-runner
@@ -68,7 +76,7 @@ mi300x:
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger" || $CI_PIPELINE_SOURCE == "push"'
       when: on_success
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: manual
@@ -111,6 +119,9 @@ h100-extended:
   extends: .jlse-extended
   resource_group: h100
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $RUN_H100 == "true"'
+      when: on_success
+      allow_failure: false
     - when: manual
       allow_failure: true
   script:
