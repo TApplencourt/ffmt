@@ -19,4 +19,3 @@ export FMT_DIR=$FFMT_RUNTIME_ROOT/third_party/fmt-main
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --acpp-targets=generic -O2 -fno-fast-math"
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
 export FFMT_LDFLAGS=-no-pie
-export FFMT_RUN_WRAPPER='timeout --signal=TERM --kill-after=10s 1800s'

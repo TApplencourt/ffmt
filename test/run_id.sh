@@ -23,7 +23,8 @@ source "$SETUP"
 
 # The logs test/check_id.py reads are written anew by every run: remove
 # them first, so that an interrupted run cannot pass for a complete one with
-# what an earlier run left.
+# what an earlier run left. mkdir: results/ may be gone while build/ stays.
+mkdir -p "results/id-$ID"
 rm -f "results/id-$ID"/{config.txt,tests.log,negative.log,extra.log,summary.md} "results/id-$ID"/*.run.log
 
 # -j: the compiles are independent targets. Programs that use the GPU

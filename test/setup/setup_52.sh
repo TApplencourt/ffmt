@@ -11,8 +11,5 @@ export LD_LIBRARY_PATH=$CUDA_PATH/lib64:${LD_LIBRARY_PATH:-}
 export CUDA_VISIBLE_DEVICES=0
 export CXX=$CUDA_PATH/bin/nvcc
 export FFMT_ORACLE_CXX=/usr/bin/g++-14
-export FFMT_ORACLE_LINK='-Xlinker=$(OUT)/fmt.o'
-export FFMT_LANGUAGE_RESET=
-export FFMT_UNUSED_CLI_WARNING=
 export FFMT_FLAGS="-std=c++20 -x cu --extended-lambda --expt-relaxed-constexpr -arch=sm_90 -ccbin=/usr/bin/g++-14 -Xcompiler=-Wall,-Werror,-fno-fast-math -O0"
 export FFMT_EXTRA_FILES="examples/readme1_cuda.cu examples/readme2_cuda.cu"

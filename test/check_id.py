@@ -6,6 +6,7 @@
     python3 test/check_id.py 4 --accept-and-update-config
     python3 test/check_id.py --summary
     python3 test/check_id.py --table 2 3 10
+    python3 test/check_id.py --list jlse:chiatta
 
 Reads results/id-<id>/ (written by test/run_id.sh, or unpacked from a CI
 artifact) and gives every test one state:
@@ -22,19 +23,26 @@ builds and exits 0), and negative:accept_valid, the control of the negative
 tests (when it does not build through ffmt, nothing does, and the negative
 tests are not judged).
 
-test/configs.json lists, per id, every test that is not expected to pass,
-under its state; test/tests.json holds the number of tests of each file,
-which is how the tests of a file that did not build are known. The check
-fails if a test is in another state than expected, in either direction, or
-if the logs do not explain themselves (a missing log, an interrupted run, a
-crash outside a test, a negative test that compiles, ...): that is never
-expected.
+test/configs.json is the one description of every id. Per id: every test
+that is not expected to pass, under its state; `device`, what its tests ran
+on when its results were last accepted, and `tested_commit`, at which
+commit; `ci`, the CI job that runs it (github:<runner> or jlse:<job>; none
+for an id run by hand), and `goal` if that job only builds it.
+test/tests.json holds the number of tests of each file, which is how the
+tests of a file that did not build are known.
+
+The check fails if a test is in another state than expected, in either
+direction, if the tests ran on another device, or if the logs do not explain
+themselves (a missing log, an interrupted run, a crash outside a test, a
+negative test that compiles, a {fmt} that is not the pinned one, ...): that
+is never expected.
 
 --accept-and-update-config rewrites the id's row (and test/tests.json) from
 the results instead of comparing: review the diff before you commit it.
 --summary reads only test/configs.json and prints which ids share which
 failures. --table prints one Markdown table of ids already checked, from the
 row each check left in results/id-<id>/summary.md: for a CI summary page.
+--list prints the ids of a CI job (jlse:chiatta) or of a whole CI (github:).
 """
 
 import argparse
@@ -47,6 +55,7 @@ import sys
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 CONFIGS, TESTS = "test/configs.json", "test/tests.json"
 STATES = ("failed_to_compile", "failed_to_run", "compiled_but_not_run")
+FIELDS = ("id", "notes", "ci", "goal", "tested_commit", "device")  # of a row, before STATES
 STATE_OF_STEP = {"build": "failed_to_compile", "run": "failed_to_run"}
 TEST_FAILED = 88  # test/capture.hpp: ran to the end, some test failed
 
@@ -90,7 +99,7 @@ def dump_configs(rows):
 
     out = []
     for r in rows:
-        fields = [(k, json.dumps(r[k], ensure_ascii=False)) for k in r if k not in STATES]
+        fields = [(k, json.dumps(r[k], ensure_ascii=False)) for k in FIELDS if k in r]
         fields += [(s, tests(r[s])) for s in STATES]
         out.append("  {\n" + ",\n".join(f'    "{k}": {v}' for k, v in fields) + "\n  }")
     with open(CONFIGS, "w") as f:
@@ -105,11 +114,21 @@ class Results:
     def __init__(self, id_, counts):
         self.logs = f"results/id-{id_}/"
         self.problems, self.states, self.counts = [], {}, {}
-        config = dict(re.findall(r"^(goal|commit)=(.*)$", self.read("config.txt"), re.MULTILINE))
+        self.devices = set()
+        self.missing = not os.path.exists(self.logs + "config.txt")
+        if self.missing:
+            self.commit, self.ran = "", False
+            self.problems.append(f"no {self.logs}config.txt: test/run_id.sh did not run")
+            return
+        config = dict(re.findall(r"^(goal|commit|fmt)=(.*)$", self.read("config.txt"), re.MULTILINE))
         self.commit = config.get("commit", "")
         self.ran = config.get("goal") == "test"
         if config.get("goal") not in ("test", "build"):
             self.problems.append(f"no goal in {self.logs}config.txt: test/run_id.sh did not run")
+        fmt, _, pinned = config.get("fmt", "unknown pinned=unknown").partition(" pinned=")
+        if fmt != pinned:
+            self.problems.append(f"the reference is {{fmt}} {fmt}, not the pinned {pinned} "
+                                 "(FMT_DIR of the setup)")
 
         status = collections.defaultdict(dict)
         for code, step, name in self.lines("tests.log"):
@@ -123,7 +142,7 @@ class Results:
             else:
                 self.problems.append(f"{name} does not build and {TESTS} does not know how many "
                                      "tests it holds: accept an id that builds it first")
-        for name in sorted(set(counts) - set(status)):
+        for name in sorted(set(counts) - set(status)) if status else ():
             self.problems.append(f"{name} is in {TESTS} but was not built: "
                                  "remove it there if the file is gone")
         self.negative()
@@ -149,6 +168,7 @@ class Results:
     def run(self, name, status):
         """One binary's TAP log (tap_reporter, test/capture.hpp)."""
         log = self.read(f"{name}.run.log")
+        self.devices.update(re.findall(r"^# device: (.*)$", log, re.MULTILINE))
         plan = re.search(r"^1\.\.(\d+)$", log, re.MULTILINE)
         started = [int(n) for n in re.findall(r"^# start (\d+)$", log, re.MULTILINE)]
         if status is None:
@@ -206,12 +226,18 @@ def check(row, counts, accept):
         problems += [f"{name} holds {n} tests, {TESTS} says {counts.get(name)}"
                      for name, n in sorted(res.counts.items()) if counts.get(name) != n]
 
+    # The device the tests ran on, as the binaries name it: the setup script
+    # selects it, and this is what tells when it selected another one.
+    device = " + ".join(sorted(res.devices))
+    if res.ran and not accept and row.get("device", device) != device:
+        problems.append(f"ran on {device or 'no device'}, expected {row['device']}")
+
     # A build-only run knows nothing about the run states.
     states = STATES if res.ran else STATES[:1]
     expected = {t: s for s in states for t in row[s]}
     actual = {t: s for t, s in res.states.items() if s in states}
     moved = collections.defaultdict(list)
-    for t in set(expected) | set(actual):
+    for t in () if res.missing else set(expected) | set(actual):
         if expected.get(t) != actual.get(t):
             moved[expected.get(t, "passed"), actual.get(t, "passed")].append(t)
     changes = [f"{r}: expected {exp}, got {got}"
@@ -229,6 +255,8 @@ def check(row, counts, accept):
         for s in states:
             row[s] = sorted((t for t, st in actual.items() if st == s), key=key)
         row["tested_commit"] = res.commit
+        if res.ran:
+            row["device"] = device
 
     n = collections.Counter(actual.values())
     result = (f"{len(problems)} problem(s)" if problems else
@@ -302,11 +330,19 @@ def main():
                     help="print which ids share which failures and exit")
     ap.add_argument("--table", action="store_true",
                     help="print the Markdown table of ids already checked")
+    ap.add_argument("--list", metavar="CI",
+                    help="print the ids of a CI job (jlse:chiatta) or of a whole CI (github:)")
     args = ap.parse_args()
     with open(CONFIGS) as f:
         rows = json.load(f)
     if args.summary:
         return summary(rows)
+    if args.list:
+        # A whole CI ends with its colon, so that jlse:a100 is not jlse:a100-extended too.
+        whole = args.list.endswith(":")
+        print(*(r["id"] for r in rows if "ci" in r
+                and (r["ci"].startswith(args.list) if whole else r["ci"] == args.list)))
+        return 0
     if not args.ids:
         ap.error("give at least one id, or --summary")
     by_id = {r["id"]: r for r in rows}

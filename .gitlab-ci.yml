@@ -1,5 +1,6 @@
-# ffmt on JLSE GPUs. Each job runs its ids one after another in one
-# allocation through test/run_ids.sh: test/run_id.sh records what each id
+# ffmt on JLSE GPUs. Each job runs its ids, the rows of test/configs.json
+# whose `ci` is jlse:<job name>, one after another in one allocation through
+# test/run_ids.sh: test/run_id.sh records what each id
 # does, then test/check_id.py compares them all with test/configs.json and
 # decides. The results/ artifact of a job, unpacked in a checkout, is what
 # test/check_id.py reads: to review a run and accept it locally
@@ -25,37 +26,32 @@ workflow:
   extends: .batch-runner
   stage: test
   script:
-    - test/run_ids.sh $IDS
+    - test/run_ids.sh $(${PYTHON:-python3} test/check_id.py --list "jlse:$CI_JOB_NAME")
   artifacts:
     when: always          # a failed run still leaves usable logs
     expire_in: 1 month
     paths:
       - results/
 
-# icpx OpenMP offload to SPIR-V at -O0/-O2 (2, 3) and icpx SYCL at -O0/-O2
-# (10, 11), on PVC.
+# icpx OpenMP offload to SPIR-V and icpx SYCL, on PVC.
 chiatta:
   extends: .jlse-batch
   variables:
-    IDS: "2 3 10 11"
     # runners.yml has per-queue templates (.ice-runner, .v100-runner, ...)
     # but none for chiatta, so set the queue here.
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q chiatta"
 
-# clang CUDA at -O2/-O0 (4, 9) and clang OpenMP offload to NVPTX at -O0/-O2
-# (5, 6), on A100.
+# clang CUDA and clang OpenMP offload to NVPTX, on A100.
 a100:
   extends: .jlse-batch
   resource_group: a100
   variables:
-    IDS: "4 5 6 9"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a100"
 
-# ROCm clang OpenMP offload at -O0/-O2 (7, 8), on MI300X.
+# ROCm clang OpenMP offload, on MI300X.
 mi300x:
   extends: .jlse-batch
   variables:
-    IDS: "7 8"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:20:0 -q gpu_amd_mi300x"
 
 # Expanded configurations run separately from the established gated jobs.
@@ -77,28 +73,24 @@ chiatta-dpcpp:
   extends: .jlse-extended
   resource_group: chiatta
   variables:
-    IDS: "14 15 16 17 64 65 82 83"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
 
 a100-extended:
   extends: .jlse-extended
   resource_group: a100
   variables:
-    IDS: "18 23"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
 a100-omp-fast-math:
   extends: .jlse-extended
   resource_group: a100
   variables:
-    IDS: "19 20"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
 
 mi300x-omp-fast-math:
   extends: .jlse-extended
   resource_group: mi300x
   variables:
-    IDS: "21 22"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_amd_mi300x"
 
 # The header does not yet tag native HIP entry points FMT_HD: nothing builds.
@@ -106,35 +98,30 @@ mi300x-hip:
   extends: .jlse-extended
   resource_group: mi300x
   variables:
-    IDS: "48 49 80 81"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
 
 h100-extended:
   extends: .jlse-extended
   resource_group: h100
   variables:
-    IDS: "50 51 54 55 56 57"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
 a40-extended:
   extends: .jlse-extended
   resource_group: a40
   variables:
-    IDS: "78 79"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a40"
 
 adaptivecpp-a40:
   extends: .jlse-extended
   resource_group: a40
   variables:
-    IDS: "70 71"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_a40"
 
 adaptivecpp-mi300x:
   extends: .jlse-extended
   resource_group: mi300x
   variables:
-    IDS: "72 73"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_amd_mi300x"
 
 # HIP source through chipStar and Level Zero on Chiatta Max 1550.
@@ -142,14 +129,12 @@ chipstar:
   extends: .jlse-extended
   resource_group: chiatta
   variables:
-    IDS: "74 75"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
 
 gh200-extended:
   extends: .jlse-extended
   resource_group: gh200
   variables:
-    IDS: "52 53 58 59 62 63 68 69"
     PYTHON: /usr/bin/python3.12
     # Eight measured runs fit within two hours, including slow NVCC diagnostics.
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_gh200"
@@ -158,12 +143,10 @@ rome-extended:
   extends: .jlse-extended
   resource_group: rome
   variables:
-    IDS: "60 61 66 67 76 77"
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
 
 # One table of every id: each job's results/id-<id>/summary.md, which GitLab
-# puts back in place for a job that needs them. Submits no work. The ids are
-# the IDS of the jobs above.
+# puts back in place for a job that needs them. Submits no work.
 jlse-summary:
   extends: .shell-runner
   stage: report
@@ -187,7 +170,7 @@ jlse-summary:
   script:
     - set +e
     - mkdir -p results
-    - python3 test/check_id.py --table $(sed -n 's/^ *IDS: "\(.*\)"/\1/p' .gitlab-ci.yml) > results/jlse-summary.md
+    - python3 test/check_id.py --table $(python3 test/check_id.py --list jlse:) > results/jlse-summary.md
     - summary_status=$?
     - cat results/jlse-summary.md
     - exit "$summary_status"

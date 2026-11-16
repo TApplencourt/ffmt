@@ -311,8 +311,11 @@ that is not expected to pass:
 - `failed_to_run`: it prints something else than `{fmt}`, or crashes;
 - `compiled_but_not_run`: an earlier test of its file crashed the binary.
 
+A row also says which CI job runs the id (`ci`) and on which device its
+tests ran when its results were last accepted (`device`).
+
 `test/check_id.py` fails when a test is in another state than listed, in
-either direction. `test/check_id.py <id> --accept-and-update-config`
+either direction, or when the tests ran on another device. `test/check_id.py <id> --accept-and-update-config`
 rewrites the id's lists from its results instead: review the diff.
 [`test/tests.json`](test/tests.json), the number of tests of each file, is
 generated the same way.
@@ -320,6 +323,6 @@ generated the same way.
 Output is TAP: the plan `1..N`, then per test `# start N` and `ok N - file`
 or `not ok N - file`.
 
-CI runs the ids a GitHub runner can handle
-([`.github/workflows/test.yml`](.github/workflows/test.yml)) and the JLSE
-GPU ids ([`.gitlab-ci.yml`](.gitlab-ci.yml)).
+CI runs the ids whose `ci` is `github:<runner>`
+([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
+`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)).

@@ -20,7 +20,8 @@ compare ffmt against it, both the output and which format strings compile.
   reports as an error and ffmt prints as `(null)` (README, "Spec target").
 - When unsure how {fmt} behaves, compile a small program against the pinned
   {fmt} and check; do not answer from memory. `test/run_id.sh` fetches it
-  into `third_party/fmt` on first use (or set `FMT_DIR` to a checkout).
+  into `third_party/fmt`, and again when the pin changes (or set `FMT_DIR`
+  to a checkout of the pinned commit: `test/check_id.py` refuses another).
 
 ## Public API
 
@@ -117,7 +118,9 @@ Reuse the existing framework; do not add a new test harness.
   through the runtime's environment (`ONEAPI_DEVICE_SELECTOR`,
   `OMP_TARGET_OFFLOAD=MANDATORY`, `ACPP_VISIBILITY_MASK`,
   `CUDA_VISIBLE_DEVICES`, ...), so that a missing device is an error and
-  not a silent run on the host.
+  not a silent run on the host. Each test binary prints the device it
+  runs on, and the row's `device` is the one of the results last accepted:
+  another device is a problem.
 - The tests use no condition but `FFMT_ID_<id>`. A test is
   `<file>:<number>` (`floats:104`), and each id's row in
   `test/configs.json` lists every test that is not expected to pass there:
@@ -141,11 +144,17 @@ Reuse the existing framework; do not add a new test harness.
   (in CI) fails if a README program is not an exact copy: edit both.
 
 An id is a self-contained `test/setup/setup_<id>.sh` (modules, compiler,
-every compile flag) plus its row in `test/configs.json`. The row's
+every compile flag) plus its row in `test/configs.json`. The row's `ci` is
+the CI job that runs the id (`github:<runner>`, or `jlse:<job>` for a job of
+`.gitlab-ci.yml`; none for an id run by hand) and `goal` is `build` if that
+job only builds it: both CI files read them, so an id is added to a job
+there and nowhere else. The row's
 `tested_commit` is the commit of the results last accepted for the id
 (`N/A` if none ever was). Ids 0 and 1 are the host references (g++;
 specifiers path and buffer path). A new toolchain or machine gets a new id:
-add a row with empty lists, run it, and accept its results.
+add a row with empty lists, run it, and accept its results. A program
+that runs longer than `FFMT_TIMEOUT` seconds (1800 unless the setup says
+otherwise) is killed, which counts as a crash in the test it was in.
 
 ```sh
 test/run_id.sh 1;  python3 test/check_id.py 1    # host, buffer path: run first

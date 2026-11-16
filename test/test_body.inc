@@ -12,6 +12,7 @@
 int main() try {
   TEST_SETUP
   tap_reporter _t{STR(TEST_NAME)};
+  fprintf(stderr, "# device: %s\n", std::string(TEST_DEVICE).c_str());
 
   // Each pass in its own lambda: a file's own declarations stay local to
   // the pass, and RUN(...) sits at the top level of a function body.

@@ -12,9 +12,13 @@ REPO = Path(__file__).resolve().parents[1]
 EMPTY = {"failed_to_compile": [], "failed_to_run": [], "compiled_but_not_run": []}
 
 
+def config(commit="abc", goal="test", fmt="f00"):
+    return f"commit={commit}\ngoal={goal}\nfmt={fmt} pinned=f00\n"
+
+
 def tap(count, not_ok=(), stop_in=None):
     """A binary's TAP log: `count` tests, the run dying in test `stop_in`."""
-    lines = [f"1..{count}"]
+    lines = ["# device: gpu", f"1..{count}"]
     for n in range(1, count + 1):
         lines.append(f"# start {n}")
         if n == stop_in:
@@ -35,7 +39,7 @@ class CheckIdTest(unittest.TestCase):
         self.configure()
         (self.root / "test/tests.json").write_text(json.dumps({"a": 3, "b": 2}))
         # A complete run where everything passes.
-        self.write("config.txt", "commit=abc\ngoal=test\n")
+        self.write("config.txt", config())
         self.write("tests.log", "0 build a\n0 build b\n0 run a\n0 run b\n")
         self.write("a.run.log", tap(3))
         self.write("b.run.log", tap(2))
@@ -97,6 +101,7 @@ class CheckIdTest(unittest.TestCase):
                 ("negative.log", "0 syntax reject_x\n1 fmt reject_x\n0 ffmt reject_x\n",
                  "negative:reject_x: ffmt accepts what {fmt} rejects"),
                 ("config.txt", "", "no goal"),
+                ("config.txt", config(fmt="bad"), "the reference is {fmt} bad, not the pinned f00"),
         ]:
             with self.subTest(message):
                 saved = (self.logs / name).read_text()
@@ -119,7 +124,7 @@ class CheckIdTest(unittest.TestCase):
         self.assertNotIn("reject_x", result.stdout)
 
     def test_build_only_run_checks_only_what_it_built(self):
-        self.write("config.txt", "commit=abc\ngoal=build\n")
+        self.write("config.txt", config(goal="build"))
         self.write("tests.log", "1 build a\n0 build b\n")
         self.configure(failed_to_compile=["a:1", "a:2", "a:3"], failed_to_run=["b:1"])
         self.assertEqual(self.check().returncode, 0)
@@ -130,11 +135,28 @@ class CheckIdTest(unittest.TestCase):
         result = self.check("--accept-and-update-config")
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertEqual(self.row(), {
-            "id": 1, "notes": "synthetic", "tested_commit": "abc",
+            "id": 1, "notes": "synthetic", "tested_commit": "abc", "device": "gpu",
             "failed_to_compile": ["b:1", "b:2"], "failed_to_run": ["a:1", "a:3"],
             "compiled_but_not_run": ["a:4"]})
         self.assertEqual(json.loads((self.root / "test/tests.json").read_text()), {"a": 4, "b": 2})
         self.assertEqual(self.check().returncode, 0)
+
+    def test_another_device_is_a_problem(self):
+        self.configure(device="gpu")
+        self.assertEqual(self.check().returncode, 0)
+        self.configure(device="another gpu")
+        self.assertIn("ran on gpu, expected another gpu", self.check().stdout)
+
+    def test_list_prints_the_ids_of_a_ci_job(self):
+        rows = [{"id": i, "notes": "", "tested_commit": "N/A", **EMPTY, **extra} for i, extra in
+                enumerate([{"ci": "jlse:a100"}, {"ci": "jlse:a100-extended"}, {"ci": "github:x"}, {}])]
+        (self.root / "test/configs.json").write_text(json.dumps(rows))
+        run = lambda where: subprocess.run(
+            [sys.executable, "test/check_id.py", "--list", where], cwd=self.root,
+            capture_output=True, text=True, check=True).stdout.split()
+        self.assertEqual(run("jlse:a100"), ["0"])
+        self.assertEqual(run("jlse:"), ["0", "1"])
+        self.assertEqual(run("github:"), ["2"])
 
     def test_table_shows_every_id_checked_or_not(self):
         self.configure()
@@ -151,9 +173,9 @@ class CheckIdTest(unittest.TestCase):
     def test_accept_refuses_uncommitted_results_and_problems(self):
         self.write("a.run.log", tap(3, not_ok=[1]))
         self.write("tests.log", "0 build a\n0 build b\n88 run a\n0 run b\n")
-        self.write("config.txt", "commit=abc-dirty\ngoal=test\n")
+        self.write("config.txt", config(commit="abc-dirty"))
         self.assertIn("uncommitted changes", self.check("--accept-and-update-config").stdout)
-        self.write("config.txt", "commit=abc\ngoal=test\n")
+        self.write("config.txt", config())
         self.write("tests.log", "0 build a\n0 build b\n88 run a\n")
         self.assertIn("not accepted", self.check("--accept-and-update-config").stdout)
         self.assertEqual(self.row()["failed_to_run"], [])
