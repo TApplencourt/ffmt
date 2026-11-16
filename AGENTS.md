@@ -134,12 +134,8 @@ Reuse the existing framework; do not add a new test harness.
   bug. For a new compiler bug, add a reproducer to
   `implementation_limitation/`.
 - Do not edit the lists of `test/configs.json` or `test/tests.json` (the
-  number of tests of each file) by hand:
-  `test/check_id.py <id> --accept-and-update-config` rewrites them from the
-  id's results. For an id that only CI can run, download the job's results
-  artifact into `results/` first (GitHub: `gh run download <run> --dir
-  results`; GitLab: unpack the job's artifact in the checkout). Review the
-  diff before committing it: every new entry is a test that does not pass.
+  number of tests of each file) by hand: see "Updating `test/configs.json`
+  from a run" below.
 - The README programs are copies of files in `examples/`, built and run
   by each id that lists them in `FFMT_EXTRA_FILES`; `test/check_readme.py`
   (in CI) fails if a README program is not an exact copy: edit both.
@@ -170,6 +166,45 @@ of `build/id-<id>/bin/`.
 
 Host tests are not enough for device-facing changes: say which ids you
 actually ran, and which you did not.
+
+## Updating `test/configs.json` from a run
+
+Nobody edits its lists by hand. To accept what a run found, locally or in
+CI:
+
+1. Get the results into `results/`, where the checker reads them. A local
+   `test/run_id.sh <id>` writes them there. For a CI run, download them:
+   - GitHub: `gh run download <run-id> --dir results` (each id uploads an
+     `id-<n>` artifact, so this gives `results/id-<n>/`).
+   - GitLab: download the job's artifact zip and unpack it in the checkout;
+     it holds `results/id-<n>/`.
+2. Look at what differs:
+
+   ```sh
+   python3 test/check_id.py --all       # every id that has a results/id-<n>/
+   python3 test/check_id.py 2 3 10 11   # or only these
+   ```
+
+   It prints, per id, every test that is in another state than the config
+   says, e.g. `floats:137-139: expected passed, got failed_to_run`. The
+   logs are `results/id-<n>/<file>.run.log` (TAP) and `<file>.build.log`.
+3. Accept, once you agree that those are the expected results:
+
+   ```sh
+   python3 test/check_id.py --all --accept-and-update-config
+   ```
+
+   This rewrites those rows of `test/configs.json` (and `test/tests.json`,
+   the number of tests of each file) from the results.
+4. Review `git diff test/configs.json` and commit. Every added entry is a
+   test that does not pass: do not accept one to avoid fixing it.
+
+Accepting is refused for results from an uncommitted tree, and for
+anything a state cannot express: a missing log, an interrupted run, a crash
+outside a test, a negative test that compiles, a {fmt} that is not the
+pinned one.
+
+`python3 test/check_id.py --summary` prints which ids share which failures.
 
 ## CI
 
