@@ -146,8 +146,9 @@ the CI job that runs the id (`github:<runner>` or `jlse:<job>` for a job of
 job only builds it: both CI files read them, so an id is added to a job
 there and nowhere else. The row's
 `previous_main_commit` is the commit of `main` before the one that
-accepted the id's results (`N/A` if none ever was): if `main` is A then B,
-and B updates `test/configs.json`, it is A. For a PR, B is the squash
+accepted the id's results (`N/A` if none ever was). For example, if
+`main` has commit A, then commit B, and B updates `test/configs.json`,
+then `previous_main_commit` is A. For a PR, B is the squash
 merge and A the `git merge-base` of the PR with `main`; rebase on `main`
 before the run, so that A is the parent of B. Ids 0 and 1 are the host references (g++;
 specifiers path and buffer path). A new toolchain or machine gets a new id:
