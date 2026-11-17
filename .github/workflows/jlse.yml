@@ -1,0 +1,72 @@
+name: Dispatch JLSE
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Existing mirrored GitLab ref
+        required: true
+        default: main
+        type: string
+      run_h100:
+        description: Run required H100 coverage for all 56 IDs
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: none
+
+jobs:
+  dispatch:
+    name: Submit GitLab pipeline
+    runs-on: ubuntu-latest
+    environment: jlse
+    steps:
+      - name: Request trigger pipeline
+        env:
+          GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
+          GITLAB_REF: ${{ inputs.ref }}
+          GITLAB_TRIGGER_TOKEN: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          RUN_H100: ${{ inputs.run_h100 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${GITLAB_TRIGGER_TOKEN:?A Maintainer must add GITLAB_TRIGGER_TOKEN to the protected jlse Environment}"
+          : "${GITLAB_PROJECT_ID:?Configure the non-secret GITLAB_PROJECT_ID Actions variable}"
+          response_file=$(mktemp)
+          trap 'rm -f "$response_file"' EXIT
+          request=(
+            --request POST
+            --silent --show-error --fail-with-body
+            --connect-timeout 15 --max-time 60
+            --output "$response_file"
+            --form-string "token=${GITLAB_TRIGGER_TOKEN}"
+            --form-string "ref=${GITLAB_REF}"
+          )
+          if [ "$RUN_H100" = true ]; then
+            request+=(--form-string "variables[RUN_H100]=true")
+          fi
+          curl "${request[@]}" \
+            "https://gitlab.jlse.anl.gov/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline"
+          python3 - "$response_file" <<'PY'
+          import html
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          with open(sys.argv[1]) as stream:
+              pipeline = json.load(stream)
+          if not isinstance(pipeline.get("id"), int) or not pipeline.get("web_url"):
+              raise SystemExit("GitLab response lacks the created pipeline id and web_url")
+          url = str(pipeline["web_url"])
+          ref = html.escape(os.environ["GITLAB_REF"])
+          h100 = "required" if os.environ["RUN_H100"] == "true" else "optional manual"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("## JLSE pipeline submitted\n\n")
+              summary.write(f"- Pipeline: [{pipeline['id']}]({html.escape(url)})\n")
+              summary.write(f"- GitLab ref: `{ref}`\n")
+              summary.write(f"- H100: {h100}\n\n")
+              summary.write("Submission is asynchronous. Open the pipeline in GitLab for its eventual hardware result; this Action does not poll it.\n")
+          PY

@@ -214,3 +214,10 @@ lower the coverage gate (region coverage of `base.hpp` must not drop), or
 accept a new failure into `test/configs.json` just to avoid implementing a fix. The GitHub
 device ids (36-42) only build, as GitHub has no GPU: green there means the
 device code builds, not that it runs correctly.
+
+GitLab's existing pull mirror imports every GitHub branch; do not add branch
+synchronization to Actions. Only mirrored default-branch pushes may launch
+JLSE, and they run the full standard 50-id suite. `.github/workflows/jlse.yml`
+uses a pipeline trigger token in the reviewer-protected `jlse` Environment to
+submit an existing mirrored ref, optionally with required H100 coverage. Push
+and trigger pipelines keep their summary artifacts but do not publish the wiki.

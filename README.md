@@ -342,3 +342,34 @@ node can take hours to get. Without it, a successful pipeline reports the other
 50 ids. For all 56, run `h100-extended` and, after it finishes, retry
 `jlse-summary`, then `jlse-wiki`. The retried summary fetches the H100 artifacts;
 completed downstream jobs do not rerun automatically.
+
+GitLab's existing pull mirror imports every GitHub branch. A mirrored push to
+the default branch runs the complete standard 50-id suite and leaves a summary
+artifact; a mirrored feature-branch push does not launch the hardware suite.
+Push and Actions-triggered pipelines never replace the wiki, which remains
+limited to web and scheduled pipelines.
+
+### On-demand JLSE from GitHub
+
+The [`Dispatch JLSE`](.github/workflows/jlse.yml) Action submits a pipeline for
+a ref that the existing mirror has already imported. It does not synchronize
+branches or poll the hardware result. After submission, its job summary links
+to the created GitLab pipeline ID and URL; eventual results remain in GitLab.
+
+A Maintainer must configure the integration once:
+
+1. In the GitLab project, create a **pipeline trigger token** under Settings >
+   CI/CD > Pipeline trigger tokens. Do not use a personal access token.
+2. In GitHub, create the protected Environment `jlse`, require reviewer
+   approval, and add `GITLAB_TRIGGER_TOKEN` as its secret. Never commit the
+   token.
+3. Configure `GITLAB_PROJECT_ID` as a non-secret repository Actions variable
+   with value `230`, separately from the trigger secret.
+
+Then use Actions > Dispatch JLSE > Run workflow. Enter the mirrored GitLab
+`ref` and leave `run_h100` off for the usual 50-id report and optional manual
+H100. Enable it to make H100 automatic and required, producing the complete
+56-id summary through the same normal stage ordering. Either request creates a
+summary artifact without changing the wiki. The Action submits asynchronous
+CI: without a separate read token, it deliberately does not report eventual
+hardware success.
