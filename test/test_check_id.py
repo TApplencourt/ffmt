@@ -48,7 +48,7 @@ class CheckIdTest(unittest.TestCase):
         self.write("extra.log", "0 build readme\n0 run readme\n")
 
     def configure(self, **states):
-        row = {"id": 1, "notes": "synthetic", "tested_commit": "N/A", **EMPTY, **states}
+        row = {"id": 1, "notes": "synthetic", "previous_main_commit": "N/A", **EMPTY, **states}
         (self.root / "test/configs.json").write_text(json.dumps([row]))
 
     def write(self, name, contents):
@@ -62,16 +62,23 @@ class CheckIdTest(unittest.TestCase):
         return json.loads((self.root / "test/configs.json").read_text())[0]
 
     def commit(self):
-        """Makes the root a git repository with test/ committed, as an accept
-        needs, and returns the commit."""
+        """Makes the root a git repository whose first commit is origin/main,
+        commits test/ on top of it, as an accept needs, and returns that commit."""
         git = lambda *args: subprocess.run(
             ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
              *args], cwd=self.root, capture_output=True, text=True, check=True).stdout.strip()
         if not (self.root / ".git").exists():
             git("init", "-q")
+            git("add", "test")
+            git("commit", "-q", "-m", "main")
+            git("update-ref", "refs/remotes/origin/main", "HEAD")
         git("add", "test")
         git("commit", "-q", "--allow-empty", "-m", "x")
         return git("rev-parse", "HEAD")
+
+    def main(self):
+        return subprocess.run(["git", "rev-parse", "origin/main"], cwd=self.root,
+                              capture_output=True, text=True, check=True).stdout.strip()
 
     def test_all_pass(self):
         result = self.check()
@@ -193,14 +200,14 @@ class CheckIdTest(unittest.TestCase):
         result = self.check("--accept-and-update-config")
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertEqual(self.row(), {
-            "id": 1, "notes": "synthetic", "tested_commit": commit, "device": "gpu",
+            "id": 1, "notes": "synthetic", "previous_main_commit": self.main(), "device": "gpu",
             "failed_to_compile": ["b:1", "b:2"], "failed_to_run": ["a:1", "a:3"],
             "compiled_but_not_run": ["a:4"]})
         self.assertEqual(json.loads((self.root / "test/tests.json").read_text()), {"a": 4, "b": 2})
         self.assertEqual(self.check().returncode, 0)
 
     def test_all_checks_every_id_that_has_results(self):
-        rows = [{"id": i, "notes": "", "tested_commit": "N/A", **EMPTY} for i in (1, 2, 3)]
+        rows = [{"id": i, "notes": "", "previous_main_commit": "N/A", **EMPTY} for i in (1, 2, 3)]
         (self.root / "test/configs.json").write_text(json.dumps(rows))
         shutil.copytree(self.logs, self.root / "results/id-3")
         result = subprocess.run([sys.executable, "test/check_id.py", "--all"], cwd=self.root,
@@ -216,7 +223,7 @@ class CheckIdTest(unittest.TestCase):
         self.assertIn("ran on gpu, expected another gpu", self.check().stdout)
 
     def test_list_prints_the_ids_of_a_ci_job(self):
-        rows = [{"id": i, "notes": "", "tested_commit": "N/A", **EMPTY, **extra} for i, extra in
+        rows = [{"id": i, "notes": "", "previous_main_commit": "N/A", **EMPTY, **extra} for i, extra in
                 enumerate([{"ci": "jlse:a100"}, {"ci": "jlse:a100-extended"}, {"ci": "github:x"}, {}])]
         (self.root / "test/configs.json").write_text(json.dumps(rows))
         run = lambda where: subprocess.run(
@@ -228,7 +235,7 @@ class CheckIdTest(unittest.TestCase):
 
     def test_table_shows_every_id_checked_or_not(self):
         self.configure()
-        rows = [{"id": i, "notes": f"config {i}", "tested_commit": "N/A", **EMPTY} for i in (1, 2)]
+        rows = [{"id": i, "notes": f"config {i}", "previous_main_commit": "N/A", **EMPTY} for i in (1, 2)]
         (self.root / "test/configs.json").write_text(json.dumps(rows))
         self.assertEqual(self.check().returncode, 0)
         result = self.check("--table")
@@ -273,6 +280,11 @@ class CheckIdTest(unittest.TestCase):
         self.assertIn("this checkout differs from it", accept().stdout)
         self.commit()
         self.assertIn("this checkout differs from it", accept().stdout)
+        # A clone without origin/main.
+        self.write("config.txt", config(commit=self.commit()))
+        subprocess.run(["git", "update-ref", "-d", "refs/remotes/origin/main"], cwd=self.root,
+                       check=True)
+        self.assertIn("origin/main shares no commit", accept().stdout)
 
 
 if __name__ == "__main__":

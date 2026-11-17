@@ -145,8 +145,12 @@ the CI job that runs the id (`github:<runner>` or `jlse:<job>` for a job of
 `.gitlab-ci.yml`; none for an id run by hand) and `goal` is `build` if that
 job only builds it: both CI files read them, so an id is added to a job
 there and nowhere else. The row's
-`tested_commit` is the commit of the results last accepted for the id
-(`N/A` if none ever was). Ids 0 and 1 are the host references (g++;
+`previous_main_commit` is the commit of `main` before the one that
+accepted the id's results (`N/A` if none ever was). For example, if
+`main` has commit A, then commit B, and B updates `test/configs.json`,
+then `previous_main_commit` is A. For a PR, B is the squash
+merge and A the `git merge-base` of the PR with `main`; rebase on `main`
+before the run, so that A is the parent of B. Ids 0 and 1 are the host references (g++;
 specifiers path and buffer path). A new toolchain or machine gets a new id:
 add a row with empty lists, run it, and accept its results. A program
 that runs longer than `FFMT_TIMEOUT` seconds (1800 unless the setup says
