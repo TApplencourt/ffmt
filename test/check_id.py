@@ -26,9 +26,11 @@ tests are not judged).
 
 test/configs.json is the one description of every id. Per id: every test
 that is not expected to pass, under its state; `device`, what its tests ran
-on when its results were last accepted, and `tested_commit`, at which
-commit; `ci`, the CI job that runs it (github:<runner>, jlse:<job>, or none
-for an id run by hand), and `goal` if that job only builds it.
+on when its results were last accepted, and `previous_main_commit`, the
+commit of main those results are based on (their own commit does not
+survive a squash merge); `ci`, the CI job that runs it (github:<runner>,
+jlse:<job>, or none for an id run by hand), and `goal` if that job only
+builds it.
 test/tests.json holds the number of tests of each file, which is how the
 tests of a file that did not build are known.
 
@@ -60,7 +62,7 @@ import sys
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 CONFIGS, TESTS = "test/configs.json", "test/tests.json"
 STATES = ("failed_to_compile", "failed_to_run", "compiled_but_not_run")
-FIELDS = ("id", "notes", "ci", "goal", "tested_commit", "device")  # of a row, before STATES
+FIELDS = ("id", "notes", "ci", "goal", "previous_main_commit", "device")  # of a row, before STATES
 STATE_OF_STEP = {"build": "failed_to_compile", "run": "failed_to_run"}
 TEST_FAILED = 88  # test/capture.hpp: ran to the end, some test failed
 
@@ -236,7 +238,15 @@ def not_this_tree(commit):
     if git("diff", "--quiet", commit, "--", ".", f":!{CONFIGS}", f":!{TESTS}"):
         return (f"these results come from {commit}, and this checkout differs from it "
                 f"(git diff {commit}); check it out, or run again here")
+    if git("merge-base", commit, "origin/main"):
+        return f"origin/main shares no commit with {commit} (git fetch origin main)"
     return None
+
+
+def previous_main_commit(commit):
+    """The commit of origin/main that `commit` is based on."""
+    return subprocess.run(["git", "merge-base", commit, "origin/main"],
+                          capture_output=True, text=True, check=True).stdout.strip()
 
 
 def check(row, counts, accept):
@@ -270,7 +280,7 @@ def check(row, counts, accept):
     if not accept:
         problems += changes
     elif res.commit.endswith("-dirty"):
-        # tested_commit must name the tree that was tested.
+        # previous_main_commit must name what the tested tree is based on.
         problems.append("not accepted: these results come from uncommitted changes "
                         f"({res.commit}); commit, run again, then accept")
     elif reason:
@@ -280,7 +290,7 @@ def check(row, counts, accept):
     else:
         for s in states:
             row[s] = sorted((t for t, st in actual.items() if st == s), key=key)
-        row["tested_commit"] = res.commit
+        row["previous_main_commit"] = previous_main_commit(res.commit)
         if res.ran:
             row["device"] = device
         expected = {t: s for s in states for t in row[s]}
