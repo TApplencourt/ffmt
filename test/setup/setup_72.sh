@@ -1,4 +1,4 @@
-# Setup for id 72: AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, -O0, no fast-math.
+# Setup for id 72: AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O0, no fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 case ${FFMT_RUNTIME_ROOT:-} in
@@ -8,14 +8,22 @@ esac
 type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
 module use /soft/modulefiles
 module load gcc/13.3.0
-module load rocm/7.0.2
+# ROCm 10.1.0 (TheRock), newer than any /soft module; the tarball
+# therock-dist-linux-gfx94X-dcgpu-10.1.0.tar.gz from
+# https://stable.repo.amd.com/rocm/core/tarball/, unpacked as is.
+export ROCM_PATH=/vast/projects/intel_anl_shared/ffmt-ci/work/tapplencourt/rocm-10.1.0
+export PATH=$ROCM_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$ROCM_PATH/lib:${LD_LIBRARY_PATH:-}
 export HIP_VISIBLE_DEVICES=0
+# Built against ROCm 10.1.0 by /vast/projects/intel_anl_shared/ffmt-ci/work/tapplencourt/mi300x/build.sh.
+acpp=/vast/projects/intel_anl_shared/ffmt-ci/work/tapplencourt/mi300x/install/adaptivecpp
 export ACPP_VISIBILITY_MASK=hip   # the GPU backend only: fail rather than fall back to the host
-export PATH=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/bin:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/bin:$PATH
-export LD_LIBRARY_PATH=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/lib:$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/lib64:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib/x86_64-unknown-linux-gnu:$FFMT_RUNTIME_ROOT/software/mi300x/install/host-runtime/lib:${LD_LIBRARY_PATH:-}
-export CXX=$FFMT_RUNTIME_ROOT/software/mi300x/install/adaptivecpp/bin/acpp
+export PATH=$acpp/bin:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/bin:$PATH
+export LD_LIBRARY_PATH=$acpp/lib:$acpp/lib64:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib/x86_64-unknown-linux-gnu:$FFMT_RUNTIME_ROOT/software/mi300x/install/host-runtime/lib:${LD_LIBRARY_PATH:-}
+export CXX=$acpp/bin/acpp
 export FFMT_ORACLE_CXX=/soft/compilers/gcc/13.3.0/x86_64-suse-linux/bin/g++
 export FMT_DIR=$FFMT_RUNTIME_ROOT/third_party/fmt-main
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --acpp-targets=generic -O0 -fno-fast-math"
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
 export FFMT_LDFLAGS=-no-pie
+unset acpp

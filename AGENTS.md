@@ -64,7 +64,7 @@ explicitly instead (`static_cast`, `std::to_underlying`).
   exceptions, no heap allocation, no `std::string`, no virtual calls, no
   runtime recursion (SYCL rejects it at compile time). Format strings are
   validated at compile time (`consteval`). Functions reachable from the
-  entry points need `FMT_HD` (CUDA).
+  entry points need `FMT_HD` (CUDA, HIP).
 - Match the surrounding style: terse comments that explain *why*, and the
   existing naming.
 
@@ -131,7 +131,7 @@ Reuse the existing framework; do not add a new test harness.
   `negative:accept_valid` where nothing builds through ffmt. A negative
   test passes when ffmt rejects it; no id may expect otherwise. Never change expected output to hide a
   bug. For a new compiler bug, add a reproducer to
-  `implementation_limitation/`.
+  `toolchain_bugs/`.
 - Do not edit the lists of `test/configs.json` or `test/tests.json` (the
   number of tests of each file) by hand: see "Updating `test/configs.json`
   from a run" below.

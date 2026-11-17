@@ -40,12 +40,12 @@
 #endif
 
 // FMT_HD: function attribute that makes a declaration callable from both
-// host and device code under clang-CUDA. CUDA has no namespace/region-
+// host and device code under CUDA and HIP. They have no namespace/region-
 // level "everything below is device code" pragma (unlike OpenMP's
 // `#pragma omp declare target`), so we tag every transitively-reachable
-// function from the public entry points. Expands to nothing for non-CUDA
+// function from the public entry points. Expands to nothing for other
 // builds so the same header compiles unchanged for SYCL/OpenMP/host.
-#if defined(__CUDACC__)
+#if defined(__CUDACC__) || defined(__HIPCC__)
   #define FMT_HD __host__ __device__
 #else
   #define FMT_HD
@@ -64,6 +64,9 @@
   #endif
 #else
   #include <cstdio>
+  #if defined(__HIPCC__)
+    #include <hip/hip_runtime.h>  // the device printf (CUDA's comes implicitly)
+  #endif
 #endif
 
 // ── OpenMP-target-SPIR64 auto-install (icpx-only) ────────────────────────
@@ -114,9 +117,9 @@
     ::ffmt::detail::omp_printf(__VA_ARGS__)
 #endif
 
-// ── NVPTX auto-install: clang-OMP-CUDA, clang-CUDA ──────────────────────
-// When the TU targets NVIDIA via either `clang -fopenmp --offload-arch`
-// or `clang++ -x cuda`, the buffer path's emit is plain ::printf. Unlike
+// ── printf auto-install: clang-OMP offload, CUDA, HIP ───────────────────
+// When the TU targets a GPU via `clang -fopenmp --offload-arch`,
+// `clang++ -x cuda` or `-x hip`, the buffer path's emit is plain ::printf. Unlike
 // icpx-SPIR64, NVPTX's printf accepts any pointer-to-char as the format
 // string (verified empirically — runtime buffers, static constexpr arrays,
 // all fine). The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx
@@ -125,7 +128,7 @@
 #if !defined(FFMT_EMIT_BUFFER) && !defined(SYCL_LANGUAGE_VERSION) \
     && !FFMT_COMPILER_ACPP \
     && ( (defined(__clang__) && defined(_OPENMP) && !defined(__INTEL_LLVM_COMPILER)) \
-         || defined(__CUDACC__) )
+         || defined(__CUDACC__) || defined(__HIPCC__) )
   // printf("%s", buf) — literal format, buffer as %s arg. % chars in the
   // buffer pass through verbatim (printf doesn't re-interpret %s args).
   #define FFMT_EMIT_BUFFER(out, escape_pct) \
@@ -2118,7 +2121,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
 // by-value scalar ints into a struct so dispatch_arg / write_arg_rt can
 // receive them via reference. Two trailing by-value ints on a function
 // called from inside the dispatch_pack lambda triggers alloca aliasing
-// at -O0 (V29 standalone reproducer; see implementation_limitation/).
+// at -O0 (V29 standalone reproducer; see toolchain_bugs/).
 struct dyn_args { int w; int p; };
 
 // Format one argument with runtime spec — dispatches based on type + etype.

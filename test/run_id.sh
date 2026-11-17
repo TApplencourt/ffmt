@@ -30,5 +30,9 @@ rm -f "results/id-$ID"/{config.txt,tests.log,negative.log,extra.log,summary.md} 
 # -j: the compiles are independent targets. Programs that use the GPU
 # still run one at a time; Makefile.id orders them. --keep-going: one
 # target that fails must not stop the others from leaving their logs.
-# getconf, not nproc: macOS has no nproc.
-exec make --keep-going -j"$(getconf _NPROCESSORS_ONLN)" -f Makefile.id id="$ID" "$GOAL"
+# getconf, not nproc: macOS has no nproc. At most 32: more only starves
+# the compilers (ROCm 10's ld.lld failed to create threads at -j128 on a
+# JLSE login node).
+JOBS=$(getconf _NPROCESSORS_ONLN)
+[ "$JOBS" -gt 32 ] && JOBS=32
+exec make --keep-going -j"$JOBS" -f Makefile.id id="$ID" "$GOAL"
