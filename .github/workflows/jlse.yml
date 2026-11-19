@@ -35,20 +35,85 @@ jobs:
           : "${GITLAB_TRIGGER_TOKEN:?A Maintainer must add GITLAB_TRIGGER_TOKEN to the protected jlse Environment}"
           : "${GITLAB_PROJECT_ID:?Configure the non-secret GITLAB_PROJECT_ID Actions variable}"
           response_file=$(mktemp)
-          trap 'rm -f "$response_file"' EXIT
+          headers_file=$(mktemp)
+          trap 'rm -f "$response_file" "$headers_file"' EXIT
           request=(
             --request POST
-            --silent --show-error --fail-with-body
+            --silent --show-error
             --connect-timeout 15 --max-time 60
             --output "$response_file"
+            --dump-header "$headers_file"
+            --write-out '%{http_code}'
             --form-string "token=${GITLAB_TRIGGER_TOKEN}"
             --form-string "ref=${GITLAB_REF}"
           )
           if [ "$RUN_H100" = true ]; then
             request+=(--form-string "variables[RUN_H100]=true")
           fi
-          curl "${request[@]}" \
+          set +e
+          http_code=$(curl "${request[@]}" \
             "https://gitlab.jlse.anl.gov/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline"
+          )
+          curl_status=$?
+          set -e
+          if [ "$curl_status" -ne 0 ] || [[ ! "$http_code" =~ ^2 ]]; then
+            python3 - "$headers_file" "$response_file" "$http_code" "$curl_status" <<'PY'
+          import html
+          import json
+          import os
+          import re
+          import sys
+
+          def clean(value):
+              value = re.sub(r"[\x00-\x1f\x7f]+", " ", value)
+              for secret in (os.environ["GITLAB_TRIGGER_TOKEN"],):
+                  if secret:
+                      value = value.replace(secret, "[redacted]")
+              value = re.sub(r"\b(?:glpat|glptt)-[A-Za-z0-9_-]+", "[redacted]", value)
+              return re.sub(
+                  r"(?i)\b(token|private[-_]token|access[-_]token|authorization)\b(\s*[:=]\s*)(?:bearer\s+)?[^\s,&}\]]+",
+                  lambda match: match[1] + match[2] + "[redacted]", value)
+
+          def error_text(value):
+              if isinstance(value, str):
+                  return [value]
+              if isinstance(value, list):
+                  return [part for item in value for part in error_text(item)]
+              if isinstance(value, dict):
+                  return [part for key, item in value.items()
+                          if key.lower() not in {"authorization", "headers", "cookies", "password", "secret"}
+                          for part in error_text(item)]
+              return []
+
+          try:
+              with open(sys.argv[2]) as stream:
+                  payload = json.load(stream)
+              roots = [payload[key] for key in ("message", "error", "base") if key in payload]
+              message = "; ".join(dict.fromkeys(clean(part) for root in roots for part in error_text(root)))
+          except (OSError, ValueError, TypeError):
+              message = ""
+          message = message[:2000] if message else "No sanitized GitLab error message available; response body omitted."
+          request_ids = []
+          try:
+              with open(sys.argv[1]) as stream:
+                  for line in stream:
+                      name, separator, value = line.partition(":")
+                      if separator and name.lower() in {"x-request-id", "x-correlation-id", "x-gitlab-request-id"}:
+                          value = value.strip()
+                          if re.fullmatch(r"[A-Za-z0-9._:/+=-]{1,200}", value):
+                              request_ids.append((name.lower(), value))
+          except OSError:
+              pass
+          lines = [f"GitLab trigger request failed: HTTP {sys.argv[3]}, curl status {sys.argv[4]}.",
+                   f"Sanitized GitLab error: {message}"]
+          lines += [f"GitLab {name}: {value}" for name, value in request_ids]
+          print("\n".join(lines), file=sys.stderr)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("## JLSE submission failed\n\n")
+              summary.write("".join(f"- {html.escape(line)}\n" for line in lines))
+          PY
+            exit 1
+          fi
           python3 - "$response_file" <<'PY'
           import html
           import json

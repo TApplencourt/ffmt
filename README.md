@@ -373,3 +373,9 @@ H100. Enable it to make H100 automatic and required, producing the complete
 summary artifact without changing the wiki. The Action submits asynchronous
 CI: without a separate read token, it deliberately does not report eventual
 hardware success.
+
+Rejected submissions report a bounded, sanitized GitLab error and any
+request/correlation ID in the Action log and summary; raw response bodies and
+headers are not logged. If a recently merged GitHub `ref` still has old rules on
+GitLab, wait for or refresh the existing pull mirror before retrying. A
+`workflow:rules` rejection does not mean the trigger token needs rotation.
