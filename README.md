@@ -343,6 +343,12 @@ node can take hours to get. Without it, a successful pipeline reports the other
 `jlse-summary`, then `jlse-wiki`. The retried summary fetches the H100 artifacts;
 completed downstream jobs do not rerun automatically.
 
+Basic and extended JLSE jobs share `FFMT_RUNTIME_ROOT`; its `modulefiles`
+directory is available alongside `/soft/modulefiles`. The generic upstream
+Clang CUDA/OpenMP jobs load `llvm/release-23.1.6`, whose modulefile selects the
+x86-64 or AArch64 installation by architecture. Intel LLVM, ROCm,
+AdaptiveCpp, ChipStar, NVCC, and GCC jobs retain their separate toolchains.
+
 GitLab's existing pull mirror imports every GitHub branch. A mirrored push to
 the default branch runs the complete standard 50-id suite and leaves a summary
 artifact; a mirrored feature-branch push does not launch the hardware suite.
