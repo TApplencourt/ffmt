@@ -157,14 +157,14 @@ RUN(PRINT("{}\n", 0.001f));
 // but printf("%g") on the specifiers path does not (6 significant digits).
 //   - round-up fallback in shorter_interval_case<double> (large powers of 2)
 //   - small_divisor path → check_divisibility_and_divide_by_pow10
-//     + compute_mul_parity<double> + umul192_lower128
-//     + remove_trailing_zeros<uint64_t> inner loop
+//   - remove_trailing_zeros(uint64_t&): its loop (1234567.89); short
+//     decimals (1.234, 7.89, like 3.14) only take its hand-off to uint32_t
 RUN(PRINT("{}\n", 1.2676506002282294e+30));  // 2^100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 7.888609052210118e-31));   // 2^-100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision
-RUN(PRINT("{}\n", 1234567.89));              // small_divisor
-RUN(PRINT("{}\n", 1.234));                   // small_divisor
-RUN(PRINT("{}\n", 7.89));                    // small_divisor
+RUN(PRINT("{}\n", 1234567.89));              // remove_trailing_zeros(uint64_t&) loop
+RUN(PRINT("{}\n", 1.234));                   // hand-off to uint32_t, like 3.14
+RUN(PRINT("{}\n", 7.89));                    // hand-off to uint32_t, like 3.14
 
 // Dragonbox small_divisor coverage in dragonbox::to_decimal<double>. Of its
 // three ways into small_divisor (right-endpoint tie, r == 0; r > deltai;
