@@ -68,4 +68,16 @@ RUN(PRINT("{:.1a}\n", 1.3e-44f));
 RUN(PRINT("[{:012a}]\n", -1.0));
 RUN(PRINT("[{:+012a}]\n", 1.0));
 
+[[maybe_unused]] auto opaque = [](auto v) { volatile decltype(v) x = v; return x; };
+#ifdef FFMT_STD_PATH
+#define EXPECT(want, fmt_str, v) printf("%s\n", want)
+#else
+#define EXPECT(want, fmt_str, v) PRINT(fmt_str "\n", opaque(v))
+#endif
+
+RUN(EXPECT("0x0.0000000000001p-1022", "{:a}", 4.9406564584124654e-324));
+RUN(EXPECT("0x0.fffffffffffffp-1022", "{:a}", 2.2250738585072009e-308));
+RUN(EXPECT("0x1p-149", "{:a}", 1e-45f));
+#undef EXPECT
+
 #endif
