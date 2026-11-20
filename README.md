@@ -16,6 +16,7 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | Backend                  | Compiler                            | Status | Notes |
 |--------------------------|-------------------------------------|--------|-------|
 | SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug breaks a handful of `%s` tests. |
+| SYCL (Intel LLVM)        | intel/llvm `clang++ -fsycl`         | ✅ | Specifiers path, as `icpx -fsycl`. |
 | SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
 | OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; `-O2` is clean. |
