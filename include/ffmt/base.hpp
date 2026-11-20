@@ -121,9 +121,9 @@
     ::ffmt::detail::omp_printf(__VA_ARGS__)
 #endif
 
-// ── printf auto-install: clang-OMP offload, CUDA, HIP ───────────────────
-// When the TU targets a GPU via `clang -fopenmp --offload-arch`,
-// `clang++ -x cuda` or `-x hip`, the buffer path's emit is plain ::printf. Unlike
+// ── printf auto-install: clang OpenMP, CUDA, HIP ────────────────────────
+// When the TU is built with clang -fopenmp (offloading or not), as CUDA
+// or as HIP, the buffer path's emit is printf("%s", buf). Unlike
 // icpx-SPIR64, NVPTX's printf accepts any pointer-to-char as the format
 // string (verified empirically — runtime buffers, static constexpr arrays,
 // all fine). The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx
