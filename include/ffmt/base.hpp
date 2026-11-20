@@ -2474,13 +2474,12 @@ inline void println(Args... args) {
 
 #else // FFMT_BUFFER_PATH
 
-// ACPP path: keep the value-style public API
+// Buffer path: the value-style public API
 //   ffmt::println("…", args…)
 // for both primitive and formatter args. The format literal is captured by
 // print_string's consteval ctor (so no NTTP at the call site). format_rt
-// now dispatches both primitive and formatter args via if constexpr — the
-// primitive path stays byte-identical, formatter args recurse into the
-// inner walker on the formatter's sub-format-string.
+// dispatches primitive args to the spec-aware writers; formatter args
+// recurse into the inner walker on the formatter's sub-format-string.
 template <sycl_formattable... Args>
 FMT_HD inline void print(const detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   detail::fmt_buf out;
