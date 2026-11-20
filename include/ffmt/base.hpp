@@ -1,11 +1,14 @@
-// ffmt/base.hpp — std::format-like API for SYCL device kernels
+// ffmt/base.hpp — print what fmt::format prints, from device code (SYCL,
+// OpenMP target, CUDA, HIP, ...).
 //
-// Compile-time converts "{}" / "{:spec}" format strings to printf format
-// specifiers, then forwards to sycl::ext::oneapi::experimental::printf.
+// Two paths, picked from the compiler (FFMT_BUFFER_PATH): the specifiers
+// path (DPC++, icpx OpenMP) converts the format string to a printf format
+// at compile time and lets the device printf format the arguments; the
+// buffer path (everything else) formats into a buffer and prints it once.
 //
 // Usage:
-//   ffmt::print<"{} + {} = {}">(a, b, c);
-//   FFMT_PRINT("{} + {} = {}", a, b, c);   // macro for nicer syntax
+//   FFMT_PRINT("{} + {} = {}", a, b, c);   // the spelling for both paths
+//   FFMT_PRINTLN("{} + {} = {}", a, b, c);
 
 #pragma once
 
