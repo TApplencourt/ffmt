@@ -1172,7 +1172,9 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
   return s;
 }
 
-// Runtime version of effective_type — spec_type is a runtime parameter
+// The printf conversion for a spec without a type ('\0'), from the argument
+// type: 'u' for unsigned, 'g' for floats (write_float_rt prints the shortest
+// form itself when there is neither a type nor a precision).
 template <typename U> constexpr char effective_type(char spec_type) {
   if (spec_type != '\0') return spec_type;
   if constexpr (std::same_as<U, bool>) return 's';
