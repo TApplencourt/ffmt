@@ -175,16 +175,22 @@ indices (`{1} {0}`, also inside a formatter's own string) are supported.
 
 ### Floating-point: FTZ/DAZ depends on the runtime
 
-Printed values reflect whatever the runtime does with subnormals. Some
-toolchain CRTs enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at
-startup — notably `icpx` does whenever any TU is compiled at `-O1` or
-higher — while others (glibc + g++, and most SYCL device runtimes) leave
-subnormals intact. The library does not paper over this: a value like
-`std::numeric_limits<float>::denorm_min()` may print as `1.4013e-45` in
-one environment and `0` in another, matching the local
-`printf`/`std::format`. To get the unflushed result under `icpx`, compile
-with `-fno-fast-math` (or `-fp-model=precise`); the host test suite in
-this repo does exactly that for portability across icpx/gcc/clang.
+Arithmetic on subnormals depends on the runtime. Some toolchain CRTs
+enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at startup —
+notably `icpx` does whenever any TU is compiled at `-O1` or higher — while
+others (glibc + g++, and most SYCL device runtimes) leave subnormals
+intact. On the buffer path, ffmt formats from the bits: in the fast-math
+ids (`-ffast-math` with g++ on x86, clang CUDA and OpenMP offload) a
+subnormal that reaches it prints correctly (`{:e}` of `5e-324` gives
+`4.940656e-324`, where {fmt} under DAZ prints `0.000000e+00`). If FTZ/DAZ
+is on but clang assumes IEEE subnormals (set at run time or by another
+TU's startup code; seen on arm64, even with `-ffast-math`), an optimized
+build can print `{}` of a subnormal as `0`; `{:e}`, `{:g}` and `{:a}` are
+fine. On the specifiers path the device printf formats the value. Neither
+can undo arithmetic that flushed the value before the call. To keep
+subnormals under `icpx`, compile with
+`-fno-fast-math` (or `-fp-model=precise`); the test ids do, except the
+fast-math ones, which check the above (`test/test_fast_math.cpp`).
 
 ### Backend differences
 
