@@ -196,9 +196,12 @@ fast-math ones, which check the above (`test/test_fast_math.cpp`).
 
 Two emit paths share the same front-end:
 
-- **Buffer path** (plain host builds, ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
-  output into a fixed-size buffer, then emits it with a single
-  `printf("%s", buf)`. Supports the full `std::format` spec.
+- **Buffer path** (host, AdaptiveCpp, clang OpenMP offload, CUDA, HIP)
+  formats the full output into a fixed-size buffer, then emits it once:
+  `printf("%s", buf)` with clang OpenMP, CUDA and HIP (host pass too),
+  `__acpp_sscp_print` on AdaptiveCpp devices, `fputs` otherwise. Supports
+  every {fmt} spec except one inside a custom formatter's own string,
+  which is ignored (issue #39).
 - **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format
   string into a `printf` format and lets the device runtime format
   args directly. Atomic but limited to printf-compatible specs.
