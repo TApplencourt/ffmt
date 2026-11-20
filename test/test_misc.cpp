@@ -80,9 +80,9 @@ RUN(PRINTLN(""));
 RUN(PRINTLN("}}{{"));
 
 // ── Misc ──────────────────────────────────────────────────────────────────────
-// Null-pointer formatting — buffer-path-only because the specifiers path
-// routes through libc printf which emits "(nil)" for null pointers, while
-// std::format (and our buffer-path implementation) emit "0x0".
+// Null-pointer formatting — {fmt} (and the buffer path) print "0x0"; the
+// specifiers path passes the pointer to printf's %p, which glibc prints as
+// "(nil)" (macOS prints "0x0").
 RUN(PRINT("{}\n",         static_cast<void*>(nullptr)));
 RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
 
