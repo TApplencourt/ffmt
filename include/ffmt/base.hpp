@@ -2447,8 +2447,9 @@ template <fixed_string Fmt> consteval auto append_newline() {
 
 #if !FFMT_BUFFER_PATH
 
-// DPC++ path: the format string must reach the consteval splicer as an NTTP,
-// so the public entry point is a function template parameterized on it. The
+// Specifiers path (DPC++, icpx OpenMP): the format string becomes the printf
+// format, which must be a compile-time constant, so it is an NTTP and the
+// public entry point a function template parameterized on it. The
 // FFMT_PRINT macro hides the angle-bracket call shape.
 template <detail::fixed_string Fmt, sycl_formattable... Args>
 inline void print(Args... args) {
