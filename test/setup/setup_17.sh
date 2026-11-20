@@ -1,8 +1,8 @@
 # Setup for id 17: icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
-# No UMD on LD_LIBRARY_PATH, unlike the SYCL setups: any of 803.45, 821.36
-# or 1032.21 segfaults this at -O0, while the system runtime passes.
+# No UMD on LD_LIBRARY_PATH: any of 803.45, 821.36 or 1032.21 segfaults
+# this at -O0, while the system runtime passes.
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /vast/users/bertoni/intel/oneapi/setvars.sh
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu

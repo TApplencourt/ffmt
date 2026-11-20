@@ -1449,7 +1449,7 @@
   },
   {
     "id": 64,
-    "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, intel_compute_runtime/release/821.36 + UMD 1032.21, -O0, no fast-math",
+    "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O0, no fast-math",
     "ci": "jlse:chiatta-dpcpp",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "Intel(R) Data Center GPU Max 1550",
@@ -1482,7 +1482,7 @@
   },
   {
     "id": 65,
-    "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, intel_compute_runtime/release/821.36 + UMD 1032.21, -O2, no fast-math",
+    "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math",
     "ci": "jlse:chiatta-dpcpp",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "Intel(R) Data Center GPU Max 1550",
@@ -1818,7 +1818,7 @@
   },
   {
     "id": 82,
-    "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, UMD 1032.21, -O0, no fast-math",
+    "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O0, no fast-math",
     "ci": "jlse:chiatta-dpcpp",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "Kokkos SYCL",
@@ -1852,7 +1852,7 @@
   },
   {
     "id": 83,
-    "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, UMD 1032.21, -O2, no fast-math",
+    "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O2, no fast-math",
     "ci": "jlse:chiatta-dpcpp",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "Kokkos SYCL",
