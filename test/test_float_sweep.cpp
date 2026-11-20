@@ -6,39 +6,48 @@
 #define TEST_INC "test_float_sweep.cpp"
 #include "test_body.inc"
 #else
-// ── Differential sweep against {fmt} (host only) ───────────────────────────
+// ── Differential sweep against {fmt} ────────────────────────────────────────
 // Deterministic pseudo-random doubles/floats (raw bit patterns, so every
 // exponent and subnormals are hit) plus short decimals that land on rounding
-// ties. Far denser than the hand-picked cases above; this is what would have
+// ties. Far denser than the hand-picked cases of test_floats.cpp, which aim at
+// specific code paths, specials and spec options; this is what would have
 // caught the >2^53 precision bugs.
-{
-  uint64_t st = 0x9E3779B97F4A7C15ULL;
-  auto rnd = [&st]() { st ^= st << 13; st ^= st >> 7; st ^= st << 17; return st; };
-  auto finite_bits = [&]<typename F, typename Bits>(size_t n) { // random finite F
-    std::vector<F> v;
-    while (v.size() < n)
-      if (F x = __builtin_bit_cast(F, static_cast<Bits>(rnd())); x - x == 0) v.push_back(x);
-    return v;
-  };
-  auto dv = finite_bits.operator()<double, uint64_t>(400);
-  auto fv = finite_bits.operator()<float, uint32_t>(300);
-  for (int i = 0; i < 200; i++) {                       // k / 10^j and k / 2^j
-    double k = static_cast<double>(rnd() % 100000);
-    dv.push_back(k / std::pow(10.0, static_cast<double>(rnd() % 8)));
-    dv.push_back(std::ldexp(k + 0.5, -static_cast<int>(rnd() % 12)));
-  }
-#define SWEEP(vec, fmt) RUN(for (auto v : vec) PRINT(fmt "\n", v))
-  SWEEP(dv, "{}");      SWEEP(dv, "{:f}");    SWEEP(dv, "{:.0f}");
-  SWEEP(dv, "{:.3f}");  SWEEP(dv, "{:.17f}"); SWEEP(dv, "{:e}");
-  SWEEP(dv, "{:.0e}");  SWEEP(dv, "{:.16e}"); SWEEP(dv, "{:.30e}");
-  SWEEP(dv, "{:g}");    SWEEP(dv, "{:.1g}");  SWEEP(dv, "{:.17g}");
-  SWEEP(dv, "{:#g}");   SWEEP(dv, "{:a}");    SWEEP(dv, "{:.0a}");
-  SWEEP(dv, "{:.5a}");  SWEEP(dv, "{:#.3a}"); SWEEP(dv, "{:+15}");
-  SWEEP(dv, "{:#}");    SWEEP(dv, "{:.5}");
-  SWEEP(fv, "{}");      SWEEP(fv, "{:12}");   SWEEP(fv, "{:e}");
-  SWEEP(fv, "{:.10f}"); SWEEP(fv, "{:g}");    SWEEP(fv, "{:a}");
-  SWEEP(fv, "{:.2a}");  SWEEP(fv, "{:#}");
-#undef SWEEP
-}
+//
+// Each RUN makes its values where it prints them, with the same integer code
+// on the host and on the device: a vector built on the host is not visible
+// to a device kernel. Finite is tested on the bits, not with x - x == 0,
+// which fast-math may fold to true.
+#define XORSHIFT(st) (st ^= st << 13, st ^= st >> 7, st ^= st << 17, st)
+#define SWEEP_DOUBLES(fmt) RUN(                                                  \
+  uint64_t st = 0x9E3779B97F4A7C15ULL;                                           \
+  for (int n = 0; n < 400;) {                    /* random finite bit patterns */ \
+    uint64_t b = XORSHIFT(st);                                                   \
+    if ((b >> 52 & 0x7FF) != 0x7FF) { PRINTLN(fmt, __builtin_bit_cast(double, b)); n++; } \
+  }                                                                              \
+  const double p10[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7};                \
+  for (int i = 0; i < 200; i++) {                /* k / 10^j and (k + 0.5) / 2^j */ \
+    double k = static_cast<double>(XORSHIFT(st) % 100000);                       \
+    PRINTLN(fmt, k / p10[XORSHIFT(st) % 8]);                                  \
+    PRINTLN(fmt, (k + 0.5) / static_cast<double>(1u << (XORSHIFT(st) % 12))); \
+  })
+#define SWEEP_FLOATS(fmt) RUN(                                                   \
+  uint64_t st = 0x2545F4914F6CDD1DULL;                                           \
+  for (int n = 0; n < 300;) {                                                    \
+    uint32_t b = static_cast<uint32_t>(XORSHIFT(st));                            \
+    if ((b >> 23 & 0xFF) != 0xFF) { PRINTLN(fmt, __builtin_bit_cast(float, b)); n++; } \
+  })
+SWEEP_DOUBLES("{}");      SWEEP_DOUBLES("{:f}");    SWEEP_DOUBLES("{:.0f}");
+SWEEP_DOUBLES("{:.3f}");  SWEEP_DOUBLES("{:.17f}"); SWEEP_DOUBLES("{:e}");
+SWEEP_DOUBLES("{:.0e}");  SWEEP_DOUBLES("{:.16e}"); SWEEP_DOUBLES("{:.30e}");
+SWEEP_DOUBLES("{:g}");    SWEEP_DOUBLES("{:.1g}");  SWEEP_DOUBLES("{:.17g}");
+SWEEP_DOUBLES("{:#g}");   SWEEP_DOUBLES("{:a}");    SWEEP_DOUBLES("{:.0a}");
+SWEEP_DOUBLES("{:.5a}");  SWEEP_DOUBLES("{:#.3a}"); SWEEP_DOUBLES("{:+15}");
+SWEEP_DOUBLES("{:#}");    SWEEP_DOUBLES("{:.5}");
+SWEEP_FLOATS("{}");       SWEEP_FLOATS("{:12}");    SWEEP_FLOATS("{:e}");
+SWEEP_FLOATS("{:.10f}");  SWEEP_FLOATS("{:g}");     SWEEP_FLOATS("{:a}");
+SWEEP_FLOATS("{:.2a}");   SWEEP_FLOATS("{:#}");
+#undef SWEEP_FLOATS
+#undef SWEEP_DOUBLES
+#undef XORSHIFT
 
 #endif
