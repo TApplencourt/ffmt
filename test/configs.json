@@ -1663,7 +1663,7 @@
   },
   {
     "id": 74,
-    "notes": "chipStar 1.3.0 HIP over Level Zero on Chiatta Max 1550, typed SPIR-V translator, -O0, no fast-math",
+    "notes": "chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O0, no fast-math",
     "ci": "jlse:chipstar",
     "previous_main_commit": "N/A",
     "failed_to_compile": [
@@ -1694,7 +1694,7 @@
   },
   {
     "id": 75,
-    "notes": "chipStar 1.3.0 HIP over Level Zero on Chiatta Max 1550, typed SPIR-V translator, -O2, no fast-math",
+    "notes": "chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O2, no fast-math",
     "ci": "jlse:chipstar",
     "previous_main_commit": "N/A",
     "failed_to_compile": [
