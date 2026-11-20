@@ -6,7 +6,7 @@
 #define TEST_INC "test_escape_percent_inplace.cpp"
 #include "test_body.inc"
 #else
-// ── escape_percent_inplace (host-only unit test) ───────────────────────────
+// ── escape_percent_inplace (runs on the host; the kernel prints the result) ─
 // The ACPP device emit escapes % → %% in place. When the escaped text no
 // longer fits, it must keep the longest fitting prefix (never half of a %%
 // pair) and keep println's trailing '\n'. Before the fix the right-to-left
