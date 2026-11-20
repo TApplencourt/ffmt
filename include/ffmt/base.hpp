@@ -2220,8 +2220,8 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
         if (has_spec) write_arg_rt(out, arg, spec, dyn);
         else write_arg_default(out, arg);
       } else {
-        // has_formatter<T> — specs/dynamic-width on custom args are not
-        // supported on ACPP at runtime; the inner format literal is rewalked.
+        // has_formatter<T>: a spec on a custom arg is rejected at compile
+        // time (spec_compatible_with_arg); walk the formatter's own string.
         auto inner = ::ffmt::formatter<std::decay_t<T>>::format(arg);
         constexpr auto inner_fmt = decltype(inner)::format_string;
         std::apply(
