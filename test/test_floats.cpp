@@ -204,7 +204,7 @@ RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → fixed (std::format: 
 // which is exact only while that product stays below 2^53: {:f} of 1e15
 // printed "0.000000" and {:.20f} of 0.1 lost its trailing "555". Every case
 // here has val·10^prec >= 2^53 (or a hard rounding tie) and compares against
-// std::format's exact digits.
+// {fmt}'s exact digits.
 RUN(PRINT("{:f}\n", 1e15));
 RUN(PRINT("{:f}\n", 1e22));
 RUN(PRINT("{:f}\n", 123456789012345678.0));
