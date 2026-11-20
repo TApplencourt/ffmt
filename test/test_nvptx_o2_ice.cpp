@@ -2,8 +2,8 @@
 // -O2) could not compile: OpenMPOpt's AAPointerInfoFloating asserted in
 // Casting.h:572 when a format call mixed a string-literal argument with
 // other argument types. LLVM 23.1.6 compiles them.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME nvptx_o2_ice
 #define TEST_INC "test_nvptx_o2_ice.cpp"

@@ -1,7 +1,7 @@
 // A string in SYCL USM shared memory (sycl::malloc_shared), printed from
 // the device.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME sycl_usm_string
 #define TEST_INC "test_sycl_usm_string.cpp"

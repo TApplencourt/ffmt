@@ -1,7 +1,7 @@
 // A null const char*. g++ with -Werror rejects it on the specifiers path:
 // printf's %s with a null argument is diagnosed at compile time.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME null_string
 #define TEST_INC "test_null_string.cpp"

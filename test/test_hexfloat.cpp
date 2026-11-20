@@ -1,6 +1,6 @@
 // Cases using {:a} / {:A}, hexadecimal floating point. The specifiers path cannot express these with printf.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME hexfloat
 #define TEST_INC "test_hexfloat.cpp"
