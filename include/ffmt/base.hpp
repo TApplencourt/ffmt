@@ -2488,7 +2488,7 @@ FMT_HD inline void println(const detail::print_string<std::type_identity_t<Args>
   detail::fmt_buf out;
   detail::buffer_path::format_rt(out, ps, args...);
   // Not push(): a truncated line must still end in '\n', or the next print
-  // gets glued onto it. data[] has ExtraPad bytes past cap for this.
+  // gets glued onto it. data[] has 32 bytes past cap for this (fmt_buf).
   out.data[out.len++] = '\n';
   detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
 }
