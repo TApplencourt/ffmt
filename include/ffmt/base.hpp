@@ -163,9 +163,13 @@
 // Defaults:
 //   ACPP buffer path: JIT-branch on device vs host backend (__acpp_sscp_print
 //     vs fputs), escaping % only on the device path.
-//   Otherwise buffer: plain fputs (host test, OpenMP, plain CPU).
+//   clang OpenMP, CUDA, HIP buffer path: printf("%s", buf) (installed above).
+//   Otherwise buffer: plain fputs (host test, g++ even with -fopenmp,
+//     clang without it).
 //   SPIRV with SYCL: sycl::ext::oneapi::experimental::printf.
-//   SPIRV without SYCL: ::printf (host test, etc.).
+//   SPIRV with icpx OpenMP: omp_printf (installed above), i.e.
+//     __spirv_ocl_printf on the device, ::printf on the host pass.
+//   SPIRV otherwise: ::printf (host test, etc.).
 #if !defined(FFMT_EMIT_PRINTF)
   #if defined(SYCL_LANGUAGE_VERSION)
     #define FFMT_EMIT_PRINTF(...) ::sycl::ext::oneapi::experimental::printf(__VA_ARGS__)
