@@ -1607,10 +1607,10 @@ template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
 
 #if FFMT_BUFFER_PATH
 // ============================================================
-// ACPP accumulator path
+// Buffer path
 //
 // Collects the entire formatted output into one fmt_buf, then
-// flushes with a single sycl::detail::print call — atomic per
+// emits it with a single FFMT_EMIT_BUFFER call — atomic per
 // work-item, no interleaving between format args.
 // ============================================================
 
