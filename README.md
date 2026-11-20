@@ -1,6 +1,6 @@
-# fmt-sycl
+# ffmt
 
-- `std::print`-like formatting for SYCL device kernels.
+- `fmt::print`-like formatting from device code: SYCL, OpenMP target, CUDA, HIP.
 - Required C++20
 
 This project would not exist without [{fmt}](https://github.com/fmtlib/fmt)
