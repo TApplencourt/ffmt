@@ -1282,7 +1282,7 @@ consteval void validate_format(const char *s, int len) {
 
 #if FFMT_BUFFER_PATH
 // ============================================================
-// print_string — consteval-validated format string for ACPP
+// print_string — consteval-validated format string for the buffer path
 // ============================================================
 
 // Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
