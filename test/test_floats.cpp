@@ -157,44 +157,46 @@ RUN(PRINT("{}\n", 0.001f));
 // but printf("%g") on the specifiers path does not (6 significant digits).
 //   - round-up fallback in shorter_interval_case<double> (large powers of 2)
 //   - small_divisor path → check_divisibility_and_divide_by_pow10
-//     + compute_mul_parity<double> + umul192_lower128
-//     + remove_trailing_zeros<uint64_t> inner loop
+//   - remove_trailing_zeros(uint64_t&): its loop (1234567.89); short
+//     decimals (1.234, 7.89, like 3.14) only take its hand-off to uint32_t
 RUN(PRINT("{}\n", 1.2676506002282294e+30));  // 2^100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 7.888609052210118e-31));   // 2^-100 (shorter_interval round-up)
 RUN(PRINT("{}\n", 0.30000000000000004));     // small_divisor, full precision
-RUN(PRINT("{}\n", 1234567.89));              // small_divisor
-RUN(PRINT("{}\n", 1.234));                   // small_divisor
-RUN(PRINT("{}\n", 7.89));                    // small_divisor
+RUN(PRINT("{}\n", 1234567.89));              // remove_trailing_zeros(uint64_t&) loop
+RUN(PRINT("{}\n", 1.234));                   // hand-off to uint32_t, like 3.14
+RUN(PRINT("{}\n", 7.89));                    // hand-off to uint32_t, like 3.14
 
-// Dragonbox small_divisor + parity-check coverage.  These doubles are
-// chosen so r ∈ {0, deltai, > deltai}, hitting the three branches in
-// compute_nearest_normal<double>: the right-endpoint-tie `goto
-// small_divisor` (line ~666), the unconditional `goto small_divisor`
-// (line ~669), and the parity-disambiguation path (lines ~671-675).
-RUN(PRINT("{}\n", 9007199254740994.0));      // 2^53 + 2 — boundary, exact
-RUN(PRINT("{}\n", 1.4012984643248171e-44));  // exercises compute_mul_parity
-RUN(PRINT("{}\n", 0.1));                     // 0.1 binary — tie-break parity
-RUN(PRINT("{}\n", 0.2));                     // 0.2 binary — tie-break parity
+// Dragonbox small_divisor coverage in dragonbox::to_decimal<double>. Of its
+// three ways into small_divisor (right-endpoint tie, r == 0; r > deltai;
+// parity check, r == deltai), only r > deltai is reached here, and no case
+// reaches compute_mul_parity.
+RUN(PRINT("{}\n", 9007199254740994.0));      // 2^53 + 2, exact (r > deltai)
+RUN(PRINT("{}\n", 1.4012984643248171e-44));  // no small_divisor
+RUN(PRINT("{}\n", 0.1));                     // no small_divisor
+RUN(PRINT("{}\n", 0.2));                     // no small_divisor
 RUN(PRINT("{}\n", 9.999999999999998));       // r > deltai branch
 RUN(PRINT("{}\n", 4.9406564584124654e-324)); // smallest subnormal double
 RUN(PRINT("{}\n", 2.2250738585072009e-308)); // largest subnormal double
 
-// Same paths for float-precision dragonbox (compute_mul_parity<float>).
+// Float-precision dragonbox (to_decimal<float>): 2^24 + 2 and the subnormal
+// reach small_divisor (r > deltai); no case reaches compute_mul_parity.
 RUN(PRINT("{}\n", 0.1f));
 RUN(PRINT("{}\n", 0.2f));
 RUN(PRINT("{}\n", 16777218.0f));             // 2^24 + 2 — fixed/sci boundary
 RUN(PRINT("{}\n", 1.4013e-45f));             // float denorm range
 
-// Fixed/scientific boundary — std::format picks the shorter form, tie → fixed.
-// Buffer path uses dragonbox + use_fixed() length comparison; the SPIRV path
-// uses printf %g which follows a different rule (exp < -4 || exp >= precision).
-RUN(PRINT("{}\n", 1000000.0));         // exp=6, sig=1 → sci (1e+06 vs 1000000)
-RUN(PRINT("{}\n", 100000.0));          // exp=5, sig=1 → sci (1e+05 vs 100000)
-RUN(PRINT("{}\n", 10000.0));           // exp=4, sig=1 → tie → fixed (10000)
+// Fixed/scientific boundary of the shortest form. {fmt} prints fixed while
+// the decimal exponent is in [-4, 16) for a double; std::format instead
+// picks the shorter form (1e+06). The buffer path follows {fmt}
+// (format_shortest); the specifiers path prints %g
+// (exp < -4 || exp >= precision).
+RUN(PRINT("{}\n", 1000000.0));         // exp=6, sig=1 → fixed (std::format: 1e+06)
+RUN(PRINT("{}\n", 100000.0));          // exp=5, sig=1 → fixed (std::format: 1e+05)
+RUN(PRINT("{}\n", 10000.0));           // exp=4, sig=1 → fixed
 RUN(PRINT("{}\n", 1234567890.0));      // exp=9, sig=10 → fixed
 RUN(PRINT("{}\n", 1234567890123456.0));// exp=15, sig=16 → fixed
-RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → sci
-RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
+RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → fixed (std::format: 1e+15)
+RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → fixed (std::format: 1e-04)
 
 
 // ── Exact digits beyond 2^53 ────────────────────────────────────────────────
@@ -202,7 +204,7 @@ RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
 // which is exact only while that product stays below 2^53: {:f} of 1e15
 // printed "0.000000" and {:.20f} of 0.1 lost its trailing "555". Every case
 // here has val·10^prec >= 2^53 (or a hard rounding tie) and compares against
-// std::format's exact digits.
+// {fmt}'s exact digits.
 RUN(PRINT("{:f}\n", 1e15));
 RUN(PRINT("{:f}\n", 1e22));
 RUN(PRINT("{:f}\n", 123456789012345678.0));

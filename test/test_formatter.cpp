@@ -72,8 +72,7 @@ struct ffmt::formatter<test_fmt::segment> {
 #include "test_body.inc"
 #else
 
-// Custom non-SYCL formatter — every PTX-clang-O0 test below mishandles
-// the custom-formatter splicer output. Left runnable on other backends.
+// Custom non-SYCL formatter.
 RUN(PRINTLN("p = {}", test_fmt::point{1, 2}));
 RUN(PRINTLN("b = {}", test_fmt::boxed{42}));
 

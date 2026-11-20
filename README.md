@@ -1,6 +1,6 @@
-# fmt-sycl
+# ffmt
 
-- `std::print`-like formatting for SYCL device kernels.
+- `fmt::print`-like formatting from device code: SYCL, OpenMP target, CUDA, HIP.
 - Required C++20
 
 This project would not exist without [{fmt}](https://github.com/fmtlib/fmt)
@@ -16,10 +16,15 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | Backend                  | Compiler                            | Status | Notes |
 |--------------------------|-------------------------------------|--------|-------|
 | SYCL (Intel SPIR-V)      | `icpx -fsycl`                       | ✅ | Specifiers path (printf). At `-O0` a libdpcpp string-literal bug breaks a handful of `%s` tests. |
-| SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. Full `std::format` spec. |
+| SYCL (Intel LLVM)        | intel/llvm `clang++ -fsycl`         | ✅ | Specifiers path, as `icpx -fsycl`. |
+| SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
-| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs break tests; `-O2` is clean. |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; `-O2` is clean. |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
+| OpenMP target → AMDGPU   | ROCm `clang -fopenmp --offload-arch=gfx942` | ✅ | Buffer path. At `-O0` the same tests break as on NVPTX (precision floats: a ROCm shared-stack bug, `toolchain_bugs/`); `-O2` is clean. |
+| HIP                      | `hipcc -x hip --offload-arch=gfx942` | ✅ | Buffer path. Auto-detected via `__HIPCC__`. |
+| HIP (chipStar, Level Zero) | chipStar `hipcc -x hip`           | ⚠️ | Buffer path. Clean at `-O0`; at `-O2` half the test files fail to compile (LLVM 23's SPIR-V backend asks for `SPV_ALTERA_arbitrary_precision_integers`). |
+| Kokkos                   | Kokkos over Serial, CUDA, HIP, SYCL | ✅ | The path of the backend underneath (SYCL: specifiers path). |
 | CUDA                     | `nvcc`                              | ❌ | Fails: `libnvvm` can't emit the `print_string` consteval ctor for device code. |
 | CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
 
@@ -171,24 +176,33 @@ indices (`{1} {0}`, also inside a formatter's own string) are supported.
 
 ### Floating-point: FTZ/DAZ depends on the runtime
 
-Printed values reflect whatever the runtime does with subnormals. Some
-toolchain CRTs enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at
-startup — notably `icpx` does whenever any TU is compiled at `-O1` or
-higher — while others (glibc + g++, and most SYCL device runtimes) leave
-subnormals intact. The library does not paper over this: a value like
-`std::numeric_limits<float>::denorm_min()` may print as `1.4013e-45` in
-one environment and `0` in another, matching the local
-`printf`/`std::format`. To get the unflushed result under `icpx`, compile
-with `-fno-fast-math` (or `-fp-model=precise`); the host test suite in
-this repo does exactly that for portability across icpx/gcc/clang.
+Arithmetic on subnormals depends on the runtime. Some toolchain CRTs
+enable flush-to-zero (FTZ) and denormals-as-zero (DAZ) at startup —
+notably `icpx` does whenever any TU is compiled at `-O1` or higher — while
+others (glibc + g++, and most SYCL device runtimes) leave subnormals
+intact. On the buffer path, ffmt formats from the bits: in the fast-math
+ids (`-ffast-math` with g++ on x86, clang CUDA and OpenMP offload) a
+subnormal that reaches it prints correctly (`{:e}` of `5e-324` gives
+`4.940656e-324`, where {fmt} under DAZ prints `0.000000e+00`). If FTZ/DAZ
+is on but clang assumes IEEE subnormals (set at run time or by another
+TU's startup code; seen on arm64, even with `-ffast-math`), an optimized
+build can print `{}` of a subnormal as `0`; `{:e}`, `{:g}` and `{:a}` are
+fine. On the specifiers path the device printf formats the value. Neither
+can undo arithmetic that flushed the value before the call. To keep
+subnormals under `icpx`, compile with
+`-fno-fast-math` (or `-fp-model=precise`); the test ids do, except the
+fast-math ones, which check the above (`test/test_fast_math.cpp`).
 
 ### Backend differences
 
 Two emit paths share the same front-end:
 
-- **Buffer path** (plain host builds, ACPP, clang-OMP-CUDA, CUDA-clang) formats the full
-  output into a fixed-size buffer, then emits it with a single
-  `printf("%s", buf)`. Supports the full `std::format` spec.
+- **Buffer path** (host, AdaptiveCpp, clang OpenMP offload, CUDA, HIP)
+  formats the full output into a fixed-size buffer, then emits it once:
+  `printf("%s", buf)` with clang OpenMP, CUDA and HIP (host pass too),
+  `__acpp_sscp_print` on AdaptiveCpp devices, `fputs` otherwise. Supports
+  every {fmt} spec except one inside a custom formatter's own string,
+  which is ignored (issue #39).
 - **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format
   string into a `printf` format and lets the device runtime format
   args directly. Atomic but limited to printf-compatible specs.

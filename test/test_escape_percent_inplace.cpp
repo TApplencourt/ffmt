@@ -1,12 +1,12 @@
 // White-box test of buffer_path::escape_percent_inplace.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME escape_percent_inplace
 #define TEST_INC "test_escape_percent_inplace.cpp"
 #include "test_body.inc"
 #else
-// ── escape_percent_inplace (host-only unit test) ───────────────────────────
+// ── escape_percent_inplace (runs on the host; the kernel prints the result) ─
 // The ACPP device emit escapes % → %% in place. When the escaped text no
 // longer fits, it must keep the longest fitting prefix (never half of a %%
 // pair) and keep println's trailing '\n'. Before the fix the right-to-left
