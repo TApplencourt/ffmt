@@ -1,4 +1,4 @@
-# Setup for id 65: Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, intel_compute_runtime/release/821.36 + UMD 1032.21, -O2, no fast-math.
+# Setup for id 65: Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 case ${FFMT_RUNTIME_ROOT:-} in
@@ -7,8 +7,7 @@ case ${FFMT_RUNTIME_ROOT:-} in
 esac
 type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
 module use /soft/modulefiles
-module load intel_compute_runtime/release/821.36
-export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:$FFMT_RUNTIME_ROOT/software/chiatta/install/intel-llvm/lib:${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/intel-llvm/lib:${LD_LIBRARY_PATH:-}
 export PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/intel-llvm/bin:$PATH
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 unset ZE_AFFINITY_MASK

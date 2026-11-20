@@ -1,12 +1,9 @@
 # Setup for id 10: icpx SYCL (DPC++) on PVC, -O0, no fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
-# 1032.21, not the 821.36 module: under 821 the Level Zero devices are
-# not visible to this oneAPI, so level_zero:gpu finds nothing and SYCL
-# falls back to OpenCL. There is no module for 1032.21 yet.
-export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:${LD_LIBRARY_PATH:-}
-set --   # setvars.sh reads the caller's "$@" as its own arguments
-source /vast/users/bertoni/intel/oneapi/setvars.sh
+type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
+module use /soft/modulefiles
+module load intel/oneapi/release/2026.2.0 compiler
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 export CXX=icpx
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -fsycl -O0 -fno-fast-math"

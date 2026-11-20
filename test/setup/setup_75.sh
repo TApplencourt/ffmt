@@ -1,4 +1,4 @@
-# Setup for id 75: chipStar 1.3.0 HIP over Level Zero on Chiatta Max 1550, typed SPIR-V translator, -O2, no fast-math.
+# Setup for id 75: chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
 case ${FFMT_RUNTIME_ROOT:-} in
@@ -7,13 +7,12 @@ case ${FFMT_RUNTIME_ROOT:-} in
 esac
 type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
 module use /soft/modulefiles
-module load gcc/13.3.0
-module load intel_compute_runtime/release/821.36
-export LD_LIBRARY_PATH=/soft/libraries/intel-gpu-umd/1032.21/lib64:/soft/libraries/intel-gpu-umd/1032.21/lib64/intel-opencl:$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar/lib:$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar/lib64:$FFMT_RUNTIME_ROOT/software/chiatta/install/spirv-translator/lib:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/lib:$FFMT_RUNTIME_ROOT/software/chiatta/install/host-runtime/lib:${LD_LIBRARY_PATH:-}
-export PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar/bin:$FFMT_RUNTIME_ROOT/software/x86_64/install/llvm20-shared/bin:$PATH
+module load intel/oneapi/release/2026.2.0 compiler
+export LD_LIBRARY_PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar-20261119-23-Release/lib:$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar-20261119-23-Release/lib64:$FFMT_RUNTIME_ROOT/software/x86_64/install/clang-chip-spv-23-20261119-23-Release/lib:${LD_LIBRARY_PATH:-}
+export PATH=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar-20261119-23-Release/bin:$FFMT_RUNTIME_ROOT/software/x86_64/install/clang-chip-spv-23-20261119-23-Release/bin:$PATH
 export CHIP_BE=level0
 export CHIP_DEVICE_TYPE=gpu
-export CXX=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar/bin/hipcc
+export CXX=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar-20261119-23-Release/bin/hipcc
 export FFMT_ORACLE_CXX=/soft/compilers/gcc/13.3.0/x86_64-suse-linux/bin/g++
 export FMT_DIR=$FFMT_RUNTIME_ROOT/third_party/fmt-main
-export FFMT_FLAGS="-std=c++20 -Wall -Werror -x hip --gcc-toolchain=/soft/compilers/gcc/13.3.0/x86_64-suse-linux -B$FFMT_RUNTIME_ROOT/software/chiatta/install/spirv-translator-typed/bin -O2 -fno-fast-math"
+export FFMT_FLAGS="-std=c++20 -Wall -Werror -x hip -O2 -fno-fast-math"
