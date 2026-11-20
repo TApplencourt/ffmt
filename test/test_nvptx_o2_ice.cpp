@@ -1,6 +1,7 @@
-// Cases clang-22 OpenMP offload to NVPTX at -O2 cannot compile: OpenMPOpt's
-// AAPointerInfoFloating asserts in Casting.h:572 when a format call mixes a
-// string-literal argument with other argument types.
+// Cases the llvm/release-22.1.8 module's clang (OpenMP offload to NVPTX,
+// -O2) could not compile: OpenMPOpt's AAPointerInfoFloating asserted in
+// Casting.h:572 when a format call mixed a string-literal argument with
+// other argument types. LLVM 23.1.6 compiles them.
 // Ids that cannot compile it list its tests under failed_to_compile in
 // test/configs.json.
 #ifndef TEST_INC
