@@ -34,7 +34,7 @@ RUN({
 RUN(PRINT("{:<10c}\n", 'B'));
 RUN(PRINT("{:>10c}\n", 'C'));
 
-// String %s tests — same gate.
+// Strings: %s on the specifiers path.
 RUN(PRINT("{}\n", "hello world"));
 RUN(PRINT("{:<20s}\n", "hello"));
 RUN(PRINT("{:>20s}\n", "hello"));
