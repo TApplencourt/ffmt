@@ -2321,10 +2321,10 @@ FMT_HD inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
 
 // ============================================================
 // formatter_expand — splice user `formatter<T>` results into
-// the parent format string + arg pack at compile time. DPC++
-// only: ACPP dispatches formatter args at runtime inside
-// buffer_path::dispatch_arg, so this machinery would be dead
-// weight there.
+// the parent format string + arg pack at compile time.
+// Specifiers path only: the buffer path dispatches formatter
+// args at runtime inside buffer_path::dispatch_arg, so this
+// machinery would be dead weight there.
 // ============================================================
 
 #if !FFMT_BUFFER_PATH
