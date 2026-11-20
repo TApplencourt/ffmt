@@ -334,13 +334,15 @@
     "id": 13,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "7007df73ace3825b99519e7b42b4ccb5b96cd72e",
+    "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "float_sweep:23", "float_sweep:25", "float_sweep:26", "float_sweep:27",
       "floats:60", "floats:141", "floats:201", "floats:202",
       "hexfloat:36", "hexfloat:38", "hexfloat:41"
     ],
@@ -874,9 +876,8 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O0, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "7007df73ace3825b99519e7b42b4ccb5b96cd72e",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -889,9 +890,8 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O2, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "7007df73ace3825b99519e7b42b4ccb5b96cd72e",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
