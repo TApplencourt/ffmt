@@ -41,7 +41,7 @@
 #endif
 #endif
 
-constexpr int N = 2;
+constexpr int N = 1;
 
 // Exit status of a test binary that ran to the end and saw a failing test.
 // Unlike 1 (ASan, UBSan, an exception), 23 (LSan) or 128+n (a signal), it
