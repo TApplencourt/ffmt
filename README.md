@@ -20,6 +20,10 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
 | OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` ~50 NVPTX-printf codegen bugs break tests; `-O2` is clean. |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
+| OpenMP target → AMDGPU   | ROCm `clang -fopenmp --offload-arch=gfx942` | ✅ | Buffer path. At `-O0` the same tests break as on NVPTX (precision floats: a ROCm shared-stack bug, `toolchain_bugs/`); `-O2` is clean. |
+| HIP                      | `hipcc -x hip --offload-arch=gfx942` | ✅ | Buffer path. Auto-detected via `__HIPCC__`. |
+| HIP (chipStar, Level Zero) | chipStar `hipcc -x hip`           | ⚠️ | Buffer path. Clean at `-O0`; at `-O2` half the test files fail to compile (LLVM 23's SPIR-V backend asks for `SPV_ALTERA_arbitrary_precision_integers`). |
+| Kokkos                   | Kokkos over Serial, CUDA, HIP, SYCL | ✅ | The path of the backend underneath (SYCL: specifiers path). |
 | CUDA                     | `nvcc`                              | ❌ | Fails: `libnvvm` can't emit the `print_string` consteval ctor for device code. |
 | CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
 
