@@ -57,10 +57,8 @@
 // derived condition gates the built-in formatter<sycl::range/id/item/nd_item>
 // specializations at the bottom of the header.
 #if defined(SYCL_LANGUAGE_VERSION) || FFMT_COMPILER_ACPP
-  #if FFMT_COMPILER_ACPP
-    #include <sycl/sycl.hpp>
-  #else
-    #include <sycl/sycl.hpp>
+  #include <sycl/sycl.hpp>
+  #if !FFMT_COMPILER_ACPP
     #include <sycl/ext/oneapi/experimental/builtins.hpp>
   #endif
 #else
