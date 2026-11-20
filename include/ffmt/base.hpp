@@ -1340,7 +1340,7 @@ struct print_string {
 #endif // FFMT_BUFFER_PATH
 
 // ============================================================
-// Device-side buffer (used by ACPP accumulator path)
+// Output buffer of the buffer path
 // ============================================================
 
 #ifndef FFMT_BUFFER_SIZE
