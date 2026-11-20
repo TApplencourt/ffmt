@@ -23,16 +23,18 @@
 #endif
 
 // ── Knob 1: formatting path ─────────────────────────────────────────────
-// 1 = buffer path  (build a char[] in fmt_buf, emit once via FFMT_EMIT_BUFFER).
-// 0 = SPIRV path   (compile-time printf format string, emit via FFMT_EMIT_PRINTF
-//                   with live args). The SPIRV path only handles printf-compatible
-//                   specs; the buffer path handles the full feature set.
-// Default: SPIRV only for the SPIR-V backends (DPC++ / icpx -fsycl, and
-// icpx -fiopenmp -fopenmp-targets=spir64), whose printf needs a literal
-// format string; buffer everywhere else (host, AdaptiveCpp, clang-OpenMP
-// NVPTX, clang-CUDA).
-// User may #define before include to override (the host test rig does this
-// to exercise both paths through libc printf).
+// 1 = buffer path      (build a char[] in fmt_buf, emit once via
+//                       FFMT_EMIT_BUFFER).
+// 0 = specifiers path  (compile-time printf format string, emit via
+//                       FFMT_EMIT_PRINTF with live args). It only handles
+//                       printf-compatible specs; the buffer path handles the
+//                       full feature set.
+// Default: specifiers path for any SYCL compiler but AdaptiveCpp (DPC++:
+// icpx or intel/llvm clang++ -fsycl) and for icpx with OpenMP, whose
+// SPIR-V printf needs a literal format string; buffer path everywhere
+// else (host, AdaptiveCpp, clang OpenMP, CUDA, HIP).
+// User may #define before include to override (the host tests do this to
+// exercise both paths).
 #if !defined(FFMT_BUFFER_PATH)
   #if !FFMT_COMPILER_ACPP && (defined(SYCL_LANGUAGE_VERSION) \
                               || (defined(__INTEL_LLVM_COMPILER) && defined(_OPENMP)))
