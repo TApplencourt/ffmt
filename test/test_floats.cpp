@@ -166,15 +166,14 @@ RUN(PRINT("{}\n", 1234567.89));              // small_divisor
 RUN(PRINT("{}\n", 1.234));                   // small_divisor
 RUN(PRINT("{}\n", 7.89));                    // small_divisor
 
-// Dragonbox small_divisor + parity-check coverage.  These doubles are
-// chosen so r ∈ {0, deltai, > deltai}, hitting the three branches in
-// compute_nearest_normal<double>: the right-endpoint-tie `goto
-// small_divisor` (line ~666), the unconditional `goto small_divisor`
-// (line ~669), and the parity-disambiguation path (lines ~671-675).
-RUN(PRINT("{}\n", 9007199254740994.0));      // 2^53 + 2 — boundary, exact
-RUN(PRINT("{}\n", 1.4012984643248171e-44));  // exercises compute_mul_parity
-RUN(PRINT("{}\n", 0.1));                     // 0.1 binary — tie-break parity
-RUN(PRINT("{}\n", 0.2));                     // 0.2 binary — tie-break parity
+// Dragonbox small_divisor coverage in dragonbox::to_decimal<double>. Of its
+// three ways into small_divisor (right-endpoint tie, r == 0; r > deltai;
+// parity check, r == deltai), only r > deltai is reached here, and no case
+// reaches compute_mul_parity.
+RUN(PRINT("{}\n", 9007199254740994.0));      // 2^53 + 2, exact (r > deltai)
+RUN(PRINT("{}\n", 1.4012984643248171e-44));  // no small_divisor
+RUN(PRINT("{}\n", 0.1));                     // no small_divisor
+RUN(PRINT("{}\n", 0.2));                     // no small_divisor
 RUN(PRINT("{}\n", 9.999999999999998));       // r > deltai branch
 RUN(PRINT("{}\n", 4.9406564584124654e-324)); // smallest subnormal double
 RUN(PRINT("{}\n", 2.2250738585072009e-308)); // largest subnormal double
