@@ -178,7 +178,8 @@ RUN(PRINT("{}\n", 9.999999999999998));       // r > deltai branch
 RUN(PRINT("{}\n", 4.9406564584124654e-324)); // smallest subnormal double
 RUN(PRINT("{}\n", 2.2250738585072009e-308)); // largest subnormal double
 
-// Same paths for float-precision dragonbox (compute_mul_parity<float>).
+// Float-precision dragonbox (to_decimal<float>): 2^24 + 2 and the subnormal
+// reach small_divisor (r > deltai); no case reaches compute_mul_parity.
 RUN(PRINT("{}\n", 0.1f));
 RUN(PRINT("{}\n", 0.2f));
 RUN(PRINT("{}\n", 16777218.0f));             // 2^24 + 2 — fixed/sci boundary
