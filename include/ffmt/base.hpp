@@ -1123,8 +1123,7 @@ constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
   return {};
 }
 
-// Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
-// Parse data[begin, end). Only ever evaluated at compile time, so a
+// Parse the spec data[begin, end). Only ever evaluated at compile time, so a
 // malformed spec fails the build like it does with {fmt}.
 constexpr format_spec parse_spec(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
