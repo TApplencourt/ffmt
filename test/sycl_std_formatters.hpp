@@ -3,8 +3,8 @@
 // Mirror exactly the device-side output produced by ffmt::formatter
 // so test reference output (fmt::format) can be diffed against device output.
 //
-// Test-only — kept here, not in the main header, to avoid pulling SYCL into
-// the std namespace for users who only want device printing.
+// Test-only — kept here, not in the main header, which does not depend on
+// {fmt}.
 
 #include <fmt/format.h>
 #include <sycl/sycl.hpp>
