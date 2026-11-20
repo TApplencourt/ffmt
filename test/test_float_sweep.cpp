@@ -6,11 +6,13 @@
 #define TEST_INC "test_float_sweep.cpp"
 #include "test_body.inc"
 #else
-// ── Differential sweep against {fmt} (host only) ───────────────────────────
+// ── Differential sweep against {fmt} ───────────────────────────────────────
 // Deterministic pseudo-random doubles/floats (raw bit patterns, so every
 // exponent and subnormals are hit) plus short decimals that land on rounding
-// ties. Far denser than the hand-picked cases above; this is what would have
-// caught the >2^53 precision bugs.
+// ties. Far denser than the hand-picked cases of test_floats.cpp; this is
+// what would have caught the >2^53 precision bugs. The values are host
+// std::vectors read in the kernel: OpenMP offload does not compile that,
+// and most other GPU ids fail these cases (test/configs.json).
 {
   uint64_t st = 0x9E3779B97F4A7C15ULL;
   auto rnd = [&st]() { st ^= st << 13; st ^= st >> 7; st ^= st << 17; return st; };
