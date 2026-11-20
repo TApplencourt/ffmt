@@ -12,9 +12,10 @@
 // ties. Far denser than the hand-picked cases above; this is what would have
 // caught the >2^53 precision bugs.
 //
-// Each case builds the values at compile time (constexpr), so they reach the
-// device in the kernel's own code. A host std::vector captured by the kernel
-// would carry a host heap pointer that the device cannot read.
+// Each case builds the values at compile time (static constexpr): they reach
+// the device as constant data in the kernel's own image, not on its stack (a
+// 7.6 KB local overflows ROCm OpenMP at -O0). A host std::vector captured by
+// the kernel would carry a host heap pointer that the device cannot read.
 {
   struct sweep {
     double d[800];
@@ -38,7 +39,7 @@
       return s;
     }
   };
-#define SWEEP(vec, fmt) RUN(constexpr sweep s = sweep::make(); for (auto v : s.vec) PRINT(fmt "\n", v))
+#define SWEEP(vec, fmt) RUN(static constexpr sweep s = sweep::make(); for (auto v : s.vec) PRINT(fmt "\n", v))
   SWEEP(d, "{}");      SWEEP(d, "{:f}");    SWEEP(d, "{:.0f}");
   SWEEP(d, "{:.3f}");  SWEEP(d, "{:.17f}"); SWEEP(d, "{:e}");
   SWEEP(d, "{:.0e}");  SWEEP(d, "{:.16e}"); SWEEP(d, "{:.30e}");
