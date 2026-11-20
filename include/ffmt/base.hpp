@@ -2245,8 +2245,7 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
 }
 
 // Top-level walker. Reuses the pre-parsed phs[] for the outer format string
-// (so spec handling for primitives is unchanged) and falls through to
-// dispatch_arg for both primitive and formatter args.
+// and falls through to dispatch_arg for both primitive and formatter args.
 template <sycl_formattable... Args, typename... A2>
 FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
   int pos = 0;
