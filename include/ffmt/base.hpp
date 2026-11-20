@@ -60,6 +60,7 @@
   #if FFMT_COMPILER_ACPP
     #include <sycl/sycl.hpp>
   #else
+    #include <sycl/sycl.hpp>
     #include <sycl/ext/oneapi/experimental/builtins.hpp>
   #endif
 #else

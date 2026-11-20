@@ -1,10 +1,9 @@
 # Setup for id 3: icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math.
 # Sourced by test/run_id.sh; must export CXX and FFMT_FLAGS.
 
-# No UMD on LD_LIBRARY_PATH: any of 803.45, 821.36 or 1032.21 segfaults
-# this at -O0, while the system runtime passes.
-set --   # setvars.sh reads the caller's "$@" as its own arguments
-source /vast/users/bertoni/intel/oneapi/setvars.sh
+type module >/dev/null 2>&1 || source /etc/profile >/dev/null 2>&1
+module use /soft/modulefiles
+module load intel/oneapi/release/2026.2.0 compiler
 export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 export OMP_TARGET_OFFLOAD=MANDATORY   # fail rather than fall back to the host
 export CXX=icpx
