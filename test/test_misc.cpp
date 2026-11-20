@@ -60,9 +60,10 @@ RUN(PRINT("[{:20}]\n",    reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:20p}]\n",   reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:20p}]\n",   reinterpret_cast<const char*>(0xdeadbeef)));
 
-// Wide widths — on ACPP these exercise the truncation branches in pad_in_place
-// (the host harness truncates the std reference to FFMT_BUFFER_SIZE
-// to match). On DPC++ the output is full-length and matches the std reference.
+// Wide widths — on the buffer path these exercise the truncation branches in
+// pad_in_place (test_body.inc truncates the {fmt} reference to
+// FFMT_BUFFER_SIZE to match). On the specifiers path the output is
+// full-length, like the reference.
 RUN(PRINT("{:200d}\n", 7));         // plain lpad overflow
 RUN(PRINT("{:+200d}\n", 7));        // sign+overflow: hits sign-bound check
 RUN(PRINT("{:0200d}\n", 7));        // zero-pad+overflow: hits zfill-bound check
