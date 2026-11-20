@@ -2120,7 +2120,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
 // by-value scalar ints into a struct so dispatch_arg / write_arg_rt can
 // receive them via reference. Two trailing by-value ints on a function
 // called from inside the dispatch_pack lambda triggers alloca aliasing
-// at -O0 (V29 standalone reproducer; see toolchain_bugs/).
+// at -O0.
 struct dyn_args { int w; int p; };
 
 // Format one argument with runtime spec — dispatches based on type + etype.
