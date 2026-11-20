@@ -203,7 +203,10 @@
           });                                                                  \
       )
   #else
-    // Everything else (host coverage, OpenMP, plain CPU): verbatim fputs.
+    // Everything else (g++ even with -fopenmp, clang without it, the host
+    // tests; DPC++ and icpx OpenMP too, unused on their specifiers path):
+    // verbatim fputs. clang OpenMP (not icpx), CUDA and HIP, host pass
+    // included, got printf("%s") above.
     #define FFMT_EMIT_BUFFER(out, escape_pct) \
       do { (void)(escape_pct); ::fputs((out).data, stdout); } while (0)
   #endif
