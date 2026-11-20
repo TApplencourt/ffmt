@@ -2219,7 +2219,8 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
 
 // Per-arg dispatch. Primitives use the spec-aware writers; formatter args
 // recurse into format_lit_rt on the formatter's inner format string + values.
-// Both branches are if-constexpr so the primitive path stays byte-identical.
+// if constexpr: each arg instantiates only its branch (formatter<T> is
+// undefined for a primitive T).
 template <typename... Args>
 FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
                          const format_spec &spec, const dyn_args &dyn,
