@@ -69,10 +69,8 @@ RUN(PRINT("{:+200d}\n", 7));        // sign+overflow: hits sign-bound check
 RUN(PRINT("{:0200d}\n", 7));        // zero-pad+overflow: hits zfill-bound check
 RUN(PRINT("{:150.2f}\n", 3.14));
 
-// No arguments: the literal goes through the printf format string on the
-// specifiers path the literal is printed through "%s" ('%' kept as is: it
-// used to come out doubled, "100%%"). One print per RUN: on a device the N
-// work-items interleave separate prints.
+// No arguments: on the specifiers path the literal is printed through "%s"
+// ('%' kept as is: it used to come out doubled, "100%%").
 RUN(PRINT("no args\n"));
 RUN(PRINT("100% {{braces}} %d %s %%\n"));
 RUN(PRINT(""));
