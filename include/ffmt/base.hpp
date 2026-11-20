@@ -2252,7 +2252,10 @@ FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&
 
 // Inner walker for formatter sub-strings. These don't have a print_string
 // (no compile-time pre-parse), so we re-parse with find_placeholder.
-// No spec/dyn-width support here — Stage 1 forbids them on custom args.
+// No spec support here: a spec in the formatter's own string is ignored
+// ("[{:x}]" prints like "[{}]"), whereas the specifiers path splices it in
+// and applies it. A spec on the custom argument itself is rejected at compile
+// time (spec_compatible_with_arg).
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
   int pos = 0;
