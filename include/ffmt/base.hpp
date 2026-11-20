@@ -1074,11 +1074,11 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
 }
 
 // ============================================================
-// Runtime placeholder + spec parsing
+// Placeholder + spec parsing
 // ============================================================
 // Used at compile time by both paths (validate_format, print_string, the
-// specifiers walkers); find_placeholder also runs on device for the strings
-// of custom formatters on the buffer path.
+// specifiers walkers). On the buffer path, find_placeholder (strings of
+// custom formatters) and effective_type (write_arg_rt) also run on device.
 
 // Find the first {} or {:spec} or {N} or {N:spec} placeholder in s[from..len).
 constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
