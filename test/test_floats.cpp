@@ -184,16 +184,18 @@ RUN(PRINT("{}\n", 0.2f));
 RUN(PRINT("{}\n", 16777218.0f));             // 2^24 + 2 — fixed/sci boundary
 RUN(PRINT("{}\n", 1.4013e-45f));             // float denorm range
 
-// Fixed/scientific boundary — std::format picks the shorter form, tie → fixed.
-// Buffer path uses dragonbox + use_fixed() length comparison; the SPIRV path
-// uses printf %g which follows a different rule (exp < -4 || exp >= precision).
-RUN(PRINT("{}\n", 1000000.0));         // exp=6, sig=1 → sci (1e+06 vs 1000000)
-RUN(PRINT("{}\n", 100000.0));          // exp=5, sig=1 → sci (1e+05 vs 100000)
-RUN(PRINT("{}\n", 10000.0));           // exp=4, sig=1 → tie → fixed (10000)
+// Fixed/scientific boundary of the shortest form. {fmt} prints fixed while
+// the decimal exponent is in [-4, 16) for a double; std::format instead
+// picks the shorter form (1e+06). The buffer path follows {fmt}
+// (format_shortest); the specifiers path prints %g
+// (exp < -4 || exp >= precision).
+RUN(PRINT("{}\n", 1000000.0));         // exp=6, sig=1 → fixed (std::format: 1e+06)
+RUN(PRINT("{}\n", 100000.0));          // exp=5, sig=1 → fixed (std::format: 1e+05)
+RUN(PRINT("{}\n", 10000.0));           // exp=4, sig=1 → fixed
 RUN(PRINT("{}\n", 1234567890.0));      // exp=9, sig=10 → fixed
 RUN(PRINT("{}\n", 1234567890123456.0));// exp=15, sig=16 → fixed
-RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → sci
-RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → sci (1e-04)
+RUN(PRINT("{}\n", 1.0e15));            // exp=15, sig=1 → fixed (std::format: 1e+15)
+RUN(PRINT("{}\n", 0.0001));            // exp=-4, sig=1 → fixed (std::format: 1e-04)
 
 
 // ── Exact digits beyond 2^53 ────────────────────────────────────────────────
