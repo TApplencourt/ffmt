@@ -70,7 +70,6 @@ mi300x:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:20:0 -q gpu_amd_mi300x"
 
 # Expanded configurations run separately from the established gated jobs.
-# New device IDs share a versioned runtime rather than a user checkout.
 .jlse-extended:
   extends: .jlse-batch
   # GitLab time includes Cobalt waits on single-node queues.
