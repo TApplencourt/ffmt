@@ -56,5 +56,7 @@ RUN(PRINT("[{:>6}]\n", "\xed\xa0\x80"));
 RUN(PRINT("[{:>6}]\n", "\xf4\x90\x80\x80"));
 // A spec with no width or precision: copied without measuring.
 RUN(PRINT("[{:s}] [{:<}]\n", "静夜思", "hôpital"));
+// A width and no alignment: left-aligned, like a string (printf: right).
+RUN(PRINT("[{:10}]\n", true));
 
 #endif

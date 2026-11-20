@@ -1469,7 +1469,8 @@ template <format_spec Spec, char Type, bool Wide>
 consteval printf_fmt_buf build_printf_fmt() {
   printf_fmt_buf buf;
   buf.push('%');
-  if (Spec.align == '<') buf.push('-');
+  // {fmt} left-aligns strings, chars and bool ('s') by default; printf, right.
+  if (Spec.align == '<' || (!Spec.align && (Type == 's' || Type == 'c'))) buf.push('-');
   if (Spec.sign == '+' || Spec.sign == ' ') buf.push(Spec.sign);
   if (Spec.alt) buf.push('#');
   if (Spec.zero_pad && !Spec.align) buf.push('0'); // ignored once an alignment is given

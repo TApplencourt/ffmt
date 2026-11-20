@@ -16,7 +16,7 @@
   "null_string": 3,
   "nvptx_o2_ice": 2,
   "signed_radix": 19,
-  "strings": 34,
+  "strings": 35,
   "sycl_types": 8,
   "sycl_usm_string": 1,
   "to_underlying": 2
