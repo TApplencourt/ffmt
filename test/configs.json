@@ -192,10 +192,11 @@
     "id": 7,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -224,10 +225,11 @@
     "id": 8,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O2, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -584,10 +586,11 @@
     "id": 21,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -616,10 +619,11 @@
     "id": 22,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O2, fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1143,7 +1147,7 @@
     "id": 48,
     "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1151,7 +1155,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ],
     "compiled_but_not_run": []
   },
@@ -1159,7 +1164,7 @@
     "id": 49,
     "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O2, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1167,7 +1172,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ],
     "compiled_but_not_run": []
   },
@@ -1691,36 +1697,40 @@
     "id": 72,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
       "escape_percent_inplace:1",
-      "float_sweep:1"
+      "float_sweep:1",
+      "hexfloat_sweep:1"
     ],
     "compiled_but_not_run": [
       "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ]
   },
   {
     "id": 73,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O2, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
       "escape_percent_inplace:1",
-      "float_sweep:1"
+      "float_sweep:1",
+      "hexfloat_sweep:1"
     ],
     "compiled_but_not_run": [
       "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ]
   },
   {
@@ -1831,7 +1841,7 @@
     "id": 80,
     "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "Kokkos HIP",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1839,17 +1849,19 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
-      "float_sweep:1"
+      "float_sweep:1",
+      "hexfloat_sweep:1"
     ],
     "compiled_but_not_run": [
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ]
   },
   {
     "id": 81,
     "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O2, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "Kokkos HIP",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1857,10 +1869,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
-      "float_sweep:1"
+      "float_sweep:1",
+      "hexfloat_sweep:1"
     ],
     "compiled_but_not_run": [
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28"
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
     ]
   },
   {
