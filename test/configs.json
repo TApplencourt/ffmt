@@ -353,7 +353,7 @@
   {
     "id": 14,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -386,7 +386,7 @@
   {
     "id": 15,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -417,7 +417,7 @@
   {
     "id": 16,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -462,7 +462,7 @@
   {
     "id": 17,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -495,7 +495,7 @@
   {
     "id": 18,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, fast-math",
-    "ci": "jlse:a100-extended",
+    "ci": "jlse:a100",
     "previous_main_commit": "N/A",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -512,7 +512,7 @@
   {
     "id": 19,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, fast-math",
-    "ci": "jlse:a100-omp-fast-math",
+    "ci": "jlse:a100",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -545,7 +545,7 @@
   {
     "id": 20,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, fast-math",
-    "ci": "jlse:a100-omp-fast-math",
+    "ci": "jlse:a100",
     "previous_main_commit": "0032b4dc06e3336346bdf4cb21ecc4532a33ced2",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -563,7 +563,7 @@
   {
     "id": 21,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, fast-math",
-    "ci": "jlse:mi300x-omp-fast-math",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -595,7 +595,7 @@
   {
     "id": 22,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O2, fast-math",
-    "ci": "jlse:mi300x-omp-fast-math",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
@@ -613,7 +613,7 @@
   {
     "id": 23,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, fast-math",
-    "ci": "jlse:a100-extended",
+    "ci": "jlse:a100",
     "previous_main_commit": "N/A",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1109,7 +1109,7 @@
   {
     "id": 48,
     "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O0, no fast-math",
-    "ci": "jlse:mi300x-hip",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
@@ -1125,7 +1125,7 @@
   {
     "id": 49,
     "notes": "native HIP on MI300X (gfx942), rocm 10.1.0 hipcc, -O2, no fast-math",
-    "ci": "jlse:mi300x-hip",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
@@ -1461,7 +1461,7 @@
   {
     "id": 64,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O0, no fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -1494,7 +1494,7 @@
   {
     "id": 65,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -1605,7 +1605,7 @@
   {
     "id": 70,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O0, no fast-math",
-    "ci": "jlse:adaptivecpp-a40",
+    "ci": "jlse:a40",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "NVIDIA A40",
     "failed_to_compile": [
@@ -1623,7 +1623,7 @@
   {
     "id": 71,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O2, no fast-math",
-    "ci": "jlse:adaptivecpp-a40",
+    "ci": "jlse:a40",
     "previous_main_commit": "b4c959f12e908d12933a9fa26de8e43147c7b220",
     "device": "NVIDIA A40",
     "failed_to_compile": [
@@ -1641,7 +1641,7 @@
   {
     "id": 72,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O0, no fast-math",
-    "ci": "jlse:adaptivecpp-mi300x",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
@@ -1659,7 +1659,7 @@
   {
     "id": 73,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O2, no fast-math",
-    "ci": "jlse:adaptivecpp-mi300x",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
@@ -1677,7 +1677,7 @@
   {
     "id": 74,
     "notes": "chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O0, no fast-math",
-    "ci": "jlse:chipstar",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "4d0a04889a2e78ea8ba4533128be071dd3458753",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -1695,7 +1695,7 @@
   {
     "id": 75,
     "notes": "chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O2, no fast-math",
-    "ci": "jlse:chipstar",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
@@ -1744,7 +1744,7 @@
   {
     "id": 78,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O0, no fast-math",
-    "ci": "jlse:a40-extended",
+    "ci": "jlse:a40",
     "previous_main_commit": "N/A",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1759,7 +1759,7 @@
   {
     "id": 79,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O2, no fast-math",
-    "ci": "jlse:a40-extended",
+    "ci": "jlse:a40",
     "previous_main_commit": "0032b4dc06e3336346bdf4cb21ecc4532a33ced2",
     "device": "Kokkos Cuda",
     "failed_to_compile": [
@@ -1775,7 +1775,7 @@
   {
     "id": 80,
     "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O0, no fast-math",
-    "ci": "jlse:mi300x-hip",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "Kokkos HIP",
     "failed_to_compile": [
@@ -1793,7 +1793,7 @@
   {
     "id": 81,
     "notes": "Kokkos 5.2.2 HIP on MI300X (gfx942), ROCm 10.1.0 hipcc, -O2, no fast-math",
-    "ci": "jlse:mi300x-hip",
+    "ci": "jlse:mi300x",
     "previous_main_commit": "7ac4a6cfdfdd967185af9884138dd06608858e7a",
     "device": "Kokkos HIP",
     "failed_to_compile": [
@@ -1811,7 +1811,7 @@
   {
     "id": 82,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O0, no fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
@@ -1845,7 +1845,7 @@
   {
     "id": 83,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O2, no fast-math",
-    "ci": "jlse:chiatta-dpcpp",
+    "ci": "jlse:chiatta",
     "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
