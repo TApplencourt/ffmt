@@ -312,7 +312,7 @@
     "id": 12,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -320,8 +320,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -329,6 +329,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:60", "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:141", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196", "floats:201", "floats:202",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
@@ -632,7 +633,7 @@
     "id": 24,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -640,8 +641,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -649,6 +650,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
@@ -672,7 +674,7 @@
     "id": 26,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -680,8 +682,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -689,6 +691,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
@@ -712,7 +715,7 @@
     "id": 28,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -720,8 +723,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -729,6 +732,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
@@ -752,7 +756,7 @@
     "id": 30,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -760,8 +764,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -769,6 +773,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
@@ -792,7 +797,7 @@
     "id": 32,
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
     "ci": "github:macos-latest",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -800,8 +805,8 @@
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent_inplace:1", "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -809,6 +814,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196", "floats:203",
       "strings:26", "strings:27", "strings:29"
     ],
@@ -884,9 +890,10 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O0, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -899,9 +906,10 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O2, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -914,7 +922,7 @@
     "notes": "GitHub icpx SYCL, AOT for PVC, -O0, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -923,6 +931,7 @@
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "to_underlying:1", "to_underlying:2"
     ],
@@ -938,7 +947,7 @@
     "notes": "GitHub icpx SYCL, AOT for PVC, -O2, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -947,6 +956,7 @@
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "to_underlying:1", "to_underlying:2"
     ],
@@ -962,7 +972,7 @@
     "notes": "GitHub icpx OpenMP offload, AOT for PVC, -O0, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -971,6 +981,7 @@
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -988,7 +999,7 @@
     "notes": "GitHub icpx OpenMP offload, AOT for PVC, -O2, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -997,6 +1008,7 @@
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
+      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
