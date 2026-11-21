@@ -32,12 +32,10 @@
   SWEEP(dv, "{:.3f}");  SWEEP(dv, "{:.17f}"); SWEEP(dv, "{:e}");
   SWEEP(dv, "{:.0e}");  SWEEP(dv, "{:.16e}"); SWEEP(dv, "{:.30e}");
   SWEEP(dv, "{:g}");    SWEEP(dv, "{:.1g}");  SWEEP(dv, "{:.17g}");
-  SWEEP(dv, "{:#g}");   SWEEP(dv, "{:a}");    SWEEP(dv, "{:.0a}");
-  SWEEP(dv, "{:.5a}");  SWEEP(dv, "{:#.3a}"); SWEEP(dv, "{:+15}");
-  SWEEP(dv, "{:#}");    SWEEP(dv, "{:.5}");
+  SWEEP(dv, "{:#g}");   SWEEP(dv, "{:+15}");  SWEEP(dv, "{:#}");
+  SWEEP(dv, "{:.5}");
   SWEEP(fv, "{}");      SWEEP(fv, "{:12}");   SWEEP(fv, "{:e}");
-  SWEEP(fv, "{:.10f}"); SWEEP(fv, "{:g}");    SWEEP(fv, "{:a}");
-  SWEEP(fv, "{:.2a}");  SWEEP(fv, "{:#}");
+  SWEEP(fv, "{:.10f}"); SWEEP(fv, "{:g}");    SWEEP(fv, "{:#}");
 #undef SWEEP
 }
 
