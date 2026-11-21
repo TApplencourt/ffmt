@@ -1142,7 +1142,8 @@
     "id": 50,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -1174,7 +1175,8 @@
     "id": 51,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
+    "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
@@ -1302,7 +1304,7 @@
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "4d0a04889a2e78ea8ba4533128be071dd3458753",
+    "previous_main_commit": "33b0724cf148b725f022bb8335fe87c8a8d2bdc6",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22", "float_sweep:23", "float_sweep:24", "float_sweep:25", "float_sweep:26", "float_sweep:27", "float_sweep:28",
