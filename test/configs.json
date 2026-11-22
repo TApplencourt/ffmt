@@ -1698,7 +1698,7 @@
     "id": 70,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O0, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA A40",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
@@ -1718,7 +1718,7 @@
     "id": 71,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O2, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA A40",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
@@ -1854,7 +1854,7 @@
     "id": 78,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "Kokkos Cuda",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1871,7 +1871,7 @@
     "id": 79,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "Kokkos Cuda",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
