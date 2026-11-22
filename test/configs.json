@@ -1447,7 +1447,7 @@
     "id": 60,
     "notes": "Rome g++ 13.3.0, specifiers path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1465,7 +1465,7 @@
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
-      "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
+      "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
     ],
@@ -1475,7 +1475,8 @@
     "id": 61,
     "notes": "Rome g++ 13.3.0, buffer path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -1595,7 +1596,7 @@
     "id": 66,
     "notes": "Rome g++ 13.3.0, specifiers path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "79f5f79b95a009b4dbc9bae12ce97e36dd87384d",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1613,7 +1614,7 @@
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
-      "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
+      "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
       "strings:26", "strings:27", "strings:29"
     ],
@@ -1623,7 +1624,8 @@
     "id": 67,
     "notes": "Rome g++ 13.3.0, buffer path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -1801,7 +1803,8 @@
     "id": 76,
     "notes": "Kokkos 5.2.2 Serial on Rome, g++ 13.3.0, buffer path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "device": "Kokkos Serial",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -1814,7 +1817,8 @@
     "id": 77,
     "notes": "Kokkos 5.2.2 Serial on Rome, g++ 13.3.0, buffer path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "N/A",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "device": "Kokkos Serial",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
