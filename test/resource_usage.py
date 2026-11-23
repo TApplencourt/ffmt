@@ -25,8 +25,9 @@ kernel's numbers are those of the ffmt code its test inlines.
     IGC_ShaderDumpEnable (icpx AOT)         IGC's dump, build/id-<id>/  registers: GRFs
                                             igc, matched by .ze_info    the code uses
 
-compare prints one markdown table of every id measured in both directories:
-each changed file's min / avg / max of each metric over its kernels. It
+compare prints one markdown table of every id measured in both directories,
+each metric's average over the kernels, base → head, then (collapsed) each
+changed file's min / avg / max. It
 exits 1 when a test grew (any number of a kernel measured on both sides), or
 a file no longer builds while test/configs.json does not expect it to
 (failed_to_compile). What has no reference, a new id, file or test, is
@@ -41,7 +42,10 @@ import re
 import struct
 import sys
 
-METRICS = ("regs", "stack", "spill", "slm")
+# In OpenCL's words: private memory is per work-item (NVIDIA's stack frame,
+# AMD's scratch), local memory per work-group (NVIDIA's shared memory, AMD's
+# LDS, Intel's SLM).
+METRICS = ("regs", "private", "spill", "local")
 STATS = ("min", "avg", "max")  # over the kernels of a test file
 
 
@@ -69,13 +73,13 @@ def parse_ptxas(text):
         elif name and (m := re.search(r"Used (\d+) registers", line)):
             kernels[name]["regs"] = int(m.group(1))
             if smem := re.search(r"(\d+) bytes smem", line):
-                kernels[name]["slm"] = int(smem.group(1))
+                kernels[name]["local"] = int(smem.group(1))
             name = None
     for kernel, k in kernels.items():
-        k["stack"], k["spill"] = frames.get(kernel, (0, 0))
+        k["private"], k["spill"] = frames.get(kernel, (0, 0))
         for function, (stack, spill) in frames.items():
             if function.startswith(kernel + "_omp_outlined"):
-                k["stack"] += stack
+                k["private"] += stack
                 k["spill"] += spill
                 k["regs"] = None
     return kernels
@@ -89,10 +93,10 @@ def parse_amd_remarks(text):
     fields = {
         "VGPRs": "regs",
         "AGPRs": "regs",
-        "ScratchSize [bytes/lane]": "stack",
+        "ScratchSize [bytes/lane]": "private",
         "VGPRs Spill": "spill",
         "SGPRs Spill": "spill",
-        "LDS Size [bytes/block]": "slm",
+        "LDS Size [bytes/block]": "local",
     }
     for line in text.splitlines():
         if m := re.search(r":\d+:\d+:(?: remark:)? Function Name: (\S+)", line):
@@ -159,11 +163,11 @@ def parse_zeinfo(text):
         elif name and (m := re.search(r"grf_count:\s+(\d+)", line)):
             kernels[name]["regs"] = int(m.group(1))
         elif name and (m := re.search(r"slm_size:\s+(\d+)", line)):
-            kernels[name]["slm"] = int(m.group(1))
+            kernels[name]["local"] = int(m.group(1))
         elif name and (m := re.search(r"usage:\s+(\S+)", line)):
             usage = m.group(1)
         elif name and usage and (m := re.match(r"\s+size:\s+(\d+)", line)):
-            key = "spill" if usage == "spill_fill_space" else "stack"
+            key = "spill" if usage == "spill_fill_space" else "private"
             kernels[name][key] += int(m.group(1))
             usage = None
     return kernels
@@ -298,30 +302,52 @@ def expected_not_to_build(configs, id_, name):
     return any(t.startswith(f"{name}:") for t in row.get("failed_to_compile", []))
 
 
+def change(old, new):
+    """A number of the per-id table: base → head (percentage), or one value."""
+    if old == new:
+        return f"{old:g}"
+    pct = "new" if old == 0 else f"{(new - old) / old:+.0%}"
+    return f"{old:g} → {new:g} ({pct})"
+
+
+def details(summary, lines):
+    return (
+        f"<details><summary>{summary}</summary>\n\n"
+        + "\n".join(lines)
+        + "\n\n</details>\n"
+    )
+
+
 def compare(base_dir, head_dir, configs_path="test/configs.json"):
-    """The table shows each changed file's min / avg / max; what fails is a
-    test, i.e. a kernel, measured on both sides whose number grew, or a file
-    that no longer builds while test/configs.json does not expect it. What
-    has no reference (a new id, file or test) is listed, not failed."""
+    """One row per id: each metric's average over the kernels measured on both
+    sides, base → head; then, collapsed, each changed file's min / avg / max.
+    What fails is a test, i.e. a kernel, measured on both sides whose number
+    grew, or a file that no longer builds while test/configs.json does not
+    expect it. What has no reference (a new id, file or test) is listed, not
+    failed."""
     base, head = load(base_dir), load(head_dir)
     with open(configs_path) as f:
         configs = json.load(f)
     units = {
-        "nvidia": "regs, stack frame B, spill B, smem B",
-        "nvidia-omp": "regs, stack frame B, spill B, smem B",
-        "amd": "VGPR+AGPR, scratch B/lane, spills, LDS B",
-        "intel": "GRF, private B, spill B, SLM B",
+        "nvidia": "regs, stack frame, spill stores, shared memory",
+        "nvidia-omp": "regs, stack frame, spill stores, shared memory",
+        "amd": "VGPRs + AGPRs, scratch per lane, VGPR + SGPR spills (count), LDS",
+        "intel": "GRFs used, private memory, spill, SLM",
     }
-    rows, grown, missing, skipped, unchanged = [], [], [], [], 0
+    header = "| registers | private B | spill B | local B |"
+    ids, rows, grown, missing, skipped, unchanged = [], [], [], [], [], 0
     for id_ in sorted(head):
         h, b = head[id_], base.get(id_)
         label = f"{id_} ({h.get('backend') or '?'})"
         if "missing" in h:
-            rows.append(f"| {label} | | {h['missing']} | | | |")
+            ids.append(f"| {label} | | {h['missing']} | | | | |")
             continue
         if b is None or "missing" in b:
             missing.append(f"id {id_}: no reference at all (new id?)")
             continue
+        totals = {m: [0, 0] for m in METRICS}  # base, head sums over the kernels
+        counted = dict.fromkeys(METRICS, 0)
+        kernels, id_grew = 0, 0
         for name in sorted(set(h["files"]) | set(b["files"])):
             hf, bf = h["files"].get(name), b["files"].get(name)
             if hf is None:
@@ -329,6 +355,7 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
                     skipped.append(f"id {id_} {name}")
                 elif bf is not None:
                     grown.append(f"id {id_} {name}: no longer builds")
+                    id_grew += 1
                     rows.append(f"| {label} | {name} | **no longer builds** | | | |")
                 continue
             if bf is None:
@@ -341,6 +368,12 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
             file_grew = False
             for kernel in sorted(set(hf["kernels"]) & set(bf["kernels"])):
                 old, new = bf["kernels"][kernel], hf["kernels"][kernel]
+                kernels += 1
+                for m in METRICS:
+                    if None not in (old[m], new[m]):
+                        totals[m][0] += old[m]
+                        totals[m][1] += new[m]
+                        counted[m] += 1
                 up = [
                     f"{m} {old[m]} → {new[m]}"
                     for m in METRICS
@@ -348,6 +381,7 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
                 ]
                 if up:
                     file_grew = True
+                    id_grew += 1
                     grown.append(f"id {id_} {name}, {short(kernel)}: " + ", ".join(up))
             if not file_grew and all(hf[m] == bf[m] for m in METRICS):
                 unchanged += 1
@@ -360,32 +394,48 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
                 cells = [f"**{c}**" if "→" in c else c for c in cells]
             shown = f"**{name}**" if file_grew else name
             rows.append(f"| {label} | {shown} | " + " | ".join(cells) + " |")
+        cells = [
+            change(*(round(t / counted[m], 1) for t in totals[m]))
+            if counted[m]
+            else "n/a"
+            for m in METRICS
+        ]
+        grew = f"**{id_grew}**" if id_grew else "0"
+        ids.append(f"| {label} | {kernels} | " + " | ".join(cells) + f" | {grew} |")
     print("## GPU resources of the test kernels, base → head\n")
     if missing:
         print(f"### ⚠️ Missing in the reference (new test added?): {len(missing)}\n")
-        print("Not compared, not failed:\n")
-        print("\n".join(f"- {m}" for m in missing) + "\n")
+        print(details("Not compared, not failed", [f"- {m}" for m in missing]))
     print(
-        "Per changed test file and metric: min / avg / max over its kernels (bold: a test of "
-        "the file grew). Units: "
+        "Per id, each metric's average over the kernels measured on both sides "
+        "(registers per work-item; private memory per work-item, local memory per "
+        "work-group, in bytes). They are: "
         + "; ".join(f"{k}: {v}" for k, v in units.items())
         + ".\n"
     )
+    print(f"| id (backend) | kernels {header} tests grew |")
+    print("|---|---|---|---|---|---|---|")
+    print("\n".join(ids) + "\n")
     if rows:
         print(
-            "| id (backend) | file | registers | stack | spill | SLM |\n|---|---|---|---|---|---|"
+            details(
+                f"Per test file: min / avg / max over its kernels ({len(rows)} changed, "
+                f"{unchanged} unchanged; bold: a test of the file grew)",
+                [f"| id (backend) | file {header}", "|---|---|---|---|---|---|", *rows],
+            )
         )
-        print("\n".join(rows))
-    print(f"\n{unchanged} file(s) unchanged.")
+    else:
+        print(f"{unchanged} file(s) unchanged.\n")
     if skipped:
         print(
-            f"{len(skipped)} file(s) not built, as test/configs.json expects (failed_to_compile): "
-            + ", ".join(skipped)
-            + "."
+            details(
+                f"{len(skipped)} file(s) not built, as test/configs.json expects "
+                "(failed_to_compile)",
+                [", ".join(skipped)],
+            )
         )
     if grown:
-        print(f"\n**{len(grown)} test(s) grew:**\n")
-        print("\n".join(f"- {g}" for g in grown))
+        print(details(f"<b>{len(grown)} test(s) grew</b>", [f"- {g}" for g in grown]))
     else:
         print("No test grew.")
     return 1 if grown else 0
