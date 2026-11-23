@@ -4,12 +4,15 @@
  * openmp-opt marks the loads from the local array as local (addrspace(5)),
  * then InstCombine replaces the array with the constant global it is
  * initialized from and keeps those casts: the kernel reads local memory at
- * the global's address. A plain "omp target" region and -O0 are fine.
+ * the global's address. A plain "omp target" region and -O0 are fine, and so
+ * are nvc++ -mp=gpu, the same kernel in CUDA (nvcc, clang) and AMDGPU (ROCm
+ * 10.1.0 OpenMP, gfx942).
  *
  * ffmt hits it in float_sweep (p10[] in test/sweep_values.inc, #26) on ids 6
  * and 20.
  *
- * Seen with LLVM 23.1.6, CUDA 12.3.0, A100 (sm_80).
+ * Seen with LLVM 23.1.6, CUDA 12.3.0, A100 (sm_80). Reported upstream:
+ * https://github.com/llvm/llvm-project/issues/245290
  *
  *   clang -fopenmp --offload-arch=sm_80 -O2 nvptx_omp_O2_const_array.c && ./a.out
  *
