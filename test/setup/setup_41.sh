@@ -4,9 +4,9 @@
 # GitHub runner: icpx from Intel's oneAPI apt repo (oneAPI 2025.2) and a
 # current ocloc for the ahead-of-time PVC build, so IGC's codegen is checked
 # at build time; there is no GPU to run on. Installed only if missing. ocloc
-# and the IGC it loads are pinned release .debs from Intel's GitHub, not
-# Intel's Ubuntu PPA, to avoid PPA outages. noble's own ocloc is too old for
-# the SPIR-V current icpx emits.
+# and the IGC it loads are pinned release .debs from Intel's GitHub, not the
+# Launchpad PPA (ppa:kobuk-team/intel-graphics), to avoid its outages.
+# noble's own ocloc is too old for the SPIR-V current icpx emits.
 if [ ! -f /opt/intel/oneapi/setvars.sh ]; then
   wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
     | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
