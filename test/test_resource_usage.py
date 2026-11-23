@@ -76,7 +76,7 @@ class Parsers(unittest.TestCase):
     def test_ptxas_counts_entry_functions_only(self):
         self.assertEqual(
             resource_usage.parse_ptxas(PTXAS),
-            {"_Z1kv": {"regs": 31, "stack": 792, "spill": 8, "slm": 1024}},
+            {"_Z1kv": {"regs": 31, "private": 792, "spill": 8, "local": 1024}},
         )
 
     def test_ptxas_openmp_outlined_region_counts_for_its_kernel(self):
@@ -93,9 +93,9 @@ class Parsers(unittest.TestCase):
             {
                 "__omp_offloading_801_900276_main_l55": {
                     "regs": None,
-                    "stack": 904,
+                    "private": 904,
                     "spill": 60,
-                    "slm": 0,
+                    "local": 0,
                 }
             },
         )
@@ -103,21 +103,21 @@ class Parsers(unittest.TestCase):
     def test_amd_adds_vgprs_and_agprs_and_both_spills(self):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD),
-            {"k1": {"regs": 88, "stack": 2608, "spill": 2, "slm": 64}},
+            {"k1": {"regs": 88, "private": 2608, "spill": 2, "local": 64}},
         )
 
     def test_amd_remarks_from_the_linker_wrapper(self):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD_LINK),
-            {"k2": {"regs": 36, "stack": 788, "spill": 0, "slm": 0}},
+            {"k2": {"regs": 36, "private": 788, "spill": 0, "local": 0}},
         )
 
     def test_zeinfo_skips_payload_sizes(self):
         self.assertEqual(
             resource_usage.parse_zeinfo(ZEINFO),
             {
-                "kA": {"regs": 128, "stack": 1024, "spill": 64, "slm": 256},
-                "kB": {"regs": 256, "stack": 0, "spill": 0, "slm": 0},
+                "kA": {"regs": 128, "private": 1024, "spill": 64, "local": 256},
+                "kB": {"regs": 256, "private": 0, "spill": 0, "local": 0},
             },
         )
 
@@ -128,7 +128,7 @@ def write(directory, id_, files):
 
 
 def file_of(*kernels):
-    """A test file's measurement, from its kernels' (regs, stack, spill, slm)."""
+    """A test file's measurement, from its kernels' (regs, private, spill, local)."""
     return resource_usage.summary(
         {f"k{i}": dict(zip(resource_usage.METRICS, k)) for i, k in enumerate(kernels)}
     )
@@ -255,6 +255,9 @@ class Compare(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("id 36 floats, k0: regs 31 → 35", out)
         self.assertIn("**31 / 35.5 / 40 → 35 / 37.5 / 40**", out)
+        self.assertIn(
+            "| 36 (nvidia) | 2 | 35.5 → 37.5 (+6%) | 792 | 0 | 0 | **1** |", out
+        )
 
     def test_one_test_up_another_down_still_fails(self):
         base = {"floats": file_of((31, 0, 0, 0), (40, 0, 0, 0))}
@@ -269,6 +272,7 @@ class Compare(unittest.TestCase):
         )
         self.assertEqual(code, 0)
         self.assertIn("792 / 792 / 792 → 512 / 512 / 512", out)
+        self.assertIn("| 31 | 792 → 512 (-35%) | 8 → 0 (-100%) | 0 | 0 |", out)
 
     def test_a_file_with_the_same_numbers_is_not_printed(self):
         base = {"floats": file_of((31, 0, 0, 0))}
@@ -297,13 +301,15 @@ class Compare(unittest.TestCase):
         code, out = self.run_compare(base, head)
         self.assertEqual(code, 0)
         self.assertIn("n/a → 51 / 51 / 51", out)
+        self.assertIn("| 36 (nvidia) | 1 | n/a |", out)
 
-    def test_slm_growth_fails(self):
+    def test_local_growth_fails(self):
         code, out = self.run_compare(
             {"floats": file_of((31, 0, 0, 0))}, {"floats": file_of((31, 0, 0, 512))}
         )
         self.assertEqual(code, 1)
-        self.assertIn("k0: slm 0 → 512", out)
+        self.assertIn("k0: local 0 → 512", out)
+        self.assertIn("| 0 → 512 (new) |", out)
 
     def test_a_file_that_stops_building_fails(self):
         code, out = self.run_compare(
