@@ -69,9 +69,10 @@ HDRS     := $(wildcard test/*.hpp test/*.inc) include/ffmt/base.hpp $(FMT_PIN)
 #   FFMT_ORACLE_CXX    the host compiler that builds {fmt} (fmt.o and the
 #                      negative tests' {fmt} pass), if CXX cannot
 #   FFMT_TIMEOUT       seconds a program may run before it is killed, which
-#                      test/check_id.py reads as a crash in the test it was in
+#                      test/check_id.py reads as a crash in the test it was in;
+#                      no test program should run for a minute
 FFMT_ORACLE_CXX ?= $(CXX)
-FFMT_TIMEOUT    ?= 1800
+FFMT_TIMEOUT    ?= 60
 
 # What differs with the compiler driver. clang and gcc: `-x none` ends a
 # `-x cuda` of FFMT_FLAGS before fmt.o, and with -c clang warns that link
