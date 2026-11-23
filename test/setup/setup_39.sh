@@ -11,13 +11,12 @@ if [ ! -f /opt/intel/oneapi/setvars.sh ]; then
     | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
   echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
     | sudo tee /etc/apt/sources.list.d/oneAPI.list
-  debs=$(mktemp -d)
-  wget -q -P "$debs" \
+  wget -q \
     https://github.com/intel/intel-graphics-compiler/releases/download/v2.42.6/intel-igc-core-2_2.42.6+23070_amd64.deb \
     https://github.com/intel/intel-graphics-compiler/releases/download/v2.42.6/intel-igc-opencl-2_2.42.6+23070_amd64.deb \
     https://github.com/intel/compute-runtime/releases/download/26.40.40196.8/intel-ocloc_26.40.40196.8-0_amd64.deb || exit 1
   sudo apt-get update
-  sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 "$debs"/*.deb
+  sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 ./intel-*.deb
 fi
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /opt/intel/oneapi/setvars.sh
