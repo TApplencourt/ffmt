@@ -27,5 +27,3 @@ export FFMT_FLAGS='-std=c++20 -Wall -Werror -fsycl -fsycl-targets=spir64_gen -Xs
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
-# For test/resource_usage.py: keeps the AOT binary, whose .ze_info gives each kernel's GRF, memory and spills.
-export FFMT_TEST_FLAGS='-save-temps=obj'
