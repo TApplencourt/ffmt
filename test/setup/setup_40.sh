@@ -4,16 +4,21 @@
 # GitHub runner: icpx from Intel's oneAPI apt repo (oneAPI 2025.2) and a
 # current ocloc for the ahead-of-time PVC build, so IGC's codegen is checked
 # at build time; there is no GPU to run on. Installed only if missing. ocloc
-# comes from Intel's Ubuntu 24.04 graphics PPA: noble's own is 23.43, older
-# than the SPIR-V current icpx emits. add-apt-repository also refreshes the
-# package lists, the oneAPI repo's included.
+# and the IGC it loads are pinned release .debs from Intel's GitHub, not the
+# Launchpad PPA (ppa:kobuk-team/intel-graphics), to avoid its outages.
+# noble's own ocloc is too old for the SPIR-V current icpx emits.
 if [ ! -f /opt/intel/oneapi/setvars.sh ]; then
   wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
     | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
   echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
     | sudo tee /etc/apt/sources.list.d/oneAPI.list
-  sudo add-apt-repository -y ppa:kobuk-team/intel-graphics
-  sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 intel-ocloc
+  wget -q \
+    https://github.com/intel/intel-graphics-compiler/releases/download/v2.42.6/intel-igc-core-2_2.42.6+23070_amd64.deb \
+    https://github.com/intel/intel-graphics-compiler/releases/download/v2.42.6/intel-igc-opencl-2_2.42.6+23070_amd64.deb \
+    https://github.com/intel/compute-runtime/releases/download/26.40.40196.8/intel-ocloc_26.40.40196.8-0_amd64.deb || exit 1
+  sudo apt-get update
+  sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 ./intel-*.deb
+  sudo ldconfig   # IGC's .debs put libigc in /usr/local/lib and do not run it
 fi
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /opt/intel/oneapi/setvars.sh
