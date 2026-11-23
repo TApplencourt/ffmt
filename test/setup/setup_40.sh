@@ -14,6 +14,15 @@ if [ ! -f /opt/intel/oneapi/setvars.sh ]; then
     | sudo tee /etc/apt/sources.list.d/oneAPI.list
   sudo add-apt-repository -y ppa:kobuk-team/intel-graphics
   sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 intel-ocloc
+  # If the PPA cannot be fetched, apt only warns and installs noble's ocloc,
+  # which fails every build later ("Loading of IGC library has failed!
+  # Filename: libigc.so.1"). Stop here instead.
+  ocloc_version=$(dpkg-query -W -f='${Version}' intel-ocloc)
+  case $ocloc_version in
+    *ppa*) ;;
+    *) echo "intel-ocloc $ocloc_version is not from ppa:kobuk-team/intel-graphics (could the PPA be fetched?)" >&2
+       exit 1 ;;
+  esac
 fi
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /opt/intel/oneapi/setvars.sh
