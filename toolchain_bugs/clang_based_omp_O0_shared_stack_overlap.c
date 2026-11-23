@@ -8,7 +8,8 @@
  *
  * Reported upstream: https://github.com/llvm/llvm-project/issues/245328
  *
- * Reproduces with the compiler and flags of ids 5, 19 (NVPTX) and 7, 21 (ROCm) (test/run_id.sh).
+ * Reproduces with the compiler and flags of ids 5 and 19 (NVPTX) and 7 and
+ * 21 (ROCm), as set by test/setup/.
  * ffmt hits it in println on the precision float path ({:e}, {:f}, {:g}):
  * fmt_sci's digit_writer and exact_decimal land inside println's fmt_buf,
  * the digits overwrite the writer's pointer, and the next access faults
