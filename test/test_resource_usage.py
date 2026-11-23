@@ -79,6 +79,27 @@ class Parsers(unittest.TestCase):
             {"_Z1kv": {"regs": 31, "stack": 792, "spill": 8, "slm": 1024}},
         )
 
+    def test_ptxas_openmp_outlined_region_counts_for_its_kernel(self):
+        text = (
+            "ptxas info    : Function properties for __omp_offloading_801_900276_main_l55_omp_outlined_omp_outlined\n"
+            "    856 bytes stack frame, 60 bytes spill stores, 60 bytes spill loads\n"
+            "ptxas info    : Compiling entry function '__omp_offloading_801_900276_main_l55' for 'sm_80'\n"
+            "ptxas info    : Function properties for __omp_offloading_801_900276_main_l55\n"
+            "    48 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads\n"
+            "ptxas info    : Used 30 registers, used 0 barriers, 360 bytes cmem[0]\n"
+        )
+        self.assertEqual(
+            resource_usage.parse_ptxas(text),
+            {
+                "__omp_offloading_801_900276_main_l55": {
+                    "regs": None,
+                    "stack": 904,
+                    "spill": 60,
+                    "slm": 0,
+                }
+            },
+        )
+
     def test_amd_adds_vgprs_and_agprs_and_both_spills(self):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD),
@@ -148,6 +169,12 @@ class Summary(unittest.TestCase):
                 "_Z16_ffmt_run_kernelIZZ4mainENKUlvE0_clEvEUlvE29_EvT_"
             ),
             "lambda #31",
+        )
+        self.assertEqual(
+            resource_usage.short(
+                "_ZTSN4sycl3_V16detail18RoundedRangeKernelINS0_4itemILi1ELb1EEELi1EZZ4mainENKUlvE0_clEvEUlNS0_2idILi1EEEE_EE"
+            ),
+            "lambda #1 (rounded range)",
         )
 
 
