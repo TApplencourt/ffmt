@@ -345,7 +345,7 @@
     "id": 12,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -362,7 +362,7 @@
     ],
     "failed_to_run": [
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
-      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
+      "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
@@ -374,7 +374,7 @@
     "id": 13,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -382,9 +382,11 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "float_sweep:19", "float_sweep:21",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56",
-      "hexfloat:36", "hexfloat:38", "hexfloat:41"
+      "hexfloat:36", "hexfloat:38", "hexfloat:41",
+      "hexfloat_sweep:5", "hexfloat_sweep:6"
     ],
     "compiled_but_not_run": []
   },
@@ -971,10 +973,8 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O0, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -987,10 +987,8 @@
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O2, no fast-math, compile only",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
