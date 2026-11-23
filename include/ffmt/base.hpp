@@ -2457,6 +2457,20 @@ template <fixed_string Fmt> consteval auto append_newline() {
 // Public API
 // ============================================================
 
+namespace detail {
+// DO NOT MERGE: test of the GPU resources job (#53). Keeps 32 values live
+// from a volatile seed, to raise register use; prints nothing.
+FMT_HD inline void burn_registers() {
+  volatile unsigned seed = 1;
+  unsigned r[32];
+  for (int i = 0; i < 32; i++) r[i] = seed * static_cast<unsigned>(i + 3);
+  unsigned acc = 0;
+  for (int i = 0; i < 32; i++)
+    for (int j = 0; j < 32; j++) acc += r[i] ^ (r[j] >> (i & 7));
+  seed = acc;
+}
+} // namespace detail
+
 #if !FFMT_BUFFER_PATH
 
 // Specifiers path (DPC++, icpx OpenMP): the format string becomes the printf
@@ -2465,6 +2479,7 @@ template <fixed_string Fmt> consteval auto append_newline() {
 // FFMT_PRINT macro hides the angle-bracket call shape.
 template <detail::fixed_string Fmt, sycl_formattable... Args>
 inline void print(Args... args) {
+  detail::burn_registers();
   if constexpr ((detail::sycl_printable<std::decay_t<Args>> && ...)) {
     detail::validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(detail::flen(Fmt)));
     detail::specifiers_path::print<Fmt>(args...);
@@ -2494,6 +2509,7 @@ inline void println(Args... args) {
 // recurse into the inner walker on the formatter's sub-format-string.
 template <sycl_formattable... Args>
 FMT_HD inline void print(const detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
+  detail::burn_registers();
   detail::fmt_buf out;
   detail::buffer_path::format_rt(out, ps, args...);
   detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
@@ -2501,6 +2517,7 @@ FMT_HD inline void print(const detail::print_string<std::type_identity_t<Args>..
 
 template <sycl_formattable... Args>
 FMT_HD inline void println(const detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
+  detail::burn_registers();
   detail::fmt_buf out;
   detail::buffer_path::format_rt(out, ps, args...);
   // Not push(): a truncated line must still end in '\n', or the next print
