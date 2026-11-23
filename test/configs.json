@@ -180,7 +180,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
@@ -618,7 +619,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
