@@ -26,4 +26,8 @@ export FMT_DIR=$FFMT_RUNTIME_ROOT/third_party/fmt-main
 export FFMT_FLAGS="-std=c++20 -Wall -Werror --acpp-targets=generic -O2 -fno-fast-math"
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
 export FFMT_LDFLAGS=-no-pie
+# AdaptiveCpp's generic target compiles each kernel when it is first
+# launched, a few seconds per RUN: float_sweep and floats run for minutes,
+# past Makefile.id's 60 s default.
+export FFMT_TIMEOUT=600
 unset acpp
