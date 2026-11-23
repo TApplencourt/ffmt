@@ -10,7 +10,8 @@
  *
  * Reported upstream: https://github.com/llvm/llvm-project/issues/245290
  *
- * Reproduces with the compiler and flags of ids 6 and 20 (test/run_id.sh);
+ * Reproduces with the compiler and flags of ids 6 and 20, as set by
+ * test/setup/;
  * ffmt hits it there in float_sweep (p10[] in test/sweep_values.inc).
  *
  *   clang -fopenmp --offload-arch=sm_80 -O2 clang_based_omp_O2_const_array.c && ./a.out
