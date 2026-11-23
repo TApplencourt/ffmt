@@ -151,6 +151,18 @@ class Summary(unittest.TestCase):
         )
 
 
+class IGC(unittest.TestCase):
+    def test_registers_are_the_grfs_the_code_uses(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "OCL_asmab_simd32_entry_0001.asm").write_text(
+                "//.kernel kA\n//.thread_config numGRF=128\n"
+                "(W) mov (1|M0) r4.0<1>:d r0.0<0;1,0>:d\nadd (32|M0) r12.0<1>:d r4.0<1;1,0>:d r127.3<0;1,0>:d\n"
+            )
+            self.assertEqual(
+                resource_usage.igc_registers(str(Path(d) / "OCL_asmab")), {"kA": 4}
+            )
+
+
 class Measure(unittest.TestCase):
     """measure reads what test/run_id.sh <id> build left in results/id-<id>/."""
 
@@ -251,6 +263,13 @@ class Compare(unittest.TestCase):
         code, out = self.run_compare(None, {"floats": file_of((31, 0, 0, 0))})
         self.assertEqual(code, 0)
         self.assertIn("id 36: no reference at all (new id?)", out)
+
+    def test_unknown_registers_are_not_compared(self):
+        base = {"floats": file_of((None, 0, 0, 0))}
+        head = {"floats": file_of((51, 0, 0, 0))}
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertIn("n/a → 51 / 51 / 51", out)
 
     def test_slm_growth_fails(self):
         code, out = self.run_compare(

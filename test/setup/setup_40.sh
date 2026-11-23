@@ -27,3 +27,6 @@ export FFMT_FLAGS='-std=c++20 -Wall -Werror -fsycl -fsycl-targets=spir64_gen -Xs
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_sycl.cpp examples/readme2_sycl.cpp"
+# For test/resource_usage.py: IGC dumps each kernel's code, whose registers
+# are the ones the kernel uses (.ze_info only has the GRF mode, 128 or 256).
+export IGC_ShaderDumpEnable=1 IGC_DumpToCustomDir="$PWD/build/id-40/igc"

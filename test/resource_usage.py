@@ -17,9 +17,11 @@ kernel's numbers are those of the ffmt code its test inlines.
                                                                         frame, spill, smem
     -Rpass-analysis=kernel-resource-usage   <name>.build.log            VGPRs + AGPRs,
     (HIP)                                                               scratch, spills, LDS
-    none needed (icpx AOT)                  the .ze_info of the AOT     GRF, private
-                                            binary in the test's        memory, spill, SLM
+    none needed (icpx AOT)                  the .ze_info of the AOT     private memory,
+                                            binary in the test's        spill, SLM
                                             executable, build/id-<id>/bin
+    IGC_ShaderDumpEnable (icpx AOT)         IGC's dump, build/id-<id>/  registers: GRFs
+                                            igc, matched by .ze_info    the code uses
 
 compare prints one markdown table of every id measured in both directories:
 each changed file's min / avg / max of each metric over its kernels. It
@@ -166,8 +168,8 @@ def summary(kernels):
     max, for the table."""
     out = {"kernels": {kernel_key(k): v for k, v in kernels.items()}}
     for metric in METRICS:
-        values = [k[metric] for k in kernels.values()] or [0]
-        out[metric] = {
+        values = [k[metric] for k in kernels.values() if k[metric] is not None]
+        out[metric] = values and {
             "min": min(values),
             "avg": round(sum(values) / len(values), 1),
             "max": max(values),
@@ -185,15 +187,45 @@ def short(kernel):
     return kernel
 
 
-def file_kernels(text, binary):
+def igc_dumps(directory):
+    """IGC's dumps (IGC_ShaderDumpEnable in the setup), by the text of each
+    module's .zeinfo: the one embedded in the test executable it built."""
+    return {
+        open(path).read(): path[: -len(".zeinfo")]
+        for path in glob.glob(os.path.join(directory, "*.zeinfo"))
+    }
+
+
+def igc_registers(stem):
+    """Per kernel of a dumped module, the GRFs its instructions use: the
+    registers it really uses (.ze_info only has the GRF mode, 128 or 256)."""
+    regs = {}
+    for asm in glob.glob(stem + "_simd*_entry_*.asm"):
+        with open(asm, errors="replace") as f:
+            text = f.read()
+        if name := re.search(r"^//\.kernel (\S+)", text, re.MULTILINE):
+            code = "\n".join(
+                line for line in text.splitlines() if not line.startswith("//")
+            )
+            regs[name.group(1)] = len(set(re.findall(r"\br(\d+)", code)))
+    return regs
+
+
+def file_kernels(text, binary, dumps):
     """The kernels of one test file, from its build log or its executable,
-    and how their numbers were reported."""
+    and how their numbers were reported. An Intel kernel's registers are
+    None without IGC's dump, as .ze_info does not have them."""
     if kernels := parse_ptxas(text):
         return kernels, "nvidia"
     if kernels := parse_amd_remarks(text):
         return kernels, "amd"
     if os.path.exists(binary) and (zeinfo := embedded_sections(binary, ".ze_info")):
-        return {k: v for z in zeinfo for k, v in parse_zeinfo(z).items()}, "intel"
+        kernels = {}
+        for z in zeinfo:
+            regs = igc_registers(dumps[z]) if z in dumps else {}
+            for name, k in parse_zeinfo(z).items():
+                kernels[name] = {**k, "regs": regs.get(name)}
+        return kernels, "intel"
     return {}, None
 
 
@@ -206,6 +238,7 @@ def measure(id_, out, tree):
     except FileNotFoundError:
         status = None
         result["missing"] = f"no build (test/run_id.sh {id_} build did not run)"
+    dumps = igc_dumps(os.path.join(tree, f"build/id-{id_}/igc"))
     for code, step, name in (
         s for s in status or [] if len(s) == 3 and s[1] == "build"
     ):
@@ -215,7 +248,7 @@ def measure(id_, out, tree):
         with open(os.path.join(logs, f"{name}.build.log"), errors="replace") as f:
             text = f.read()
         kernels, kind = file_kernels(
-            text, os.path.join(tree, f"build/id-{id_}/bin/{name}")
+            text, os.path.join(tree, f"build/id-{id_}/bin/{name}"), dumps
         )
         result["backend"] = result["backend"] or kind
         result["files"][name] = summary(kernels)
@@ -238,7 +271,7 @@ def load(directory):
 
 
 def show(stats):
-    return " / ".join(f"{stats[k]:g}" for k in STATS)
+    return " / ".join(f"{stats[k]:g}" for k in STATS) if stats else "n/a"
 
 
 def expected_not_to_build(configs, id_, name):
@@ -290,7 +323,11 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
             file_grew = False
             for kernel in sorted(set(hf["kernels"]) & set(bf["kernels"])):
                 old, new = bf["kernels"][kernel], hf["kernels"][kernel]
-                up = [f"{m} {old[m]} → {new[m]}" for m in METRICS if new[m] > old[m]]
+                up = [
+                    f"{m} {old[m]} → {new[m]}"
+                    for m in METRICS
+                    if None not in (old[m], new[m]) and new[m] > old[m]
+                ]
                 if up:
                     file_grew = True
                     grown.append(f"id {id_} {name}, {short(kernel)}: " + ", ".join(up))
