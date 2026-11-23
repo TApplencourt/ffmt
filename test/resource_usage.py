@@ -8,17 +8,18 @@
 
 measure reads what the last `test/run_id.sh <id> build` of a checkout left:
 which test files built (results/id-<id>/tests.log), and what the compiler
-said about each kernel, asked by the FFMT_TEST_FLAGS of the id's setup. Each
-RUN(...) is its own kernel, so a kernel's numbers are those of the ffmt code
-its test inlines.
+said about each kernel (asked by the FFMT_TEST_FLAGS of the id's setup), or
+what the test executable embeds. Each RUN(...) is its own kernel, so a
+kernel's numbers are those of the ffmt code its test inlines.
 
     FFMT_TEST_FLAGS                         where                       numbers
     -Xcuda-ptxas -v (CUDA, OpenMP NVPTX)    <name>.build.log            registers, stack
                                                                         frame, spill, smem
     -Rpass-analysis=kernel-resource-usage   <name>.build.log            VGPRs + AGPRs,
     (HIP)                                                               scratch, spills, LDS
-    -save-temps=obj (icpx AOT)              the .ze_info of the AOT     GRF, private
-                                            binary in build/id-<id>/bin  memory, spill, SLM
+    none needed (icpx AOT)                  the .ze_info of the AOT     GRF, private
+                                            binary in the test's        memory, spill, SLM
+                                            executable, build/id-<id>/bin
 
 compare prints one markdown table of every id measured in both directories:
 each changed file's min / avg / max of each metric over its kernels. It
@@ -95,27 +96,49 @@ def parse_amd_remarks(text):
     return kernels
 
 
-def elf_section(path, want):
+def embedded_sections(path, want):
+    """The `want` section of each ELF image embedded in a file, such as the
+    AOT GPU binary an icpx test executable carries (not the file's own)."""
     with open(path, "rb") as f:
         data = f.read()
-    if data[:4] != b"\x7fELF":
-        return None
-    (shoff,) = struct.unpack_from("<Q", data, 0x28)
-    shentsize, shnum, shstrndx = struct.unpack_from("<HHH", data, 0x3A)
-    header = lambda i: struct.unpack_from("<IIQQQQIIQQ", data, shoff + i * shentsize)
-    strings = header(shstrndx)[4]
-    for i in range(shnum):
-        name, _, _, _, offset, size, *_ = header(i)
-        if data[strings + name : data.index(b"\0", strings + name)].decode() == want:
-            return data[offset : offset + size].decode()
-    return None
+    found, start = [], 1
+    while (off := data.find(b"\x7fELF", start)) != -1:
+        start = off + 1
+        try:
+            (shoff,) = struct.unpack_from("<Q", data, off + 0x28)
+            shentsize, shnum, shstrndx = struct.unpack_from("<HHH", data, off + 0x3A)
+            if (
+                data[off + 4] != 2
+                or shentsize != 64
+                or not 0 < shnum < 65536
+                or shstrndx >= shnum
+            ):
+                continue  # not an ELF64 image, or bytes that only look like one
+
+            def header(i, off=off, shoff=shoff):
+                return struct.unpack_from("<IIQQQQIIQQ", data, off + shoff + i * 64)
+
+            strings = off + header(shstrndx)[4]
+            for i in range(shnum):
+                name, _, _, _, offset, size, *_ = header(i)
+                if (
+                    data[strings + name : data.index(b"\0", strings + name)]
+                    == want.encode()
+                ):
+                    found.append(data[off + offset : off + offset + size].decode())
+        except (struct.error, ValueError, UnicodeDecodeError):
+            continue
+    return found
 
 
 def parse_zeinfo(text):
-    """grf_count of execution_env; per_thread_memory_buffers by usage."""
-    kernels, name, usage = {}, None, None
+    """grf_count of execution_env; per_thread_memory_buffers by usage. Only
+    the entries of kernels:, not of the other top-level lists (functions:)."""
+    kernels, name, usage, section = {}, None, None, None
     for line in text.splitlines():
-        if m := re.match(r"  - name:\s+(\S+)", line):
+        if m := re.match(r"(\w+):", line):
+            section, name = m.group(1), None
+        elif section == "kernels" and (m := re.match(r"  - name:\s+(\S+)", line)):
             name = m.group(1)
             kernels[name] = new_kernel()
         elif name and (m := re.search(r"grf_count:\s+(\d+)", line)):
@@ -155,15 +178,15 @@ def short(kernel):
     return kernel
 
 
-def file_kernels(text, zebins):
-    """The kernels of one test file and how their numbers were reported."""
+def file_kernels(text, binary):
+    """The kernels of one test file, from its build log or its executable,
+    and how their numbers were reported."""
     if kernels := parse_ptxas(text):
         return kernels, "nvidia"
     if kernels := parse_amd_remarks(text):
         return kernels, "amd"
-    for path in sorted(zebins, key=os.path.getmtime, reverse=True):  # the latest build
-        if (zeinfo := elf_section(path, ".ze_info")) is not None:
-            return parse_zeinfo(zeinfo), "intel"
+    if os.path.exists(binary) and (zeinfo := embedded_sections(binary, ".ze_info")):
+        return {k: v for z in zeinfo for k, v in parse_zeinfo(z).items()}, "intel"
     return {}, None
 
 
@@ -184,8 +207,9 @@ def measure(id_, out, tree):
             continue
         with open(os.path.join(logs, f"{name}.build.log"), errors="replace") as f:
             text = f.read()
-        zebins = glob.glob(os.path.join(tree, f"build/id-{id_}/bin/test_{name}-*.out"))
-        kernels, kind = file_kernels(text, zebins)
+        kernels, kind = file_kernels(
+            text, os.path.join(tree, f"build/id-{id_}/bin/{name}")
+        )
         result["backend"] = result["backend"] or kind
         result["files"][name] = summary(kernels)
     if status is not None and result["backend"] is None:

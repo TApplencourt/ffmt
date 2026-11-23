@@ -14,6 +14,8 @@ fi
 export ROCM_PATH=$("$rocm_venv/bin/rocm-sdk" path --root)
 export PATH=$ROCM_PATH/bin:$PATH
 export CXX=$ROCM_PATH/bin/hipcc
+# {fmt} (fmt.o) is host code: hipcc would compile it for a GPU too.
+export FFMT_ORACLE_CXX=g++
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -x hip --offload-arch=gfx942 -O2 -fno-fast-math"
 unset rocm_venv
 # For test/resource_usage.py: the compiler reports each kernel's registers, scratch and spills.
