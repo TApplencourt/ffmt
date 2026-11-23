@@ -220,9 +220,9 @@ accept a new failure into `test/configs.json` just to avoid implementing a fix.
 - GitHub runs the host ids (`goal` test: built and run against {fmt}) and
   the GPU ids (`goal` build, no `-O0`), which only build, as GitHub has no
   GPU: green there means the device code builds, not that it runs
-  correctly. Their setups' `FFMT_TEST_FLAGS` make the compiler report each
-  test kernel's registers, stack or scratch, spills and shared local
-  memory; `test/resource_usage.py` reads the build and compares it with
+  correctly. Their setups make the compiler report each test kernel's
+  registers, stack or scratch, spills and shared local memory
+  (`FFMT_TEST_FLAGS`; for icpx, `IGC_ShaderDumpEnable`); `test/resource_usage.py` reads the build and compares it with
   the base branch. That job fails when a test's kernel grows, or a file
   stops building unless `test/configs.json` expects it: do not take a
   regression there for noise, and do not accept one without a reason.
