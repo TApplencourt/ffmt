@@ -2048,8 +2048,12 @@
     "notes": "GitHub ROCm 10.1.0 HIP (gfx942), -O2, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "N/A",
-    "failed_to_compile": [],
+    "previous_main_commit": "e25c22f48e19d1df142b35525bc245de06ec15a8",
+    "failed_to_compile": [
+      "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
+      "sycl_usm_string:1",
+      "to_underlying:1", "to_underlying:2"
+    ],
     "failed_to_run": [],
     "compiled_but_not_run": []
   }
