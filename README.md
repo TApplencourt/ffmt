@@ -360,7 +360,7 @@ CI runs the ids whose `ci` is `github:<runner>`
     (one table in the run's summary), and fails when a test's kernel grows,
     or when a file stops building and `test/configs.json` does not expect
     it. A test with no reference, such as a new one, is listed, not failed.
-- GitLab (JLSE): every id, on real hardware.
+- GitLab (JLSE): every id, on its real hardware.
 
 The six H100 ids belong to
 the optional manual `h100-extended` job in that same GitLab pipeline because a
