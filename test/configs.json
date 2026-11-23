@@ -242,7 +242,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
@@ -685,7 +686,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
