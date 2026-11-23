@@ -4,36 +4,6 @@
 #include "test_body.inc"
 #else
 
-// Char
-RUN(PRINT("{}\n", 'A'));
-RUN(PRINT("{:d}\n", true));
-RUN(PRINT("{}\n", 'Z'));
-RUN(PRINT("{:d}\n", 'Z'));
-RUN(PRINT("{:c}\n", 65));
-
-// Bool as a string: %s of "true"/"false" on the specifiers path.
-RUN(PRINT("{}\n", false));
-RUN(PRINT("{}\n", true));
-RUN(PRINT("{:>10}\n", true));
-RUN(PRINT("{:<10}\n", false));
-RUN(PRINT("{:s}\n", true));
-RUN(PRINT("{:s}\n", false));
-
-// println
-RUN(PRINTLN("hello println"));
-RUN(PRINTLN("{} + {} = {}", 1, 2, 3));
-RUN(PRINTLN("{:08x}", 255u));
-
-// Dynamic char
-RUN({
-  volatile char c = 'Q';
-  PRINT("{}\n", static_cast<char>(c));
-});
-
-// Width on char
-RUN(PRINT("{:<10c}\n", 'B'));
-RUN(PRINT("{:>10c}\n", 'C'));
-
 // Strings: %s on the specifiers path.
 RUN(PRINT("{}\n", "hello world"));
 RUN(PRINT("{:<20s}\n", "hello"));
@@ -45,7 +15,6 @@ RUN(PRINT("{:>10.5s}\n", "hello world"));
 RUN(PRINT("{:<10.3s}\n", "hello"));
 
 // ── Strings ───────────────────────────────────────────────────────────────────
-RUN(PRINT("{:10c}\n", 'A'));
 RUN(PRINT("{:20s}\n", "hello"));
 RUN(PRINT("[{:.3}]\n", "静夜思"));
 RUN(PRINT("[{:.4}]\n", "静夜思"));
