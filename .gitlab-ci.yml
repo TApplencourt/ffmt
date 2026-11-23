@@ -38,6 +38,8 @@ workflow:
 .jlse-batch:
   extends: .batch-runner
   stage: test
+  # GitLab time includes Cobalt waits on single-node queues.
+  timeout: 24h
   variables:
     FFMT_RUNTIME_ROOT: /vast/projects/intel_anl_shared/ffmt-ci/releases/20261110-r1
   script:
@@ -48,74 +50,35 @@ workflow:
     paths:
       - results/
 
-# icpx OpenMP offload to SPIR-V and icpx SYCL, on PVC.
+# One job per node type: every id of a queue in one allocation.
+
+# icpx OpenMP and SYCL, Intel LLVM SYCL, Kokkos SYCL and chipStar, on PVC.
 chiatta:
   extends: .jlse-batch
+  resource_group: chiatta
   variables:
     # runners.yml has per-queue templates (.ice-runner, .v100-runner, ...)
-    # but none for chiatta, so set the queue here.
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q chiatta"
+    # but none for chiatta, so set the queue here. 2:00 is its maximum.
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q chiatta"
 
 # clang CUDA and clang OpenMP offload to NVPTX, on A100.
 a100:
   extends: .jlse-batch
   resource_group: a100
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a100"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:45:0 -q gpu_a100"
 
-# ROCm clang OpenMP offload, on MI300X.
+# ROCm clang OpenMP, native HIP, Kokkos HIP and AdaptiveCpp, on MI300X.
 mi300x:
   extends: .jlse-batch
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:20:0 -q gpu_amd_mi300x"
-
-# Expanded configurations run separately from the established gated jobs.
-.jlse-extended:
-  extends: .jlse-batch
-  # GitLab time includes Cobalt waits on single-node queues.
-  timeout: 24h
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger" || $CI_PIPELINE_SOURCE == "push"'
-      when: on_success
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual
-      allow_failure: false
-
-chiatta-dpcpp:
-  extends: .jlse-extended
-  resource_group: chiatta
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
-
-a100-extended:
-  extends: .jlse-extended
-  resource_group: a100
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
-
-a100-omp-fast-math:
-  extends: .jlse-extended
-  resource_group: a100
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_a100"
-
-mi300x-omp-fast-math:
-  extends: .jlse-extended
   resource_group: mi300x
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q gpu_amd_mi300x"
-
-# Native HIP (hipcc) and Kokkos HIP, on MI300X.
-mi300x-hip:
-  extends: .jlse-extended
-  resource_group: mi300x
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_amd_mi300x"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 3:35:0 -q gpu_amd_mi300x"
 
 # This results marker makes an attempted H100 run visible to a retried summary,
 # including a failed run whose per-id artifacts are incomplete.
 h100-extended:
-  extends: .jlse-extended
+  extends: .jlse-batch
   resource_group: h100
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $RUN_H100 == "true"'
@@ -130,33 +93,15 @@ h100-extended:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_h100"
 
-a40-extended:
-  extends: .jlse-extended
+# Kokkos CUDA and AdaptiveCpp, on A40.
+a40:
+  extends: .jlse-batch
   resource_group: a40
   variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:45:0 -q gpu_a40"
-
-adaptivecpp-a40:
-  extends: .jlse-extended
-  resource_group: a40
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_a40"
-
-adaptivecpp-mi300x:
-  extends: .jlse-extended
-  resource_group: mi300x
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_amd_mi300x"
-
-# HIP source through chipStar and Level Zero on Chiatta Max 1550.
-chipstar:
-  extends: .jlse-extended
-  resource_group: chiatta
-  variables:
-    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:00:0 -q chiatta"
+    JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:45:0 -q gpu_a40"
 
 gh200-extended:
-  extends: .jlse-extended
+  extends: .jlse-batch
   resource_group: gh200
   variables:
     PYTHON: /usr/bin/python3.12
@@ -164,7 +109,7 @@ gh200-extended:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 2:00:0 -q gpu_gh200"
 
 rome-extended:
-  extends: .jlse-extended
+  extends: .jlse-batch
   resource_group: rome
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 0:30:0 -q rome_7742"
