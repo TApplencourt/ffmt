@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: none
+  pull-requests: write  # to link the pipeline on the PR of the ref
 
 jobs:
   dispatch:
@@ -24,6 +25,7 @@ jobs:
     environment: jlse
     steps:
       - name: Request trigger pipeline
+        id: submit
         env:
           GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
           GITLAB_REF: ${{ inputs.ref }}
@@ -134,4 +136,32 @@ jobs:
               summary.write(f"- GitLab ref: `{ref}`\n")
               summary.write(f"- H100: {h100}\n\n")
               summary.write("Submission is asynchronous. Open the pipeline in GitLab for its eventual hardware result; this Action does not poll it.\n")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"id={pipeline['id']}\nurl={url}\nsha={pipeline.get('sha', '')}\n")
           PY
+
+      # The open PR whose head is the ref gets the pipeline's link, and the
+      # commit GitLab took: its mirror can lag behind a push.
+      - name: Link the pipeline on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITLAB_REF: ${{ inputs.ref }}
+          RUN_H100: ${{ inputs.run_h100 }}
+          PIPELINE_ID: ${{ steps.submit.outputs.id }}
+          PIPELINE_URL: ${{ steps.submit.outputs.url }}
+          PIPELINE_SHA: ${{ steps.submit.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r pr head < <(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITLAB_REF" \
+            --state open --json number,headRefOid --jq '.[0] | "\(.number) \(.headRefOid)"' || true) || true
+          if [ -z "${pr:-}" ] || [ "$pr" = null ]; then
+            echo "No open pull request has $GITLAB_REF as its head."
+            exit 0
+          fi
+          [ "$RUN_H100" = true ] && h100=required || h100="optional (manual)"
+          body="JLSE pipeline [$PIPELINE_ID]($PIPELINE_URL) on \`${PIPELINE_SHA:0:8}\`, H100 $h100."
+          if [ "$PIPELINE_SHA" != "$head" ]; then
+            body+=" GitLab's mirror is behind this PR's head \`${head:0:8}\`: dispatch again once it has synced."
+          fi
+          gh pr comment "$pr" --repo "$GITHUB_REPOSITORY" --body "$body"
