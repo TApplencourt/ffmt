@@ -153,8 +153,8 @@ merge and A the `git merge-base` of the PR with `main`; rebase on `main`
 before the run, so that A is the parent of B. Ids 0 and 1 are the host references (g++;
 specifiers path and buffer path). A new toolchain or machine gets a new id:
 add a row with empty lists, run it, and accept its results. A program
-that runs longer than `FFMT_TIMEOUT` seconds (1800 unless the setup says
-otherwise) is killed, which counts as a crash in the test it was in.
+that runs longer than `FFMT_TIMEOUT` seconds (60 unless the setup says
+otherwise: 600 for the JIT ids, AdaptiveCpp and chipStar) is killed, which counts as a crash in the test it was in.
 
 ```sh
 test/run_id.sh 1;  python3 test/check_id.py 1    # host, buffer path: run first
