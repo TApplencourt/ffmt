@@ -1,3 +1,4 @@
+// Reported: https://github.com/argonne-lcf/AuroraBugTracking/issues/144
 #include <cstdio>
 
 template <class F> static void run_in_lambda(F&& f) { f(); }

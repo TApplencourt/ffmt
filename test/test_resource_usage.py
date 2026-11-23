@@ -118,6 +118,23 @@ class Summary(unittest.TestCase):
         regs = file_of((28, 0, 0, 0), (31, 0, 0, 0), (40, 0, 0, 0))["regs"]
         self.assertEqual(regs, {"min": 28, "avg": 33.0, "max": 40})
 
+    def test_openmp_kernels_match_across_checkouts(self):
+        here = resource_usage.summary(
+            {
+                "__omp_offloading_28_7a3d403e_main_l55": {
+                    m: 1 for m in resource_usage.METRICS
+                }
+            }
+        )
+        there = resource_usage.summary(
+            {
+                "__omp_offloading_28_1f00ba11_main_l55": {
+                    m: 1 for m in resource_usage.METRICS
+                }
+            }
+        )
+        self.assertEqual(here, there)
+
     def test_short_names(self):
         self.assertEqual(
             resource_usage.short("__omp_offloading_28_7a3d403e_main_l55"), "line 55"
@@ -213,6 +230,14 @@ class Compare(unittest.TestCase):
         )
         self.assertEqual(code, 0)
         self.assertIn("792 / 792 / 792 → 512 / 512 / 512", out)
+
+    def test_a_file_with_the_same_numbers_is_not_printed(self):
+        base = {"floats": file_of((31, 0, 0, 0))}
+        head = {"floats": file_of((31, 0, 0, 0), (31, 0, 0, 0))}
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertNotIn("| floats |", out)
+        self.assertIn("1 file(s) unchanged", out)
 
     def test_a_new_test_passes_and_is_listed(self):
         base = {"floats": file_of((31, 0, 0, 0))}
