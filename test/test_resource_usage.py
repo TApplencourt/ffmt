@@ -33,6 +33,16 @@ x.hpp:1:1: remark:     VGPRs Spill: 0 [-Rpass-analysis=kernel-resource-usage]
 x.hpp:1:1: remark:     LDS Size [bytes/block]: 64 [-Rpass-analysis=kernel-resource-usage]
 """
 
+AMD_LINK = """\
+test/capture.hpp:133:0: Function Name: k2
+test/capture.hpp:133:0:     TotalSGPRs: 44
+test/capture.hpp:133:0:     VGPRs: 36
+test/capture.hpp:133:0:     AGPRs: 0
+test/capture.hpp:133:0:     ScratchSize [bytes/lane]: 788
+test/capture.hpp:133:0:     VGPRs Spill: 0
+test/capture.hpp:133:0:     LDS Size [bytes/block]: 0
+"""
+
 ZEINFO = """\
 version: '1.73'
 kernels:
@@ -69,6 +79,12 @@ class Parsers(unittest.TestCase):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD),
             {"k1": {"regs": 88, "stack": 2608, "spill": 2, "slm": 64}},
+        )
+
+    def test_amd_remarks_from_the_linker_wrapper(self):
+        self.assertEqual(
+            resource_usage.parse_amd_remarks(AMD_LINK),
+            {"k2": {"regs": 36, "stack": 788, "spill": 0, "slm": 0}},
         )
 
     def test_zeinfo_skips_payload_sizes(self):
