@@ -15,6 +15,8 @@ kernel's numbers are those of the ffmt code its test inlines.
     FFMT_TEST_FLAGS                         where                       numbers
     -Xcuda-ptxas -v (CUDA, OpenMP NVPTX)    <name>.build.log            registers, stack
                                                                         frame, spill, smem
+                                            (a compile-only OpenMP build has no registers:
+                                            its region's code is a function of its own)
     -Rpass-analysis=kernel-resource-usage   <name>.build.log            VGPRs + AGPRs,
     (HIP)                                                               scratch, spills, LDS
     none needed (icpx AOT)                  the .ze_info of the AOT     private memory,
@@ -48,23 +50,34 @@ def new_kernel():
 
 
 def parse_ptxas(text):
-    kernels, name = {}, None
+    """ptxas -v. An OpenMP target region's code is in K_omp_outlined...,
+    which kernel K calls: in a compile-only build it stays a function of its
+    own, whose stack and spills count for K, and whose registers ptxas does
+    not report (they are known at link time), so K's are unknown (None)."""
+    kernels, frames, name, function = {}, {}, None, None
     for line in text.splitlines():
         if m := re.search(r"Compiling entry function '([^']+)'", line):
             name = m.group(1)
             kernels[name] = new_kernel()
-        elif name and (
+        elif m := re.search(r"Function properties for (\S+)", line):
+            function = m.group(1)
+        elif function and (
             m := re.search(r"(\d+) bytes stack frame, (\d+) bytes spill stores", line)
         ):
-            kernels[name]["stack"], kernels[name]["spill"] = (
-                int(m.group(1)),
-                int(m.group(2)),
-            )
+            frames[function] = (int(m.group(1)), int(m.group(2)))
+            function = None
         elif name and (m := re.search(r"Used (\d+) registers", line)):
             kernels[name]["regs"] = int(m.group(1))
             if smem := re.search(r"(\d+) bytes smem", line):
                 kernels[name]["slm"] = int(smem.group(1))
             name = None
+    for kernel, k in kernels.items():
+        k["stack"], k["spill"] = frames.get(kernel, (0, 0))
+        for function, (stack, spill) in frames.items():
+            if function.startswith(kernel + "_omp_outlined"):
+                k["stack"] += stack
+                k["spill"] += spill
+                k["regs"] = None
     return kernels
 
 
@@ -182,8 +195,13 @@ def short(kernel):
     region, else the RUN lambda's number in the Itanium mangling."""
     if m := re.search(r"_l(\d+)$", kernel):
         return f"line {m.group(1)}"
-    if numbers := re.findall(r"Ul[^E]*E(\d*)_", kernel):
-        return f"lambda #{int(numbers[-1] or -1) + 2}"
+    # The RUN lambda closes the name: ...UlvE<n>_EvT_ (CUDA, HIP), or
+    # ...E<n>_ then only E (SYCL); no <n> is the first lambda, 0 the second.
+    if m := re.search(r"UlvE(\d*)_EvT_$", kernel) or re.search(r"E(\d*)_E*$", kernel):
+        # SYCL also makes a RoundedRangeKernel of each, launched instead when
+        # the range is not a multiple of the preferred work-group size.
+        rounded = " (rounded range)" if "RoundedRangeKernel" in kernel else ""
+        return f"lambda #{int(m.group(1) or -1) + 2}{rounded}"
     return kernel
 
 
