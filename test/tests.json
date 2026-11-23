@@ -1,6 +1,8 @@
 {
   "alternate": 20,
   "binary": 30,
+  "bools": 6,
+  "characters": 9,
   "dynamic": 24,
   "escape_percent": 7,
   "escape_percent_inplace": 12,
@@ -20,8 +22,9 @@
   "misc": 50,
   "null_string": 3,
   "nvptx_o2_ice": 2,
+  "println": 3,
   "signed_radix": 19,
-  "strings": 34,
+  "strings": 16,
   "sycl_types": 8,
   "sycl_usm_string": 1,
   "to_underlying": 2

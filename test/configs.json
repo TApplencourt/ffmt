@@ -3,7 +3,7 @@
     "id": 0,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -19,11 +19,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1253,7 +1254,7 @@
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1291,7 +1292,7 @@
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1329,7 +1330,7 @@
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1367,7 +1368,7 @@
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
