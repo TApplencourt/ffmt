@@ -65,6 +65,10 @@ kernels:
   - name:            kB
     execution_env:
       grf_count:       256
+functions:
+  - name:            some_function
+    execution_env:
+      grf_count:       128
 """
 
 
