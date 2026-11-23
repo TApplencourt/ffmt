@@ -154,10 +154,17 @@ def parse_zeinfo(text):
     return kernels
 
 
+def kernel_key(name):
+    """A kernel's name without what depends on where its file was built: an
+    OpenMP region is __omp_offloading_<device id>_<file id>_<function>_l<line>,
+    and the file id changes with the checkout's path."""
+    return re.sub(r"__omp_offloading_[0-9a-f]+_[0-9a-f]+_", "__omp_offloading_", name)
+
+
 def summary(kernels):
     """Every kernel's numbers, and per metric their min, average (to 0.1) and
     max, for the table."""
-    out = {"kernels": kernels}
+    out = {"kernels": {kernel_key(k): v for k, v in kernels.items()}}
     for metric in METRICS:
         values = [k[metric] for k in kernels.values()] or [0]
         out[metric] = {
@@ -280,9 +287,6 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
                 continue
             for kernel in sorted(set(hf["kernels"]) - set(bf["kernels"])):
                 missing.append(f"id {id_} {name}, {short(kernel)}")
-            if hf == bf:
-                unchanged += 1
-                continue
             file_grew = False
             for kernel in sorted(set(hf["kernels"]) & set(bf["kernels"])):
                 old, new = bf["kernels"][kernel], hf["kernels"][kernel]
@@ -290,6 +294,9 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
                 if up:
                     file_grew = True
                     grown.append(f"id {id_} {name}, {short(kernel)}: " + ", ".join(up))
+            if not file_grew and all(hf[m] == bf[m] for m in METRICS):
+                unchanged += 1
+                continue
             cells = [
                 show(hf[m]) if hf[m] == bf[m] else f"{show(bf[m])} → {show(hf[m])}"
                 for m in METRICS

@@ -19,9 +19,9 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | SYCL (Intel LLVM)        | intel/llvm `clang++ -fsycl`         | ✅ | Specifiers path, as `icpx -fsycl`. |
 | SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
-| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; `-O2` is clean. |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; at `-O2`, `float_sweep` hits an LLVM bug ([llvm#245290](https://github.com/llvm/llvm-project/issues/245290)). |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
-| OpenMP target → AMDGPU   | ROCm `clang -fopenmp --offload-arch=gfx942` | ✅ | Buffer path. At `-O0` the same tests break as on NVPTX (precision floats: a ROCm shared-stack bug, `toolchain_bugs/`); `-O2` is clean. |
+| OpenMP target → AMDGPU   | ROCm `clang -fopenmp --offload-arch=gfx942` | ✅ | Buffer path. At `-O0` the same tests break as on NVPTX (precision floats: an LLVM OpenMP shared-stack bug, [llvm#245328](https://github.com/llvm/llvm-project/issues/245328)); `-O2` is clean. |
 | HIP                      | `hipcc -x hip --offload-arch=gfx942` | ✅ | Buffer path. Auto-detected via `__HIPCC__`. |
 | HIP (chipStar, Level Zero) | chipStar `hipcc -x hip`           | ⚠️ | Buffer path. Clean at `-O0`; at `-O2` half the test files fail to compile (LLVM 23's SPIR-V backend asks for `SPV_ALTERA_arbitrary_precision_integers`). |
 | Kokkos                   | Kokkos over Serial, CUDA, HIP, SYCL | ✅ | The path of the backend underneath (SYCL: specifiers path). |
@@ -29,6 +29,17 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | CUDA                     | `nvc++ -cuda`                       | ❌ | nvc++'s libstdc++ wiring blocks C++20 headers. |
 
 Auto-detection is purely preprocessor — `#include <ffmt/base.hpp>` and the right emit hook installs itself based on the active compiler/backend macros.
+
+### Toolchain bugs found with ffmt
+
+Each has a small reproducer in `toolchain_bugs/`.
+
+| Reproducer | Bug | Reported |
+|---|---|---|
+| `clang_based_omp_O2_const_array.c` | clang OpenMP → NVPTX, `-O2`: a local constant array read at a run-time index faults | [llvm#245290](https://github.com/llvm/llvm-project/issues/245290) |
+| `clang_based_omp_O0_shared_stack_overlap.c` | clang-based OpenMP (NVPTX, ROCm), `-O0`: two live locals get the same address | [llvm#245328](https://github.com/llvm/llvm-project/issues/245328) |
+| `icpx_sycl_O0_printf_char_pointer.cpp` | icpx SYCL `-O0`: `printf("%s")` of a string literal through a local pointer segfaults | [AuroraBugTracking#132](https://github.com/argonne-lcf/AuroraBugTracking/issues/132) |
+| `icpx_omp_pragma_in_dowhile.cpp` | icpx OpenMP: a target region inside a `do`/`while` fails to load its kernel | [AuroraBugTracking#144](https://github.com/argonne-lcf/AuroraBugTracking/issues/144) |
 
 ## Quick example
 
