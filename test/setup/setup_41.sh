@@ -18,6 +18,7 @@ if [ ! -f /opt/intel/oneapi/setvars.sh ]; then
     https://github.com/intel/compute-runtime/releases/download/26.40.40196.8/intel-ocloc_26.40.40196.8-0_amd64.deb || exit 1
   sudo apt-get update
   sudo apt-get install -y intel-oneapi-compiler-dpcpp-cpp-2025.2 ./intel-*.deb
+  sudo ldconfig   # IGC's .debs put libigc in /usr/local/lib and do not run it
 fi
 set --   # setvars.sh reads the caller's "$@" as its own arguments
 source /opt/intel/oneapi/setvars.sh
