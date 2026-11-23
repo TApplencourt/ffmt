@@ -14,9 +14,9 @@
 // std::format), and -0.0 as "0" (-fno-signed-zeros). Subnormal expectations are therefore literals, taken from
 // {fmt} built without -ffast-math.
 //
-// Values go through a volatile (host-only test, never kernel code) so the
-// widening and zero tests happen at run time; with plain literals the
-// compiler folds them and DAZ never gets a chance to flush anything.
+// Values go through a volatile so the widening and zero tests happen at
+// run time; with plain literals the compiler folds them and DAZ never gets
+// a chance to flush anything.
 [[maybe_unused]] auto opaque = [](auto v) { volatile decltype(v) x = v; return x; };
 #ifdef FFMT_STD_PATH
 #define EXPECT(want, fmt_str, v) printf("%s\n", want)

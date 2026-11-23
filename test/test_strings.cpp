@@ -11,7 +11,7 @@ RUN(PRINT("{}\n", 'Z'));
 RUN(PRINT("{:d}\n", 'Z'));
 RUN(PRINT("{:c}\n", 65));
 
-// Bool/string as %s — see "spirv-o0" / "ptx-clang-o0" in capture.hpp.
+// Bool as a string: %s of "true"/"false" on the specifiers path.
 RUN(PRINT("{}\n", false));
 RUN(PRINT("{}\n", true));
 RUN(PRINT("{:>10}\n", true));
@@ -34,7 +34,7 @@ RUN({
 RUN(PRINT("{:<10c}\n", 'B'));
 RUN(PRINT("{:>10c}\n", 'C'));
 
-// String %s tests — same gate.
+// Strings: %s on the specifiers path.
 RUN(PRINT("{}\n", "hello world"));
 RUN(PRINT("{:<20s}\n", "hello"));
 RUN(PRINT("{:>20s}\n", "hello"));

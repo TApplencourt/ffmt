@@ -1,6 +1,6 @@
 // Cases using {:a} / {:A}, hexadecimal floating point. The specifiers path cannot express these with printf.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME hexfloat
 #define TEST_INC "test_hexfloat.cpp"
@@ -30,9 +30,8 @@ RUN(PRINT("{:^20a}\n", 3.14));
 RUN(PRINT("{:*>20a}\n", 3.14));
 
 // ── Type-instantiation coverage ───────────────────────────────────────────────
-// hex_float_to_buf_rt<float>: {:a} on float (tests above only use double).
-// PTX-clang at -O0 emits the exponent letter as uppercase 'P' even for
-// the lowercase '{:a}' spec — distinct from the prefix/sign cluster above.
+// {:a} on float (tests above only use double): widened exactly to double
+// (widen_exact), then hex_float_to_buf_rt.
 RUN(PRINT("{:a}\n", 3.14f));
 RUN(PRINT("{:A}\n", 3.14f));
 RUN(PRINT("{:a}\n", 0.0f));

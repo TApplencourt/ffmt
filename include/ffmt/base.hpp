@@ -1,11 +1,14 @@
-// ffmt/base.hpp — std::format-like API for SYCL device kernels
+// ffmt/base.hpp — print what fmt::format prints, from device code (SYCL,
+// OpenMP target, CUDA, HIP, ...).
 //
-// Compile-time converts "{}" / "{:spec}" format strings to printf format
-// specifiers, then forwards to sycl::ext::oneapi::experimental::printf.
+// Two paths, picked from the compiler (FFMT_BUFFER_PATH): the specifiers
+// path (DPC++, icpx OpenMP) converts the format string to a printf format
+// at compile time and lets the device printf format the arguments; the
+// buffer path (everything else) formats into a buffer and prints it once.
 //
 // Usage:
-//   ffmt::print<"{} + {} = {}">(a, b, c);
-//   FFMT_PRINT("{} + {} = {}", a, b, c);   // macro for nicer syntax
+//   FFMT_PRINT("{} + {} = {}", a, b, c);   // the spelling for both paths
+//   FFMT_PRINTLN("{} + {} = {}", a, b, c);
 
 #pragma once
 
@@ -20,16 +23,18 @@
 #endif
 
 // ── Knob 1: formatting path ─────────────────────────────────────────────
-// 1 = buffer path  (build a char[] in fmt_buf, emit once via FFMT_EMIT_BUFFER).
-// 0 = SPIRV path   (compile-time printf format string, emit via FFMT_EMIT_PRINTF
-//                   with live args). The SPIRV path only handles printf-compatible
-//                   specs; the buffer path handles the full feature set.
-// Default: SPIRV only for the SPIR-V backends (DPC++ / icpx -fsycl, and
-// icpx -fiopenmp -fopenmp-targets=spir64), whose printf needs a literal
-// format string; buffer everywhere else (host, AdaptiveCpp, clang-OpenMP
-// NVPTX, clang-CUDA).
-// User may #define before include to override (the host test rig does this
-// to exercise both paths through libc printf).
+// 1 = buffer path      (build a char[] in fmt_buf, emit once via
+//                       FFMT_EMIT_BUFFER).
+// 0 = specifiers path  (compile-time printf format string, emit via
+//                       FFMT_EMIT_PRINTF with live args). It only handles
+//                       printf-compatible specs; the buffer path handles the
+//                       full feature set.
+// Default: specifiers path for any SYCL compiler but AdaptiveCpp (DPC++:
+// icpx or intel/llvm clang++ -fsycl) and for icpx with OpenMP, whose
+// SPIR-V printf needs a literal format string; buffer path everywhere
+// else (host, AdaptiveCpp, clang OpenMP, CUDA, HIP).
+// User may #define before include to override (the host tests do this to
+// exercise both paths).
 #if !defined(FFMT_BUFFER_PATH)
   #if !FFMT_COMPILER_ACPP && (defined(SYCL_LANGUAGE_VERSION) \
                               || (defined(__INTEL_LLVM_COMPILER) && defined(_OPENMP)))
@@ -116,9 +121,9 @@
     ::ffmt::detail::omp_printf(__VA_ARGS__)
 #endif
 
-// ── printf auto-install: clang-OMP offload, CUDA, HIP ───────────────────
-// When the TU targets a GPU via `clang -fopenmp --offload-arch`,
-// `clang++ -x cuda` or `-x hip`, the buffer path's emit is plain ::printf. Unlike
+// ── printf auto-install: clang OpenMP, CUDA, HIP ────────────────────────
+// When the TU is built with clang -fopenmp (offloading or not), as CUDA
+// or as HIP, the buffer path's emit is printf("%s", buf). Unlike
 // icpx-SPIR64, NVPTX's printf accepts any pointer-to-char as the format
 // string (verified empirically — runtime buffers, static constexpr arrays,
 // all fine). The clang-OMP gate excludes __INTEL_LLVM_COMPILER (icpx
@@ -163,9 +168,13 @@
 // Defaults:
 //   ACPP buffer path: JIT-branch on device vs host backend (__acpp_sscp_print
 //     vs fputs), escaping % only on the device path.
-//   Otherwise buffer: plain fputs (host test, OpenMP, plain CPU).
+//   clang OpenMP, CUDA, HIP buffer path: printf("%s", buf) (installed above).
+//   Otherwise buffer: plain fputs (host test, g++ even with -fopenmp,
+//     clang without it).
 //   SPIRV with SYCL: sycl::ext::oneapi::experimental::printf.
-//   SPIRV without SYCL: ::printf (host test, etc.).
+//   SPIRV with icpx OpenMP: omp_printf (installed above), i.e.
+//     __spirv_ocl_printf on the device, ::printf on the host pass.
+//   SPIRV otherwise: ::printf (host test, etc.).
 #if !defined(FFMT_EMIT_PRINTF)
   #if defined(SYCL_LANGUAGE_VERSION)
     #define FFMT_EMIT_PRINTF(...) ::sycl::ext::oneapi::experimental::printf(__VA_ARGS__)
@@ -199,7 +208,10 @@
           });                                                                  \
       )
   #else
-    // Everything else (host coverage, OpenMP, plain CPU): verbatim fputs.
+    // Everything else (g++ even with -fopenmp, clang without it, the host
+    // tests; DPC++ and icpx OpenMP too, unused on their specifiers path):
+    // verbatim fputs. clang OpenMP (not icpx), CUDA and HIP, host pass
+    // included, got printf("%s") above.
     #define FFMT_EMIT_BUFFER(out, escape_pct) \
       do { (void)(escape_pct); ::fputs((out).data, stdout); } while (0)
   #endif
@@ -1074,11 +1086,11 @@ constexpr int parse_dynamic_arg(const char *data, size_t len, size_t &i, int &au
 }
 
 // ============================================================
-// Runtime placeholder + spec parsing
+// Placeholder + spec parsing
 // ============================================================
 // Used at compile time by both paths (validate_format, print_string, the
-// specifiers walkers); find_placeholder also runs on device for the strings
-// of custom formatters on the buffer path.
+// specifiers walkers). On the buffer path, find_placeholder (strings of
+// custom formatters) and effective_type (write_arg_rt) also run on device.
 
 // Find the first {} or {:spec} or {N} or {N:spec} placeholder in s[from..len).
 constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
@@ -1123,8 +1135,7 @@ constexpr found_placeholder find_placeholder(const char *s, int len, int from) {
   return {};
 }
 
-// Runtime version of parse_spec — works on const char* instead of fixed_string NTTP
-// Parse data[begin, end). Only ever evaluated at compile time, so a
+// Parse the spec data[begin, end). Only ever evaluated at compile time, so a
 // malformed spec fails the build like it does with {fmt}.
 constexpr format_spec parse_spec(const char *data, int begin, int end,
                                     int dyn_auto_start = -1) {
@@ -1173,7 +1184,9 @@ constexpr format_spec parse_spec(const char *data, int begin, int end,
   return s;
 }
 
-// Runtime version of effective_type — spec_type is a runtime parameter
+// The printf conversion for a spec without a type ('\0'), from the argument
+// type: 'u' for unsigned, 'g' for floats (write_float_rt prints the shortest
+// form itself when there is neither a type nor a precision).
 template <typename U> constexpr char effective_type(char spec_type) {
   if (spec_type != '\0') return spec_type;
   if constexpr (std::same_as<U, bool>) return 's';
@@ -1281,7 +1294,7 @@ consteval void validate_format(const char *s, int len) {
 
 #if FFMT_BUFFER_PATH
 // ============================================================
-// print_string — consteval-validated format string for ACPP
+// print_string — consteval-validated format string for the buffer path
 // ============================================================
 
 // Pre-parsed placeholder entry — populated at compile time, consumed at runtime.
@@ -1339,7 +1352,7 @@ struct print_string {
 #endif // FFMT_BUFFER_PATH
 
 // ============================================================
-// Device-side buffer (used by ACPP accumulator path)
+// Output buffer of the buffer path
 // ============================================================
 
 #ifndef FFMT_BUFFER_SIZE
@@ -1606,10 +1619,10 @@ template <fixed_string Fmt, typename... Args> inline void print(Args... args) {
 
 #if FFMT_BUFFER_PATH
 // ============================================================
-// ACPP accumulator path
+// Buffer path
 //
 // Collects the entire formatted output into one fmt_buf, then
-// flushes with a single sycl::detail::print call — atomic per
+// emits it with a single FFMT_EMIT_BUFFER call — atomic per
 // work-item, no interleaving between format args.
 // ============================================================
 
@@ -2120,7 +2133,7 @@ template <typename T> FMT_HD inline void write_arg_default(fmt_buf &out, T arg) 
 // by-value scalar ints into a struct so dispatch_arg / write_arg_rt can
 // receive them via reference. Two trailing by-value ints on a function
 // called from inside the dispatch_pack lambda triggers alloca aliasing
-// at -O0 (V29 standalone reproducer; see toolchain_bugs/).
+// at -O0.
 struct dyn_args { int w; int p; };
 
 // Format one argument with runtime spec — dispatches based on type + etype.
@@ -2208,7 +2221,8 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
 
 // Per-arg dispatch. Primitives use the spec-aware writers; formatter args
 // recurse into format_lit_rt on the formatter's inner format string + values.
-// Both branches are if-constexpr so the primitive path stays byte-identical.
+// if constexpr: each arg instantiates only its branch (formatter<T> is
+// undefined for a primitive T).
 template <typename... Args>
 FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
                          const format_spec &spec, const dyn_args &dyn,
@@ -2219,8 +2233,8 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
         if (has_spec) write_arg_rt(out, arg, spec, dyn);
         else write_arg_default(out, arg);
       } else {
-        // has_formatter<T> — specs/dynamic-width on custom args are not
-        // supported on ACPP at runtime; the inner format literal is rewalked.
+        // has_formatter<T>: a spec on a custom arg is rejected at compile
+        // time (spec_compatible_with_arg); walk the formatter's own string.
         auto inner = ::ffmt::formatter<std::decay_t<T>>::format(arg);
         constexpr auto inner_fmt = decltype(inner)::format_string;
         std::apply(
@@ -2233,8 +2247,7 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
 }
 
 // Top-level walker. Reuses the pre-parsed phs[] for the outer format string
-// (so spec handling for primitives is unchanged) and falls through to
-// dispatch_arg for both primitive and formatter args.
+// and falls through to dispatch_arg for both primitive and formatter args.
 template <sycl_formattable... Args, typename... A2>
 FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&... args) {
   int pos = 0;
@@ -2252,7 +2265,10 @@ FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&
 
 // Inner walker for formatter sub-strings. These don't have a print_string
 // (no compile-time pre-parse), so we re-parse with find_placeholder.
-// No spec/dyn-width support here — Stage 1 forbids them on custom args.
+// No spec support here: a spec in the formatter's own string is ignored
+// ("[{:x}]" prints like "[{}]"), whereas the specifiers path splices it in
+// and applies it. A spec on the custom argument itself is rejected at compile
+// time (spec_compatible_with_arg).
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
   int pos = 0;
@@ -2317,10 +2333,10 @@ FMT_HD inline void flush_buf(fmt_buf &out, bool escape_pct = true) {
 
 // ============================================================
 // formatter_expand — splice user `formatter<T>` results into
-// the parent format string + arg pack at compile time. DPC++
-// only: ACPP dispatches formatter args at runtime inside
-// buffer_path::dispatch_arg, so this machinery would be dead
-// weight there.
+// the parent format string + arg pack at compile time.
+// Specifiers path only: the buffer path dispatches formatter
+// args at runtime inside buffer_path::dispatch_arg, so this
+// machinery would be dead weight there.
 // ============================================================
 
 #if !FFMT_BUFFER_PATH
@@ -2443,8 +2459,9 @@ template <fixed_string Fmt> consteval auto append_newline() {
 
 #if !FFMT_BUFFER_PATH
 
-// DPC++ path: the format string must reach the consteval splicer as an NTTP,
-// so the public entry point is a function template parameterized on it. The
+// Specifiers path (DPC++, icpx OpenMP): the format string becomes the printf
+// format, which must be a compile-time constant, so it is an NTTP and the
+// public entry point a function template parameterized on it. The
 // FFMT_PRINT macro hides the angle-bracket call shape.
 template <detail::fixed_string Fmt, sycl_formattable... Args>
 inline void print(Args... args) {
@@ -2469,13 +2486,12 @@ inline void println(Args... args) {
 
 #else // FFMT_BUFFER_PATH
 
-// ACPP path: keep the value-style public API
+// Buffer path: the value-style public API
 //   ffmt::println("…", args…)
 // for both primitive and formatter args. The format literal is captured by
 // print_string's consteval ctor (so no NTTP at the call site). format_rt
-// now dispatches both primitive and formatter args via if constexpr — the
-// primitive path stays byte-identical, formatter args recurse into the
-// inner walker on the formatter's sub-format-string.
+// dispatches primitive args to the spec-aware writers; formatter args
+// recurse into the inner walker on the formatter's sub-format-string.
 template <sycl_formattable... Args>
 FMT_HD inline void print(const detail::print_string<std::type_identity_t<Args>...> &ps, Args... args) {
   detail::fmt_buf out;
@@ -2488,7 +2504,7 @@ FMT_HD inline void println(const detail::print_string<std::type_identity_t<Args>
   detail::fmt_buf out;
   detail::buffer_path::format_rt(out, ps, args...);
   // Not push(): a truncated line must still end in '\n', or the next print
-  // gets glued onto it. data[] has ExtraPad bytes past cap for this.
+  // gets glued onto it. data[] has 32 bytes past cap for this (fmt_buf).
   out.data[out.len++] = '\n';
   detail::buffer_path::flush_buf(out, ps.needs_pct_escape);
 }

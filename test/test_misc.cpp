@@ -44,9 +44,9 @@ RUN(PRINT("{:e}\n", 0.0));
 RUN(PRINT("{:g}\n", 0.0));
 
 // Pointer formatting — fixed-value casts so host and device produce
-// identical addresses (no real &x: device address would diverge from host
-// std::format reference). The null-pointer cases further down fail on the
-// specifiers path, whose libc printf emits "(nil)" instead of "0x0".
+// identical addresses (no real &x: device address would diverge from the
+// host {fmt} reference). The null-pointer cases further down fail on the
+// specifiers path except on macOS: glibc's %p prints "(nil)", macOS's "0x0".
 RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
 RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
@@ -60,18 +60,17 @@ RUN(PRINT("[{:20}]\n",    reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:20p}]\n",   reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("[{:20p}]\n",   reinterpret_cast<const char*>(0xdeadbeef)));
 
-// Wide widths — on ACPP these exercise the truncation branches in pad_in_place
-// (the host harness truncates the std reference to FFMT_BUFFER_SIZE
-// to match). On DPC++ the output is full-length and matches the std reference.
+// Wide widths — on the buffer path these exercise the truncation branches in
+// pad_in_place (test_body.inc truncates the {fmt} reference to
+// FFMT_BUFFER_SIZE to match). On the specifiers path the output is
+// full-length, like the reference.
 RUN(PRINT("{:200d}\n", 7));         // plain lpad overflow
 RUN(PRINT("{:+200d}\n", 7));        // sign+overflow: hits sign-bound check
 RUN(PRINT("{:0200d}\n", 7));        // zero-pad+overflow: hits zfill-bound check
 RUN(PRINT("{:150.2f}\n", 3.14));
 
-// No arguments: the literal goes through the printf format string on the
-// specifiers path the literal is printed through "%s" ('%' kept as is: it
-// used to come out doubled, "100%%"). One print per RUN: on a device the N
-// work-items interleave separate prints.
+// No arguments: on the specifiers path the literal is printed through "%s"
+// ('%' kept as is: it used to come out doubled, "100%%").
 RUN(PRINT("no args\n"));
 RUN(PRINT("100% {{braces}} %d %s %%\n"));
 RUN(PRINT(""));
@@ -79,9 +78,9 @@ RUN(PRINTLN(""));
 RUN(PRINTLN("}}{{"));
 
 // ── Misc ──────────────────────────────────────────────────────────────────────
-// Null-pointer formatting — buffer-path-only because the specifiers path
-// routes through libc printf which emits "(nil)" for null pointers, while
-// std::format (and our buffer-path implementation) emit "0x0".
+// Null-pointer formatting — {fmt} (and the buffer path) print "0x0"; the
+// specifiers path passes the pointer to printf's %p, which glibc prints as
+// "(nil)" (macOS prints "0x0").
 RUN(PRINT("{}\n",         static_cast<void*>(nullptr)));
 RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
 

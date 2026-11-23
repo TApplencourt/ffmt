@@ -1,6 +1,6 @@
 // SYCL types (sycl::range, sycl::id) through their formatters.
-// Ids that cannot compile it list its tests under failed_to_compile in
-// test/configs.json.
+// A file of its own, so that an id that cannot compile it loses only these
+// tests (test/configs.json lists them under failed_to_compile).
 #ifndef TEST_INC
 #define TEST_NAME sycl_types
 #define TEST_INC "test_sycl_types.cpp"
