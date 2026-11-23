@@ -1,20 +1,19 @@
-/* clang OpenMP offload to NVPTX, -O2: a local constant array read at a
- * run-time index faults ("an illegal memory access was encountered").
+/* Clang-based OpenMP offload to NVPTX, -O2: a local constant array read at
+ * a run-time index faults ("an illegal memory access was encountered").
  *
  * openmp-opt marks the loads from the local array as local (addrspace(5)),
  * then InstCombine replaces the array with the constant global it is
  * initialized from and keeps those casts: the kernel reads local memory at
- * the global's address. A plain "omp target" region and -O0 are fine, and so
- * are nvc++ -mp=gpu, the same kernel in CUDA (nvcc, clang) and AMDGPU (ROCm
- * 10.1.0 OpenMP, gfx942).
+ * the global's address. A plain "omp target" region and -O0 are fine.
+ * Not affected: nvc++ -mp=gpu, the same kernel in CUDA (nvcc 12.3, clang
+ * 23.1.6), ROCm 10.1.0 OpenMP on gfx942.
  *
- * ffmt hits it in float_sweep (p10[] in test/sweep_values.inc, #26) on ids 6
- * and 20.
+ * Reported upstream: https://github.com/llvm/llvm-project/issues/245290
  *
- * Seen with LLVM 23.1.6, CUDA 12.3.0, A100 (sm_80). Reported upstream:
- * https://github.com/llvm/llvm-project/issues/245290
+ * Reproduces with the compiler and flags of ids 6 and 20 (test/run_id.sh);
+ * ffmt hits it there in float_sweep (p10[] in test/sweep_values.inc).
  *
- *   clang -fopenmp --offload-arch=sm_80 -O2 nvptx_omp_O2_const_array.c && ./a.out
+ *   clang -fopenmp --offload-arch=sm_80 -O2 clang_based_omp_O2_const_array.c && ./a.out
  *
  * Expected: 10 100 1000 10000 100000 1e+06 1e+07 1 */
 #include <stdio.h>
