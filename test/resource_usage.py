@@ -66,6 +66,9 @@ def parse_ptxas(text):
 
 
 def parse_amd_remarks(text):
+    """kernel-resource-usage remarks: `file:line:col: remark: Field: N` from a
+    compile, `file:line:col: Field: N` from clang-linker-wrapper (the new
+    offload driver makes the device code at link time)."""
     kernels, name = {}, None
     fields = {
         "VGPRs": "regs",
@@ -76,12 +79,16 @@ def parse_amd_remarks(text):
         "LDS Size [bytes/block]": "slm",
     }
     for line in text.splitlines():
-        if m := re.search(r"remark: Function Name: (\S+)", line):
+        if m := re.search(r":\d+:\d+:(?: remark:)? Function Name: (\S+)", line):
             name = m.group(1)
             kernels[name] = new_kernel()
         elif (
             name
-            and (m := re.search(r"remark:\s+([^:\[]+(?: \[[^\]]+\])?): (\d+)", line))
+            and (
+                m := re.search(
+                    r":\d+:\d+:(?: remark:)?\s+([^:\[]+(?: \[[^\]]+\])?): (\d+)", line
+                )
+            )
             and (key := fields.get(m.group(1).strip()))
         ):
             kernels[name][key] += int(m.group(2))
@@ -265,15 +272,18 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
             ]
             if file_grew:
                 cells = [f"**{c}**" if "→" in c else c for c in cells]
-            rows.append(f"| {label} | {name} | " + " | ".join(cells) + " |")
+            shown = f"**{name}**" if file_grew else name
+            rows.append(f"| {label} | {shown} | " + " | ".join(cells) + " |")
     print("## GPU resources of the test kernels, base → head\n")
     if missing:
         print(f"### ⚠️ Missing in the reference (new test added?): {len(missing)}\n")
         print("Not compared, not failed:\n")
         print("\n".join(f"- {m}" for m in missing) + "\n")
     print(
-        "Per changed test file and metric: min / avg / max over its kernels (bold: a test "
-        "grew). Units: " + "; ".join(f"{k}: {v}" for k, v in units.items()) + ".\n"
+        "Per changed test file and metric: min / avg / max over its kernels (bold: a test of "
+        "the file grew). Units: "
+        + "; ".join(f"{k}: {v}" for k, v in units.items())
+        + ".\n"
     )
     if rows:
         print(
