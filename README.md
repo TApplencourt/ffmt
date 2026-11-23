@@ -323,7 +323,7 @@ specifiers path and the buffer path).
 
 ```bash
 test/run_id.sh 1              # build and run id 1; results in results/id-1/
-test/run_id.sh 39 build       # build only, for a device this machine lacks
+test/run_id.sh 40 build       # build only, for a device this machine lacks
 python3 test/check_id.py 1    # compare with what test/configs.json expects of id 1
 python3 test/check_id.py --summary   # which ids share which failures
 ```
@@ -362,7 +362,19 @@ report is published to the JLSE wiki.
 
 CI runs the ids whose `ci` is `github:<runner>`
 ([`.github/workflows/test.yml`](.github/workflows/test.yml)) and
-`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)). The six H100 ids belong to
+`jlse:<job>` ([`.gitlab-ci.yml`](.gitlab-ci.yml)).
+
+- GitHub, on every push and pull request, in minutes:
+  - the host ids (`goal` test), built and run against {fmt};
+  - the GPU ids (`goal` build), built without a GPU and never at `-O0`. The
+    `GPU resources non-regression` job compares each test kernel's registers,
+    stack or scratch, spills and shared local memory with the base branch
+    (one table in the run's summary), and fails when a test's kernel grows,
+    or when a file stops building and `test/configs.json` does not expect
+    it. A test with no reference, such as a new one, is listed, not failed.
+- GitLab (JLSE): every id, on real hardware.
+
+The six H100 ids belong to
 the optional manual `h100-extended` job in that same GitLab pipeline because a
 node can take hours to get. Without it, a successful pipeline reports the other
 50 ids. For all 56, run `h100-extended` and, after it finishes, retry

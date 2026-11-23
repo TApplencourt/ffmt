@@ -974,8 +974,6 @@
   {
     "id": 37,
     "notes": "GitHub clang-22 OpenMP offload to NVPTX (sm_80), -O0, no fast-math, compile only",
-    "ci": "github:ubuntu-24.04",
-    "goal": "build",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1002,8 +1000,6 @@
   {
     "id": 39,
     "notes": "GitHub icpx SYCL, AOT for PVC, -O0, no fast-math, build only (no GPU)",
-    "ci": "github:ubuntu-24.04",
-    "goal": "build",
     "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1050,8 +1046,6 @@
   {
     "id": 41,
     "notes": "GitHub icpx OpenMP offload, AOT for PVC, -O0, no fast-math, build only (no GPU)",
-    "ci": "github:ubuntu-24.04",
-    "goal": "build",
     "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1991,5 +1985,19 @@
       "nvptx_o2_ice:2",
       "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
     ]
+  },
+  {
+    "id": 84,
+    "notes": "GitHub ROCm 10.1.0 HIP (gfx942), -O2, no fast-math, build only (no GPU)",
+    "ci": "github:ubuntu-24.04",
+    "goal": "build",
+    "previous_main_commit": "e25c22f48e19d1df142b35525bc245de06ec15a8",
+    "failed_to_compile": [
+      "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
+      "sycl_usm_string:1",
+      "to_underlying:1", "to_underlying:2"
+    ],
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   }
 ]

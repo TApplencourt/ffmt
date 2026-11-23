@@ -15,18 +15,25 @@ jobs:
     # The ids of test/configs.json whose `ci` is github:<runner>, with their
     # notes, so the job names say what each id is (a name cannot read a
     # file). `goal` is build for the GPU routes, as there is no GPU here.
+    # ids (goal test) go to the id job; resource_jobs to the resources job:
+    # a head and a base job for each id of goal build (the GPU ids, all at
+    # -O2: register and memory use only matter where the code is optimized).
     runs-on: ubuntu-24.04
     outputs:
       ids: ${{ steps.m.outputs.ids }}
+      resource_jobs: ${{ steps.m.outputs.resource_jobs }}
     steps:
       - uses: actions/checkout@v6
       - id: m
         run: |
           python3 - >> "$GITHUB_OUTPUT" <<'EOF'
           import json
-          print("ids=" + json.dumps([
+          rows = [
               {"id": r["id"], "os": r["ci"].split(":")[1], "goal": r.get("goal", "test"), "notes": r["notes"]}
-              for r in json.load(open("test/configs.json")) if r.get("ci", "").startswith("github:")]))
+              for r in json.load(open("test/configs.json")) if r.get("ci", "").startswith("github:")]
+          print("ids=" + json.dumps([r for r in rows if r["goal"] == "test"]))
+          print("resource_jobs=" + json.dumps(
+              [{**r, "side": side} for r in rows if r["goal"] == "build" for side in ("head", "base")]))
           EOF
 
   id:
@@ -67,7 +74,7 @@ jobs:
   summary:
     # One table of every id on the run's summary page, from the row each id
     # job's check_id.py wrote. An id with no row did not get that far.
-    needs: [matrix, id]
+    needs: [matrix, id, resources]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -78,7 +85,83 @@ jobs:
           path: results
       - env:
           IDS: ${{ needs.matrix.outputs.ids }}
-        run: python3 test/check_id.py --table $(jq -r '.[].id' <<< "$IDS") >> "$GITHUB_STEP_SUMMARY" || true
+          RESOURCE_JOBS: ${{ needs.matrix.outputs.resource_jobs }}
+        run: |
+          python3 test/check_id.py --table $(jq -r '.[].id' <<< "$IDS") \
+            $(jq -r '.[] | select(.side == "head") | .id' <<< "$RESOURCE_JOBS") \
+            >> "$GITHUB_STEP_SUMMARY" || true
+
+  resources:
+    # The build-only GPU ids (goal build): head builds and checks the id
+    # like the id job (same artifact). Both sides then read, with this
+    # branch's test/resource_usage.py, what the compiler said of each test
+    # kernel in that build (registers, stack or scratch, spills, shared
+    # memory; FFMT_TEST_FLAGS in the setup). head is the pull request's
+    # commit; base its base, or the previous commit for a push.
+    # resources-summary compares.
+    needs: matrix
+    name: id ${{ matrix.id }} (${{ matrix.notes }}), ${{ matrix.side }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.matrix.outputs.resource_jobs) }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      # Id 84's ROCm 10.1.0 wheels (about 4 GB), which setup_84.sh installs
+      # only when missing.
+      - if: matrix.id == 84
+        uses: actions/cache@v4
+        with:
+          path: ~/rocm-10.1.0
+          key: rocm-10.1.0-wheels
+      - if: matrix.side == 'head'
+        run: test/run_id.sh ${{ matrix.id }} ${{ matrix.goal }}
+      # The base is built the same way, by its own test/run_id.sh, when it
+      # has the id; this branch's script reads both builds.
+      - if: matrix.side == 'base'
+        run: |
+          base=${{ github.event.pull_request.base.sha }}
+          git worktree add ../base "${base:-$(git rev-parse HEAD~1)}"
+          cd ../base
+          if [ -f test/setup/setup_${{ matrix.id }}.sh ]; then test/run_id.sh ${{ matrix.id }} build; fi
+      - run: |
+          tree=.; [ "${{ matrix.side }}" = base ] && tree=../base
+          test/resource_usage.py measure ${{ matrix.id }} \
+            "resources/${{ matrix.side }}/id-${{ matrix.id }}.json" --tree "$tree"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: resources-${{ matrix.id }}-${{ matrix.side }}
+          path: resources/
+      - if: matrix.side == 'head'
+        run: python3 test/check_id.py ${{ matrix.id }}
+      - if: always() && matrix.side == 'head'
+        uses: actions/upload-artifact@v7
+        with:
+          name: id-${{ matrix.id }}
+          path: results/id-${{ matrix.id }}/
+          if-no-files-found: ignore
+
+  resources-summary:
+    # One table of every backend, base to head, on the run's summary page.
+    # Fails when any number of any test file grew, or a file stopped building.
+    name: GPU resources non-regression
+    needs: resources
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: resources-*
+          path: resources
+          merge-multiple: true
+      - run: |
+          test/resource_usage.py compare resources/base resources/head | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "${PIPESTATUS[0]}"
 
   readme:
     # Every whole program in README.md is a copy of a file in examples/,
