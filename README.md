@@ -38,7 +38,7 @@ Each has a small reproducer in `toolchain_bugs/`.
 |---|---|---|
 | `clang_based_omp_O2_const_array.c` | clang OpenMP → NVPTX, `-O2`: a local constant array read at a run-time index faults | [llvm#245290](https://github.com/llvm/llvm-project/issues/245290) |
 | `clang_based_omp_O0_shared_stack_overlap.c` | clang-based OpenMP (NVPTX, ROCm), `-O0`: two live locals get the same address | [llvm#245328](https://github.com/llvm/llvm-project/issues/245328) |
-| `dpcpp_O0.cpp` | DPC++ `-O0`: a string literal through a local pointer segfaults | [AuroraBugTracking#132](https://github.com/argonne-lcf/AuroraBugTracking/issues/132) |
+| `icpx_sycl_O0_printf_char_pointer.cpp` | icpx SYCL `-O0`: `printf("%s")` of a string literal through a local pointer segfaults | [AuroraBugTracking#132](https://github.com/argonne-lcf/AuroraBugTracking/issues/132) |
 | `icpx_omp_pragma_in_dowhile.cpp` | icpx OpenMP: a target region inside a `do`/`while` fails to load its kernel | [AuroraBugTracking#144](https://github.com/argonne-lcf/AuroraBugTracking/issues/144) |
 
 ## Quick example
