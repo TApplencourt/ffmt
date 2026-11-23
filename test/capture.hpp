@@ -106,8 +106,13 @@ using device_properties = cudaDeviceProp;
 #define TEST_SETUP ::sycl::queue q{[](::sycl::exception_list errors) { \
   for (const auto& error : errors) std::rethrow_exception(error); }};
 #define TEST_DEVICE q.get_device().get_info<::sycl::info::device::name>()
+// One work item repeating the case N times, as for CUDA and HIP: a
+// single_task, not a parallel_for, for which DPC++ compiles every kernel
+// twice (also a RoundedRangeKernel, for ranges that are not a multiple of
+// the work-group size).
 #define DEVICE_RUN(...) do { _t.begin(); \
-  q.parallel_for(N, [=](::sycl::id<1>) { __VA_ARGS__; }).wait_and_throw(); _t.end(); } while (0)
+  q.single_task([=] { for (int _i = 0; _i < N; _i++) { __VA_ARGS__; } }).wait_and_throw(); \
+  _t.end(); } while (0)
 #elif defined(TEST_MODEL_OPENMP)
 // OpenMP cannot name a device: its number, or the host if that is where a
 // target region runs.
