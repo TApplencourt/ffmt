@@ -26,3 +26,5 @@ export FFMT_FLAGS="-std=c++20 -Wall -Werror --cuda-path=${CUDA_PATH} -x cuda --c
 # The README examples for this programming model: built with the flags
 # above and run by the test goal, but not tests (Makefile.id).
 export FFMT_EXTRA_FILES="examples/readme1_cuda.cu examples/readme2_cuda.cu"
+# For test/resource_usage.py: ptxas reports each kernel's registers, stack and spills.
+export FFMT_TEST_FLAGS='-Xcuda-ptxas -v'

@@ -65,6 +65,9 @@ HDRS     := $(wildcard test/*.hpp test/*.inc) include/ffmt/base.hpp $(FMT_PIN)
 # Optional in the setup, for toolchains that need it:
 #   FFMT_EXTRA_FILES   more programs to build and run (see extra)
 #   FFMT_COMPILE_ONLY  compile each source and stop (see below)
+#   FFMT_TEST_FLAGS    more flags for test/test_*.cpp only, e.g. those that make
+#                      the compiler report each kernel's registers
+#                      (test/resource_usage.py reads them in <name>.build.log)
 #   FFMT_LDFLAGS       link flags, after the sources
 #   FFMT_ORACLE_CXX    the host compiler that builds {fmt} (fmt.o and the
 #                      negative tests' {fmt} pass), if CXX cannot
@@ -173,7 +176,7 @@ TEST_DONE := $(patsubst %,$(OUT)/tests/%.build,$(NAMES))
 
 $(OUT)/tests/%.build: test/test_%.cpp $(HDRS) $(SETUP) $(TEST_DEPS) | $(OUT)/.dir
 	@mkdir -p $(@D) $(OUT)/bin
-	@$(CXX) $(INCLUDES) $(FFMT_FLAGS) -DFFMT_ID_$(id) $< $(TEST_OUT) \
+	@$(CXX) $(INCLUDES) $(FFMT_FLAGS) $(FFMT_TEST_FLAGS) -DFFMT_ID_$(id) $< $(TEST_OUT) \
 	  >$(@D)/$*.build.log 2>&1; echo "$$? build $*" > $@
 
 # FFMT_EXTRA_FILES, optional in the setup: more programs, such as the README
