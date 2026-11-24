@@ -3,7 +3,7 @@
     "id": 0,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -32,7 +32,7 @@
     "id": 1,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -742,7 +742,7 @@
     "id": 24,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -771,7 +771,7 @@
     "id": 25,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -785,7 +785,7 @@
     "id": 26,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -814,7 +814,7 @@
     "id": 27,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -828,7 +828,7 @@
     "id": 28,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -857,7 +857,7 @@
     "id": 29,
     "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -871,7 +871,7 @@
     "id": 30,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -900,7 +900,7 @@
     "id": 31,
     "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -914,7 +914,7 @@
     "id": 32,
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
     "ci": "github:macos-latest",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -996,7 +996,7 @@
     "notes": "GitHub clang-22 CUDA (sm_80), CUDA 12.6.3, -O2, no fast-math, build only (no GPU)",
     "ci": "github:ubuntu-24.04",
     "goal": "build",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
@@ -1047,9 +1047,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1071,9 +1072,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1095,9 +1097,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1121,9 +1124,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1131,7 +1135,7 @@
     "id": 43,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, C++23, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1264,7 +1268,7 @@
     "id": 50,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1305,7 +1309,7 @@
     "id": 51,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1428,7 +1432,7 @@
     "id": 54,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1445,7 +1449,7 @@
     "id": 55,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1462,7 +1466,7 @@
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
@@ -1504,7 +1508,7 @@
     "id": 57,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "74a2da909c84848e4240e6759860b7ac4302b439",
+    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
