@@ -126,6 +126,7 @@ jobs:
         run: |
           base=${{ github.event.pull_request.base.sha }}
           git worktree add ../base "${base:-$(git rev-parse HEAD~1)}"
+          cp Makefile.id ../base/Makefile.id
           cd ../base
           if [ -f test/setup/setup_${{ matrix.id }}.sh ]; then test/run_id.sh ${{ matrix.id }} build; fi
       - run: |
