@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import resource_usage
@@ -178,6 +179,29 @@ class Summary(unittest.TestCase):
         )
 
 
+class Sources(unittest.TestCase):
+    def test_run_blocks_ignore_parentheses_in_literals_and_comments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "test_example.cpp"
+            source.write_text(
+                '#ifndef TEST_INC\n#else\nRUN(PRINT(")", R"tag(( ))tag")); // )\n'
+                "RUN({\n  // ))\n  PRINT(\"{}\", ')');\n});\n#endif\n"
+            )
+            cases = resource_usage.run_cases(source)
+        self.assertEqual([case["line"] for case in cases], [3, 4])
+        self.assertEqual(len(cases), 2)
+        self.assertNotEqual(cases[0]["sha256"], cases[1]["sha256"])
+
+    def test_split_units_have_one_source_identity_per_case(self):
+        root = Path(__file__).resolve().parent
+        counts = json.loads((root / "tests.json").read_text())
+        for name in ("characters", "bools", "println", "strings"):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    len(resource_usage.run_cases(root / f"test_{name}.cpp")), counts[name]
+                )
+
+
 class IGC(unittest.TestCase):
     def test_registers_are_the_grfs_the_code_uses(self):
         with tempfile.TemporaryDirectory() as d:
@@ -225,6 +249,19 @@ class Measure(unittest.TestCase):
         )
         self.assertIn("FFMT_TEST_FLAGS", run["missing"])
 
+    def test_igc_dump_directories_are_per_test_file(self):
+        with (
+            mock.patch.object(resource_usage, "igc_dumps", return_value={}) as dumps,
+            mock.patch.object(resource_usage, "file_kernels", return_value=({}, None)),
+        ):
+            self.run_measure(
+                "0 build floats\n0 build fill\n", {"floats": "", "fill": ""}
+            )
+        self.assertEqual(
+            [Path(call.args[0]).parts[-2:] for call in dumps.call_args_list],
+            [("igc", "floats"), ("igc", "fill")],
+        )
+
 
 class Compare(unittest.TestCase):
     def run_compare(self, base, head, failed_to_compile=()):
@@ -247,6 +284,80 @@ class Compare(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("No test grew", out)
         self.assertNotIn("Missing", out)
+
+    def test_a_test_that_moves_files_keeps_its_reference(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "b:plain"},
+            }
+        }
+        head = {
+            "characters": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            },
+            "strings": {
+                **file_of((40, 0, 0, 0)),
+                "sources": {"k0": "b:plain"},
+            },
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertNotIn("Missing", out)
+        self.assertIn("No test grew", out)
+
+    def test_growth_still_fails_when_a_test_moves_files(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        head = {
+            "characters": {
+                **file_of((35, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 1)
+        self.assertIn("id 36 strings → characters, k0: regs 31 → 35", out)
+
+    def test_an_inserted_test_does_not_shift_the_next_tests_reference(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "b:plain"},
+            }
+        }
+        head = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (50, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "c:plain", "k2": "b:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertIn("Missing in the reference (new test added?): 1", out)
+        self.assertIn("id 36 strings, k1", out)
+
+    def test_changed_source_at_the_same_place_still_compares(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        head = {
+            "strings": {
+                **file_of((35, 0, 0, 0)),
+                "sources": {"k0": "b:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 1)
+        self.assertIn("id 36 strings, k0: regs 31 → 35", out)
 
     def test_one_test_that_grows_fails_even_if_the_file_max_does_not(self):
         base = {"floats": file_of((31, 792, 0, 0), (40, 792, 0, 0))}

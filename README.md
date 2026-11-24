@@ -372,6 +372,11 @@ CI runs the ids whose `ci` is `github:<runner>`
     (one table in the run's summary), and fails when a test's kernel grows,
     or when a file stops building and `test/configs.json` does not expect
     it. A test with no reference, such as a new one, is listed, not failed.
+    Unchanged `RUN` blocks keep their reference when they move between test
+    files. Intel dump directories are per test file, so identical module
+    metadata cannot attach another file's register counts. The resource job
+    uses the candidate `Makefile.id` for both sides' dump layouts while
+    compiling each side's own test sources.
 - GitLab (JLSE): every id, on real hardware.
 
 The six H100 ids belong to

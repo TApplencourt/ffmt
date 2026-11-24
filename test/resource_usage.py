@@ -36,6 +36,7 @@ listed at the top, not failed.
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -180,12 +181,92 @@ def kernel_key(name):
     return re.sub(r"__omp_offloading_[0-9a-f]+_[0-9a-f]+_", "__omp_offloading_", name)
 
 
-def summary(kernels):
-    """Every kernel's numbers, and per metric their min, average (to 0.1) and
-    max, for the table."""
-    out = {"kernels": {kernel_key(k): v for k, v in kernels.items()}}
+def run_cases(path):
+    """The line and content hash of every RUN block in one test source."""
+    with open(path) as source_file:
+        text = source_file.read()
+    cases = []
+    for match in re.finditer(r"(?m)^RUN\(", text):
+        position, depth = match.end() - 1, 0
+        while position < len(text):
+            if text.startswith("//", position):
+                end = text.find("\n", position + 2)
+                position = len(text) if end < 0 else end + 1
+                continue
+            if text.startswith("/*", position):
+                end = text.find("*/", position + 2)
+                if end < 0:
+                    break
+                position = end + 2
+                continue
+            if text.startswith('R"', position):
+                opening = text.find("(", position + 2)
+                if opening < 0:
+                    break
+                terminator = ")" + text[position + 2 : opening] + '"'
+                end = text.find(terminator, opening + 1)
+                if end < 0:
+                    break
+                position = end + len(terminator)
+                continue
+            if text[position] in "\"'":
+                quote, position = text[position], position + 1
+                while position < len(text) and text[position] != quote:
+                    position += 2 if text[position] == "\\" else 1
+                position += 1
+                continue
+            if text[position] == "(":
+                depth += 1
+            elif text[position] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            position += 1
+        if position == len(text) or depth:
+            raise ValueError(f"{path}: unterminated RUN block")
+        block = text[match.start() : position + 1]
+        cases.append(
+            {
+                "line": text.count("\n", 0, match.start()) + 1,
+                "sha256": hashlib.sha256(block.encode()).hexdigest(),
+            }
+        )
+    return cases
+
+
+def kernel_place(kernel):
+    if match := re.search(r"_l(\d+)$", kernel):
+        return "line", int(match.group(1))
+    if match := re.search(r"UlvE(\d*)_EvT_$", kernel) or re.search(
+        r"E(\d*)_E*$", kernel
+    ):
+        return "lambda", int(match.group(1) or -1) + 2
+    return None
+
+
+def kernel_sources(kernels, cases):
+    """Content identities of kernels, stable when a RUN moves to another file."""
+    sources = {}
+    by_line = {case["line"]: case["sha256"] for case in cases}
+    for kernel in kernels:
+        place = kernel_place(kernel)
+        if place is None:
+            continue
+        kind, number = place
+        if kind == "line":
+            digest = by_line.get(number)
+        else:
+            digest = cases[number - 1]["sha256"] if number <= len(cases) else None
+        if digest:
+            variant = "rounded" if "RoundedRangeKernel" in kernel else "plain"
+            sources[kernel] = f"{digest}:{variant}"
+    return sources
+
+
+def metrics_summary(kernels):
+    out = {}
     for metric in METRICS:
-        values = [k[metric] for k in kernels.values() if k[metric] is not None]
+        values = [kernel[metric] for kernel in kernels if kernel[metric] is not None]
         out[metric] = values and {
             "min": min(values),
             "avg": round(sum(values) / len(values), 1),
@@ -194,18 +275,31 @@ def summary(kernels):
     return out
 
 
+def summary(kernels, cases=()):
+    """Every kernel's numbers, and per metric their min, average (to 0.1) and
+    max, for the table."""
+    kernels = {kernel_key(name): values for name, values in kernels.items()}
+    out = {"kernels": kernels, **metrics_summary(kernels.values())}
+    sources = kernel_sources(kernels, cases)
+    if sources:
+        out["sources"] = sources
+    return out
+
+
 def short(kernel):
     """A kernel's name as its test's place in the file: the line of an OpenMP
     region, else the RUN lambda's number in the Itanium mangling."""
-    if m := re.search(r"_l(\d+)$", kernel):
-        return f"line {m.group(1)}"
+    place = kernel_place(kernel)
+    if place and place[0] == "line":
+        return f"line {place[1]}"
     # The RUN lambda closes the name: ...UlvE<n>_EvT_ (CUDA, HIP), or
     # ...E<n>_ then only E (SYCL); no <n> is the first lambda, 0 the second.
-    if m := re.search(r"UlvE(\d*)_EvT_$", kernel) or re.search(r"E(\d*)_E*$", kernel):
+    if place:
+        number = place[1]
         # SYCL also makes a RoundedRangeKernel of each, launched instead when
         # the range is not a multiple of the preferred work-group size.
         rounded = " (rounded range)" if "RoundedRangeKernel" in kernel else ""
-        return f"lambda #{int(m.group(1) or -1) + 2}{rounded}"
+        return f"lambda #{number}{rounded}"
     return kernel
 
 
@@ -260,7 +354,6 @@ def measure(id_, out, tree):
     except FileNotFoundError:
         status = None
         result["missing"] = f"no build (test/run_id.sh {id_} build did not run)"
-    dumps = igc_dumps(os.path.join(tree, f"build/id-{id_}/igc"))
     for code, step, name in (
         s for s in status or [] if len(s) == 3 and s[1] == "build"
     ):
@@ -270,10 +363,14 @@ def measure(id_, out, tree):
         with open(os.path.join(logs, f"{name}.build.log"), errors="replace") as f:
             text = f.read()
         kernels, kind = file_kernels(
-            text, os.path.join(tree, f"build/id-{id_}/bin/{name}"), dumps
+            text,
+            os.path.join(tree, f"build/id-{id_}/bin/{name}"),
+            igc_dumps(os.path.join(tree, f"build/id-{id_}/igc/{name}")),
         )
         result["backend"] = result["backend"] or kind
-        result["files"][name] = summary(kernels)
+        source = os.path.join(tree, f"test/test_{name}.cpp")
+        cases = run_cases(source) if os.path.exists(source) else ()
+        result["files"][name] = summary(kernels, cases)
     if status is not None and result["backend"] is None:
         result["missing"] = (
             "no kernel numbers in its build (FFMT_TEST_FLAGS of its setup)"
@@ -318,6 +415,40 @@ def details(summary, lines):
     )
 
 
+def pair_kernels(base, head):
+    """Pair unchanged kernels by unique source content, then by their old key."""
+    def entries(run):
+        out = {}
+        for name, file in run["files"].items():
+            if file is None:
+                continue
+            for kernel, values in file["kernels"].items():
+                source = file.get("sources", {}).get(kernel)
+                out[name, kernel] = (name, kernel, values, source)
+        return out
+
+    old, new = entries(base), entries(head)
+    old_sources, new_sources = {}, {}
+    for entries_, sources in ((old, old_sources), (new, new_sources)):
+        for key, entry in entries_.items():
+            if entry[3]:
+                sources.setdefault(entry[3], []).append(key)
+    paired, used_old, used_new = [], set(), set()
+    for source in sorted(set(old_sources) & set(new_sources)):
+        old_keys, new_keys = old_sources[source], new_sources[source]
+        if len(old_keys) == len(new_keys) == 1:
+            old_key, new_key = old_keys[0], new_keys[0]
+            paired.append((old[old_key], new[new_key]))
+            used_old.add(old_key)
+            used_new.add(new_key)
+    for key in sorted(set(old) & set(new)):
+        if key not in used_old and key not in used_new:
+            paired.append((old[key], new[key]))
+            used_old.add(key)
+            used_new.add(key)
+    return paired, [entry for key, entry in new.items() if key not in used_new]
+
+
 def compare(base_dir, head_dir, configs_path="test/configs.json"):
     """One row per id: each metric's average over the kernels measured on both
     sides, base → head; then, collapsed, each changed file's min / avg / max.
@@ -348,41 +479,56 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
         totals = {m: [0, 0] for m in METRICS}  # base, head sums over the kernels
         counted = dict.fromkeys(METRICS, 0)
         kernels, id_grew = 0, 0
-        for name in sorted(set(h["files"]) | set(b["files"])):
-            hf, bf = h["files"].get(name), b["files"].get(name)
+        for name, hf in h["files"].items():
             if hf is None:
                 if expected_not_to_build(configs, id_, name):
                     skipped.append(f"id {id_} {name}")
-                elif bf is not None:
+                elif b["files"].get(name) is not None:
                     grown.append(f"id {id_} {name}: no longer builds")
                     id_grew += 1
                     rows.append(f"| {label} | {name} | **no longer builds** | | | |")
-                continue
-            if bf is None:
+        pairs, unmatched = pair_kernels(b, h)
+        unmatched_by_file = {}
+        for entry in unmatched:
+            unmatched_by_file.setdefault(entry[0], []).append(entry)
+        for name, entries_ in sorted(unmatched_by_file.items()):
+            if b["files"].get(name) is None and len(entries_) == len(
+                h["files"][name]["kernels"]
+            ):
                 missing.append(
                     f"id {id_} {name}: the whole file (new, or it did not build there)"
                 )
-                continue
-            for kernel in sorted(set(hf["kernels"]) - set(bf["kernels"])):
-                missing.append(f"id {id_} {name}, {short(kernel)}")
-            file_grew = False
-            for kernel in sorted(set(hf["kernels"]) & set(bf["kernels"])):
-                old, new = bf["kernels"][kernel], hf["kernels"][kernel]
-                kernels += 1
-                for m in METRICS:
-                    if None not in (old[m], new[m]):
-                        totals[m][0] += old[m]
-                        totals[m][1] += new[m]
-                        counted[m] += 1
-                up = [
-                    f"{m} {old[m]} → {new[m]}"
-                    for m in METRICS
-                    if None not in (old[m], new[m]) and new[m] > old[m]
-                ]
-                if up:
-                    file_grew = True
-                    id_grew += 1
-                    grown.append(f"id {id_} {name}, {short(kernel)}: " + ", ".join(up))
+            else:
+                for _, kernel, _, _ in entries_:
+                    missing.append(f"id {id_} {name}, {short(kernel)}")
+        groups, grew_groups = {}, set()
+        for old_entry, new_entry in pairs:
+            old_name, _, old, _ = old_entry
+            new_name, new_kernel, new, _ = new_entry
+            group = old_name, new_name
+            groups.setdefault(group, []).append((old, new))
+            kernels += 1
+            for m in METRICS:
+                if None not in (old[m], new[m]):
+                    totals[m][0] += old[m]
+                    totals[m][1] += new[m]
+                    counted[m] += 1
+            up = [
+                f"{m} {old[m]} → {new[m]}"
+                for m in METRICS
+                if None not in (old[m], new[m]) and new[m] > old[m]
+            ]
+            if up:
+                id_grew += 1
+                grew_groups.add(group)
+                name = (
+                    new_name if old_name == new_name else f"{old_name} → {new_name}"
+                )
+                grown.append(f"id {id_} {name}, {short(new_kernel)}: " + ", ".join(up))
+        for (old_name, new_name), pairs_ in sorted(groups.items()):
+            bf = metrics_summary([old for old, _ in pairs_])
+            hf = metrics_summary([new for _, new in pairs_])
+            file_grew = (old_name, new_name) in grew_groups
             if not file_grew and all(hf[m] == bf[m] for m in METRICS):
                 unchanged += 1
                 continue
@@ -392,6 +538,7 @@ def compare(base_dir, head_dir, configs_path="test/configs.json"):
             ]
             if file_grew:
                 cells = [f"**{c}**" if "→" in c else c for c in cells]
+            name = new_name if old_name == new_name else f"{old_name} → {new_name}"
             shown = f"**{name}**" if file_grew else name
             rows.append(f"| {label} | {shown} | " + " | ".join(cells) + " |")
         cells = [
