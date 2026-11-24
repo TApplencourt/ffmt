@@ -221,7 +221,7 @@
     "id": 7,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -232,6 +232,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23", "dynamic:24",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1", "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -243,18 +244,18 @@
       "formatter:1", "formatter:2", "formatter:3", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "hexfloat:26", "hexfloat:42", "hexfloat:43",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -667,7 +668,7 @@
     "id": 21,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -678,6 +679,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23", "dynamic:24",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1", "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -690,18 +692,18 @@
       "hexfloat:26", "hexfloat:36", "hexfloat:38", "hexfloat:41", "hexfloat:42", "hexfloat:43",
       "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
