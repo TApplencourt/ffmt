@@ -1432,45 +1432,37 @@
     "id": 54,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ],
+    "failed_to_run": [],
     "compiled_but_not_run": []
   },
   {
     "id": 55,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ],
+    "failed_to_run": [],
     "compiled_but_not_run": []
   },
   {
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "OpenMP device 0",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1483,6 +1475,7 @@
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
       "float_precision:1",
+      "float_sweep:2",
       "float_tiny:1",
       "float_zero:1",
       "floats:12", "floats:41", "floats:43", "floats:44", "floats:115", "floats:117", "floats:118", "floats:120", "floats:121", "floats:122", "floats:123", "floats:148", "floats:149", "floats:150", "floats:151", "floats:152", "floats:153", "floats:154", "floats:155", "floats:156", "floats:157", "floats:158", "floats:159", "floats:160", "floats:161", "floats:177", "floats:178", "floats:179", "floats:180",
@@ -1499,6 +1492,7 @@
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
+      "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
       "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
@@ -1508,17 +1502,21 @@
     "id": 57,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "OpenMP device 0",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [],
-    "compiled_but_not_run": []
+    "failed_to_run": [
+      "float_sweep:1",
+      "hexfloat_sweep:1"
+    ],
+    "compiled_but_not_run": [
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
+    ]
   },
   {
     "id": 58,
