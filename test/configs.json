@@ -2063,5 +2063,23 @@
     ],
     "failed_to_run": [],
     "compiled_but_not_run": []
+  },
+  {
+    "id": 90,
+    "notes": "upstream clang OpenMP offload on MI300X (gfx942), llvm release-23.1.6 + rocm 10.1.0 device libraries, -O0, no fast-math",
+    "ci": "jlse:mi300x",
+    "previous_main_commit": "N/A",
+    "failed_to_compile": [],
+    "failed_to_run": [],
+    "compiled_but_not_run": []
+  },
+  {
+    "id": 91,
+    "notes": "upstream clang HIP on MI300X (gfx942), llvm release-23.1.6 + rocm 10.1.0, -O0, no fast-math",
+    "ci": "jlse:mi300x",
+    "previous_main_commit": "N/A",
+    "failed_to_compile": [],
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   }
 ]
