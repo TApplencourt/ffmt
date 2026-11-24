@@ -175,8 +175,8 @@ endif
 TEST_DONE := $(patsubst %,$(OUT)/tests/%.build,$(NAMES))
 
 $(OUT)/tests/%.build: test/test_%.cpp $(HDRS) $(SETUP) $(TEST_DEPS) | $(OUT)/.dir
-	@mkdir -p $(@D) $(OUT)/bin
-	@$(CXX) $(INCLUDES) $(FFMT_FLAGS) $(FFMT_TEST_FLAGS) -DFFMT_ID_$(id) $< $(TEST_OUT) \
+	@mkdir -p $(@D) $(OUT)/bin $(if $(IGC_DumpToCustomDir),$(OUT)/igc/$*)
+	@$(if $(IGC_DumpToCustomDir),IGC_DumpToCustomDir="$(abspath $(OUT))/igc/$*") $(CXX) $(INCLUDES) $(FFMT_FLAGS) $(FFMT_TEST_FLAGS) -DFFMT_ID_$(id) $< $(TEST_OUT) \
 	  >$(@D)/$*.build.log 2>&1; echo "$$? build $*" > $@
 
 # FFMT_EXTRA_FILES, optional in the setup: more programs, such as the README
