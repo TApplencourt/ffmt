@@ -98,7 +98,7 @@
       "formatter:2", "formatter:3", "formatter:4", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "println:2", "println:3",
@@ -135,7 +135,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -261,7 +261,7 @@
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -295,7 +295,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -382,7 +382,7 @@
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -417,7 +417,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -478,7 +478,7 @@
       "formatter:2", "formatter:3", "formatter:4", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "println:2", "println:3",
@@ -516,7 +516,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -1199,7 +1199,8 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1242,7 +1243,8 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1279,7 +1281,8 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1314,7 +1317,8 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1562,7 +1566,7 @@
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -1596,7 +1600,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -1786,7 +1790,8 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1910,7 +1915,7 @@
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -1945,7 +1950,7 @@
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -1985,7 +1990,7 @@
     "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
+      "many_placeholders:1",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
