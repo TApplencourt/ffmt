@@ -3,7 +3,7 @@
     "id": 0,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -23,7 +23,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -32,7 +32,7 @@
     "id": 1,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -46,7 +46,7 @@
     "id": 2,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -65,6 +65,7 @@
       "bools:1",
       "characters:1",
       "escape_percent:1",
+      "explicit_float_zero:1",
       "extra:readme1_omp", "extra:readme2_omp",
       "fast_math:1",
       "float_fixed_extreme:1",
@@ -86,6 +87,7 @@
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
@@ -96,7 +98,7 @@
       "formatter:2", "formatter:3", "formatter:4", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "println:2", "println:3",
@@ -107,7 +109,7 @@
     "id": 3,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -128,12 +130,12 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -156,7 +158,7 @@
     "id": 5,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -167,6 +169,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
@@ -178,20 +181,20 @@
       "formatter:1", "formatter:2", "formatter:3", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "hexfloat:26", "hexfloat:42", "hexfloat:43",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -218,7 +221,7 @@
     "id": 7,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -229,6 +232,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23", "dynamic:24",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1", "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -240,18 +244,18 @@
       "formatter:1", "formatter:2", "formatter:3", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "hexfloat:26", "hexfloat:42", "hexfloat:43",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -286,7 +290,7 @@
     "id": 10,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -306,14 +310,14 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -323,7 +327,7 @@
     "id": 11,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -342,12 +346,12 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -356,7 +360,7 @@
     "id": 12,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -377,7 +381,7 @@
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -386,7 +390,7 @@
     "id": 13,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -406,7 +410,7 @@
     "id": 14,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -427,14 +431,14 @@
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -444,7 +448,7 @@
     "id": 15,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -464,12 +468,12 @@
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -478,7 +482,7 @@
     "id": 16,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O0, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -497,6 +501,7 @@
       "bools:1",
       "characters:1",
       "escape_percent:1",
+      "explicit_float_zero:1",
       "extra:readme1_omp", "extra:readme2_omp",
       "fast_math:1",
       "float_fixed_extreme:1",
@@ -518,6 +523,7 @@
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
@@ -528,7 +534,7 @@
       "formatter:2", "formatter:3", "formatter:4", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "println:2", "println:3",
@@ -539,7 +545,7 @@
     "id": 17,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -561,12 +567,12 @@
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -595,7 +601,7 @@
     "id": 19,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -606,6 +612,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
@@ -618,20 +625,20 @@
       "hexfloat:26", "hexfloat:36", "hexfloat:38", "hexfloat:41", "hexfloat:42", "hexfloat:43",
       "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -661,7 +668,7 @@
     "id": 21,
     "notes": "ROCm clang OpenMP offload on MI300X (gfx942), rocm 10.1.0, -O0, fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -672,6 +679,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23", "dynamic:24",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1", "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -684,18 +692,18 @@
       "hexfloat:26", "hexfloat:36", "hexfloat:38", "hexfloat:41", "hexfloat:42", "hexfloat:43",
       "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -742,7 +750,7 @@
     "id": 24,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -762,7 +770,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -771,7 +779,7 @@
     "id": 25,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -785,7 +793,7 @@
     "id": 26,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -805,7 +813,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -814,7 +822,7 @@
     "id": 27,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -828,7 +836,7 @@
     "id": 28,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -848,7 +856,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -857,7 +865,7 @@
     "id": 29,
     "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -871,7 +879,7 @@
     "id": 30,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -891,7 +899,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -900,7 +908,7 @@
     "id": 31,
     "notes": "host clang++ 18 (ubuntu-24.04), buffer path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -914,7 +922,7 @@
     "id": 32,
     "notes": "macOS Apple clang (libc++), specifiers path, -O2, no fast-math",
     "ci": "github:macos-latest",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -942,7 +950,7 @@
     "id": 33,
     "notes": "macOS Apple clang (libc++), buffer path, -O2, no fast-math",
     "ci": "github:macos-latest",
-    "previous_main_commit": "f5c828ec9129fabaa2a83038a83c605e54acf9fe",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1135,7 +1143,7 @@
     "id": 43,
     "notes": "host g++ 13 (ubuntu-24.04), buffer path, C++23, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1268,7 +1276,7 @@
     "id": 50,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1276,7 +1284,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1291,7 +1301,7 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50", "misc:51",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1309,7 +1319,7 @@
     "id": 51,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1317,7 +1327,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1332,7 +1344,7 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50", "misc:51",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1350,7 +1362,7 @@
     "id": 52,
     "notes": "nvcc CUDA on GH200 (sm_90), cuda 12.9.1 + g++ 14.3.0, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1358,7 +1370,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1373,7 +1387,7 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50", "misc:51",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1391,7 +1405,7 @@
     "id": 53,
     "notes": "nvcc CUDA on GH200 (sm_90), cuda 12.9.1 + g++ 14.3.0, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1399,7 +1413,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1414,7 +1430,7 @@
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "integers:1", "integers:2", "integers:3", "integers:4", "integers:5", "integers:6", "integers:7", "integers:8", "integers:9", "integers:10", "integers:11", "integers:12", "integers:13", "integers:14", "integers:15", "integers:16", "integers:17", "integers:18", "integers:19", "integers:20", "integers:21", "integers:22", "integers:23", "integers:24", "integers:25", "integers:26", "integers:27", "integers:28", "integers:29", "integers:30", "integers:31",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50", "misc:51",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
@@ -1460,7 +1476,7 @@
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1471,6 +1487,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
@@ -1482,20 +1499,20 @@
       "formatter:1", "formatter:2", "formatter:3", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "hexfloat:26", "hexfloat:42", "hexfloat:43",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
@@ -1550,7 +1567,7 @@
     "id": 60,
     "notes": "Rome g++ 13.3.0, specifiers path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1570,7 +1587,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1593,7 +1610,7 @@
     "id": 62,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1613,7 +1630,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1636,7 +1653,7 @@
     "id": 64,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1656,14 +1673,14 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -1673,7 +1690,7 @@
     "id": 65,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1692,12 +1709,12 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
@@ -1706,7 +1723,7 @@
     "id": 66,
     "notes": "Rome g++ 13.3.0, specifiers path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1726,7 +1743,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1749,7 +1766,7 @@
     "id": 68,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1769,7 +1786,7 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43",
+      "misc:37", "misc:38",
       "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1870,11 +1887,12 @@
     "id": 75,
     "notes": "chipStar 4b91fc6 HIP over Level Zero on Chiatta Max 1550, LLVM 23.1.2 SPIR-V backend, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
       "float_fixed_extreme:1", "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -1886,7 +1904,7 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50", "misc:51",
+      "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1982,7 +2000,7 @@
     "id": 82,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -2003,14 +2021,14 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
       "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
@@ -2020,7 +2038,7 @@
     "id": 83,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -2040,12 +2058,12 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:42", "misc:43", "misc:45",
+      "misc:37", "misc:38", "misc:40",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
-      "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
+      "misc:41", "misc:42", "misc:43", "misc:44", "misc:45",
       "nvptx_o2_ice:2",
       "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]

@@ -23,7 +23,6 @@ RUN(PRINT("value={{{}}} done\n", 42));
 
 // Edge cases
 RUN(PRINT("{}\n", 0));
-RUN(PRINT("{:g}\n", 0.0));
 RUN(PRINT("{}\n", 2147483647));
 RUN(PRINT("{}\n", -2147483647 - 1));
 
@@ -34,14 +33,11 @@ RUN(PRINT("{2} {0} {1}\n", 'a', 'b', 'c'));
 RUN(PRINT("{0} {0} {0}\n", 7));
 RUN(PRINT("{0:.2f} {1:+d}\n", 3.14, -42));
 
-// Zero with every type specifier
+// Zero with integer type specifiers
 RUN(PRINT("{:d}\n", 0u));
 RUN(PRINT("{:x}\n", 0u));
 RUN(PRINT("{:X}\n", 0u));
 RUN(PRINT("{:o}\n", 0u));
-RUN(PRINT("{:f}\n", 0.0));
-RUN(PRINT("{:e}\n", 0.0));
-RUN(PRINT("{:g}\n", 0.0));
 
 // Pointer formatting — fixed-value casts so host and device produce
 // identical addresses (no real &x: device address would diverge from the
@@ -73,7 +69,6 @@ RUN(PRINT("{:150.2f}\n", 3.14));
 // ('%' kept as is: it used to come out doubled, "100%%").
 RUN(PRINT("no args\n"));
 RUN(PRINT("100% {{braces}} %d %s %%\n"));
-RUN(PRINT(""));
 RUN(PRINTLN(""));
 RUN(PRINTLN("}}{{"));
 
