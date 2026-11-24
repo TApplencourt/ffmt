@@ -142,7 +142,7 @@
   },
   {
     "id": 4,
-    "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, no fast-math",
+    "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "NVIDIA A100-PCIE-40GB",
@@ -156,7 +156,7 @@
   },
   {
     "id": 5,
-    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, no fast-math",
+    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
@@ -199,7 +199,7 @@
   },
   {
     "id": 6,
-    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, no fast-math",
+    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "OpenMP device 0",
@@ -274,7 +274,7 @@
   },
   {
     "id": 9,
-    "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, no fast-math",
+    "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "NVIDIA A100-PCIE-40GB",
@@ -579,7 +579,7 @@
   },
   {
     "id": 18,
-    "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, fast-math",
+    "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "NVIDIA A100-PCIE-40GB",
@@ -599,7 +599,7 @@
   },
   {
     "id": 19,
-    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, fast-math",
+    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
@@ -643,7 +643,7 @@
   },
   {
     "id": 20,
-    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O2, fast-math",
+    "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "OpenMP device 0",
@@ -728,7 +728,7 @@
   },
   {
     "id": 23,
-    "notes": "clang CUDA on A100 (sm_80), cuda 12.3.0 + llvm release-23.1.6, -O0, fast-math",
+    "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, fast-math",
     "ci": "jlse:a100",
     "previous_main_commit": "7c01ffdec1233571a02ea119e6f69899aade074c",
     "device": "NVIDIA A100-PCIE-40GB",
