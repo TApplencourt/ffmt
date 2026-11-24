@@ -1274,7 +1274,7 @@
     "id": 50,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1282,7 +1282,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1315,7 +1317,7 @@
     "id": 51,
     "notes": "nvcc CUDA on H100 (sm_90), cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1323,7 +1325,9 @@
       "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
+      "empty_output:1",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
+      "explicit_float_zero:1", "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "extra:readme1_cuda", "extra:readme2_cuda",
       "fast_math:1", "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "fill:1", "fill:2", "fill:3", "fill:4", "fill:5", "fill:6", "fill:7", "fill:8", "fill:9", "fill:10", "fill:11", "fill:12", "fill:13", "fill:14", "fill:15", "fill:16", "fill:17", "fill:18", "fill:19", "fill:20", "fill:21", "fill:22", "fill:23", "fill:24", "fill:25", "fill:26", "fill:27", "fill:28", "fill:29", "fill:30", "fill:31", "fill:32", "fill:33", "fill:34",
@@ -1466,7 +1470,7 @@
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
+    "previous_main_commit": "ee120020db0b92fb9af7385d3471a98624d09b9a",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1477,6 +1481,7 @@
       "alternate:1", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:16", "alternate:17", "alternate:18", "alternate:19",
       "binary:3", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:17", "binary:23", "binary:24", "binary:30",
       "dynamic:1", "dynamic:2", "dynamic:23",
+      "explicit_float_zero:1",
       "fast_math:1",
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
@@ -1488,20 +1493,20 @@
       "formatter:1", "formatter:2", "formatter:3", "formatter:5", "formatter:6", "formatter:7", "formatter:8", "formatter:9",
       "hexfloat:26", "hexfloat:42", "hexfloat:43",
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
-      "misc:3", "misc:4", "misc:9",
+      "misc:3", "misc:4", "misc:13", "misc:15", "misc:40", "misc:44",
       "nvptx_o2_ice:2",
       "println:2",
       "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
+      "explicit_float_zero:2", "explicit_float_zero:3", "explicit_float_zero:4",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
       "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
-      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
-      "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
+      "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12"
     ]
   },
   {
