@@ -16,3 +16,8 @@ export CXX=$FFMT_RUNTIME_ROOT/software/chiatta/install/chipstar-20261119-23-Rele
 export FFMT_ORACLE_CXX=/soft/compilers/gcc/13.3.0/x86_64-suse-linux/bin/g++
 export FMT_DIR=$FFMT_RUNTIME_ROOT/third_party/fmt-main
 export FFMT_FLAGS="-std=c++20 -Wall -Werror -x hip -O2 -fno-fast-math"
+# chipStar compiles the kernels' SPIR-V through Level Zero when the program
+# first launches them, unless its module cache has them: uncached at -O0,
+# float_sweep and hexfloat_sweep take over a minute, past Makefile.id's 60 s
+# default.
+export FFMT_TIMEOUT=600

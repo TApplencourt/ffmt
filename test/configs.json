@@ -19,11 +19,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -61,6 +62,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:1",
       "escape_percent:1",
       "extra:readme1_omp", "extra:readme2_omp",
       "fast_math:1",
@@ -76,9 +79,12 @@
       "misc:1",
       "null_string:1",
       "nvptx_o2_ice:1",
+      "println:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -93,7 +99,8 @@
       "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "println:2", "println:3",
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -116,18 +123,19 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_omp",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -172,7 +180,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
@@ -233,7 +242,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
@@ -290,6 +300,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -297,13 +309,14 @@
       "misc:42", "misc:43", "misc:45",
       "null_string:1",
       "nvptx_o2_ice:1",
-      "strings:6"
+      "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -324,18 +337,19 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -358,12 +372,13 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
       "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -405,6 +420,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
@@ -413,13 +430,14 @@
       "misc:42", "misc:43", "misc:45",
       "null_string:1",
       "nvptx_o2_ice:1",
-      "strings:6"
+      "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -440,6 +458,7 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
@@ -447,12 +466,12 @@
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -475,6 +494,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:1",
       "escape_percent:1",
       "extra:readme1_omp", "extra:readme2_omp",
       "fast_math:1",
@@ -490,9 +511,12 @@
       "misc:1",
       "null_string:1",
       "nvptx_o2_ice:1",
+      "println:1",
       "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
@@ -507,7 +531,8 @@
       "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "println:2", "println:3",
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -530,6 +555,7 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_omp",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:21", "float_sweep:22",
@@ -537,12 +563,12 @@
       "floats:56", "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -594,7 +620,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
@@ -659,7 +686,8 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
@@ -730,11 +758,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -772,11 +801,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -814,11 +844,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -856,11 +887,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -898,10 +930,11 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172", "floats:177",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -939,9 +972,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1013,9 +1047,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1037,9 +1072,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1061,9 +1097,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1087,9 +1124,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:104", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:114", "floats:115", "floats:116", "floats:119", "floats:120", "floats:121", "floats:124", "floats:125", "floats:126", "floats:162", "floats:163", "floats:164", "floats:165", "floats:166", "floats:167", "floats:168", "floats:170", "floats:171", "floats:176", "floats:177", "floats:178", "floats:181", "floats:190", "floats:191", "floats:192", "floats:193", "floats:195", "floats:196",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1124,9 +1162,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1150,9 +1189,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1177,9 +1217,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1232,6 +1273,8 @@
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
+      "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "extra:readme1_cuda", "extra:readme2_cuda",
@@ -1252,8 +1295,9 @@
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
+      "println:1", "println:2", "println:3",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1270,6 +1314,8 @@
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
+      "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "extra:readme1_cuda", "extra:readme2_cuda",
@@ -1290,8 +1336,9 @@
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
+      "println:1", "println:2", "println:3",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1308,6 +1355,8 @@
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
+      "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "extra:readme1_cuda", "extra:readme2_cuda",
@@ -1328,8 +1377,9 @@
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
+      "println:1", "println:2", "println:3",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1346,6 +1396,8 @@
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
       "binary:1", "binary:2", "binary:3", "binary:4", "binary:5", "binary:6", "binary:7", "binary:8", "binary:9", "binary:10", "binary:11", "binary:12", "binary:13", "binary:14", "binary:15", "binary:16", "binary:17", "binary:18", "binary:19", "binary:20", "binary:21", "binary:22", "binary:23", "binary:24", "binary:25", "binary:26", "binary:27", "binary:28", "binary:29", "binary:30",
+      "bools:1", "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
+      "characters:1", "characters:2", "characters:3", "characters:4", "characters:5", "characters:6", "characters:7", "characters:8", "characters:9",
       "dynamic:1", "dynamic:2", "dynamic:3", "dynamic:4", "dynamic:5", "dynamic:6", "dynamic:7", "dynamic:8", "dynamic:9", "dynamic:10", "dynamic:11", "dynamic:12", "dynamic:13", "dynamic:14", "dynamic:15", "dynamic:16", "dynamic:17", "dynamic:18", "dynamic:19", "dynamic:20", "dynamic:21", "dynamic:22", "dynamic:23", "dynamic:24",
       "escape_percent:1", "escape_percent:2", "escape_percent:3", "escape_percent:4", "escape_percent:5", "escape_percent:6", "escape_percent:7",
       "extra:readme1_cuda", "extra:readme2_cuda",
@@ -1366,8 +1418,9 @@
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
       "nvptx_o2_ice:1", "nvptx_o2_ice:2",
+      "println:1", "println:2", "println:3",
       "signed_radix:1", "signed_radix:2", "signed_radix:3", "signed_radix:4", "signed_radix:5", "signed_radix:6", "signed_radix:7", "signed_radix:8", "signed_radix:9", "signed_radix:10", "signed_radix:11", "signed_radix:12", "signed_radix:13", "signed_radix:14", "signed_radix:15", "signed_radix:16", "signed_radix:17", "signed_radix:18", "signed_radix:19",
-      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34",
+      "strings:1", "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1379,45 +1432,37 @@
     "id": 54,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ],
+    "failed_to_run": [],
     "compiled_but_not_run": []
   },
   {
     "id": 55,
     "notes": "clang CUDA on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "NVIDIA H100 80GB HBM3",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ],
+    "failed_to_run": [],
     "compiled_but_not_run": []
   },
   {
     "id": 56,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "OpenMP device 0",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
@@ -1430,6 +1475,7 @@
       "fill:10", "fill:11", "fill:12", "fill:15", "fill:16", "fill:17", "fill:18",
       "float_fixed_extreme:1",
       "float_precision:1",
+      "float_sweep:2",
       "float_tiny:1",
       "float_zero:1",
       "floats:12", "floats:41", "floats:43", "floats:44", "floats:115", "floats:117", "floats:118", "floats:120", "floats:121", "floats:122", "floats:123", "floats:148", "floats:149", "floats:150", "floats:151", "floats:152", "floats:153", "floats:154", "floats:155", "floats:156", "floats:157", "floats:158", "floats:159", "floats:160", "floats:161", "floats:177", "floats:178", "floats:179", "floats:180",
@@ -1438,13 +1484,15 @@
       "integers:18", "integers:22", "integers:23", "integers:27", "integers:28",
       "misc:3", "misc:4", "misc:9",
       "nvptx_o2_ice:2",
-      "strings:13", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33"
+      "println:2",
+      "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15"
     ],
     "compiled_but_not_run": [
       "dynamic:24",
       "fast_math:2", "fast_math:3", "fast_math:4", "fast_math:5", "fast_math:6", "fast_math:7", "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11", "fast_math:12", "fast_math:13", "fast_math:14", "fast_math:15", "fast_math:16",
       "float_fixed_extreme:2", "float_fixed_extreme:3",
       "float_precision:2", "float_precision:3", "float_precision:4", "float_precision:5",
+      "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
       "float_tiny:2", "float_tiny:3", "float_tiny:4", "float_tiny:5", "float_tiny:6",
       "float_zero:2", "float_zero:3", "float_zero:4", "float_zero:5", "float_zero:6", "float_zero:7", "float_zero:8", "float_zero:9", "float_zero:10", "float_zero:11", "float_zero:12",
       "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39", "misc:40", "misc:41", "misc:42", "misc:43", "misc:44", "misc:45", "misc:46", "misc:47", "misc:48", "misc:49", "misc:50"
@@ -1454,17 +1502,21 @@
     "id": 57,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "76021973f0a9c6d6184a3eccbeb15ddaae8e4f83",
+    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
     "device": "OpenMP device 0",
     "failed_to_compile": [
-      "float_sweep:1", "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [],
-    "compiled_but_not_run": []
+    "failed_to_run": [
+      "float_sweep:1",
+      "hexfloat_sweep:1"
+    ],
+    "compiled_but_not_run": [
+      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
+      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
+    ]
   },
   {
     "id": 58,
@@ -1514,11 +1566,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1556,11 +1609,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1596,6 +1650,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1603,13 +1659,14 @@
       "misc:42", "misc:43", "misc:45",
       "null_string:1",
       "nvptx_o2_ice:1",
-      "strings:6"
+      "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -1630,18 +1687,19 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -1664,11 +1722,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1706,11 +1765,12 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43",
-      "strings:26", "strings:27", "strings:29"
+      "strings:9", "strings:11"
     ],
     "compiled_but_not_run": []
   },
@@ -1937,6 +1997,8 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "bools:1",
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1944,13 +2006,14 @@
       "misc:42", "misc:43", "misc:45",
       "null_string:1",
       "nvptx_o2_ice:1",
-      "strings:6"
+      "strings:1"
     ],
     "compiled_but_not_run": [
+      "bools:2", "bools:3", "bools:4", "bools:5", "bools:6",
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "null_string:2", "null_string:3",
       "nvptx_o2_ice:2",
-      "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16", "strings:17", "strings:18", "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {
@@ -1972,18 +2035,19 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
+      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
       "misc:42", "misc:43", "misc:45",
       "nvptx_o2_ice:1",
-      "strings:18"
+      "strings:1"
     ],
     "compiled_but_not_run": [
       "misc:46", "misc:47", "misc:48", "misc:49", "misc:50",
       "nvptx_o2_ice:2",
-      "strings:19", "strings:20", "strings:21", "strings:22", "strings:23", "strings:24", "strings:25", "strings:26", "strings:27", "strings:28", "strings:29", "strings:30", "strings:31", "strings:32", "strings:33", "strings:34"
+      "strings:2", "strings:3", "strings:4", "strings:5", "strings:6", "strings:7", "strings:8", "strings:9", "strings:10", "strings:11", "strings:12", "strings:13", "strings:14", "strings:15", "strings:16"
     ]
   },
   {

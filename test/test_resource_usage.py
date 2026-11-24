@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import resource_usage
@@ -76,7 +77,7 @@ class Parsers(unittest.TestCase):
     def test_ptxas_counts_entry_functions_only(self):
         self.assertEqual(
             resource_usage.parse_ptxas(PTXAS),
-            {"_Z1kv": {"regs": 31, "stack": 792, "spill": 8, "slm": 1024}},
+            {"_Z1kv": {"regs": 31, "private": 792, "spill": 8, "local": 1024}},
         )
 
     def test_ptxas_openmp_outlined_region_counts_for_its_kernel(self):
@@ -93,9 +94,9 @@ class Parsers(unittest.TestCase):
             {
                 "__omp_offloading_801_900276_main_l55": {
                     "regs": None,
-                    "stack": 904,
+                    "private": 904,
                     "spill": 60,
-                    "slm": 0,
+                    "local": 0,
                 }
             },
         )
@@ -103,21 +104,21 @@ class Parsers(unittest.TestCase):
     def test_amd_adds_vgprs_and_agprs_and_both_spills(self):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD),
-            {"k1": {"regs": 88, "stack": 2608, "spill": 2, "slm": 64}},
+            {"k1": {"regs": 88, "private": 2608, "spill": 2, "local": 64}},
         )
 
     def test_amd_remarks_from_the_linker_wrapper(self):
         self.assertEqual(
             resource_usage.parse_amd_remarks(AMD_LINK),
-            {"k2": {"regs": 36, "stack": 788, "spill": 0, "slm": 0}},
+            {"k2": {"regs": 36, "private": 788, "spill": 0, "local": 0}},
         )
 
     def test_zeinfo_skips_payload_sizes(self):
         self.assertEqual(
             resource_usage.parse_zeinfo(ZEINFO),
             {
-                "kA": {"regs": 128, "stack": 1024, "spill": 64, "slm": 256},
-                "kB": {"regs": 256, "stack": 0, "spill": 0, "slm": 0},
+                "kA": {"regs": 128, "private": 1024, "spill": 64, "local": 256},
+                "kB": {"regs": 256, "private": 0, "spill": 0, "local": 0},
             },
         )
 
@@ -128,7 +129,7 @@ def write(directory, id_, files):
 
 
 def file_of(*kernels):
-    """A test file's measurement, from its kernels' (regs, stack, spill, slm)."""
+    """A test file's measurement, from its kernels' (regs, private, spill, local)."""
     return resource_usage.summary(
         {f"k{i}": dict(zip(resource_usage.METRICS, k)) for i, k in enumerate(kernels)}
     )
@@ -178,6 +179,29 @@ class Summary(unittest.TestCase):
         )
 
 
+class Sources(unittest.TestCase):
+    def test_run_blocks_ignore_parentheses_in_literals_and_comments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "test_example.cpp"
+            source.write_text(
+                '#ifndef TEST_INC\n#else\nRUN(PRINT(")", R"tag(( ))tag")); // )\n'
+                "RUN({\n  // ))\n  PRINT(\"{}\", ')');\n});\n#endif\n"
+            )
+            cases = resource_usage.run_cases(source)
+        self.assertEqual([case["line"] for case in cases], [3, 4])
+        self.assertEqual(len(cases), 2)
+        self.assertNotEqual(cases[0]["sha256"], cases[1]["sha256"])
+
+    def test_split_units_have_one_source_identity_per_case(self):
+        root = Path(__file__).resolve().parent
+        counts = json.loads((root / "tests.json").read_text())
+        for name in ("characters", "bools", "println", "strings"):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    len(resource_usage.run_cases(root / f"test_{name}.cpp")), counts[name]
+                )
+
+
 class IGC(unittest.TestCase):
     def test_registers_are_the_grfs_the_code_uses(self):
         with tempfile.TemporaryDirectory() as d:
@@ -225,6 +249,19 @@ class Measure(unittest.TestCase):
         )
         self.assertIn("FFMT_TEST_FLAGS", run["missing"])
 
+    def test_igc_dump_directories_are_per_test_file(self):
+        with (
+            mock.patch.object(resource_usage, "igc_dumps", return_value={}) as dumps,
+            mock.patch.object(resource_usage, "file_kernels", return_value=({}, None)),
+        ):
+            self.run_measure(
+                "0 build floats\n0 build fill\n", {"floats": "", "fill": ""}
+            )
+        self.assertEqual(
+            [Path(call.args[0]).parts[-2:] for call in dumps.call_args_list],
+            [("igc", "floats"), ("igc", "fill")],
+        )
+
 
 class Compare(unittest.TestCase):
     def run_compare(self, base, head, failed_to_compile=()):
@@ -248,6 +285,80 @@ class Compare(unittest.TestCase):
         self.assertIn("No test grew", out)
         self.assertNotIn("Missing", out)
 
+    def test_a_test_that_moves_files_keeps_its_reference(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "b:plain"},
+            }
+        }
+        head = {
+            "characters": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            },
+            "strings": {
+                **file_of((40, 0, 0, 0)),
+                "sources": {"k0": "b:plain"},
+            },
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertNotIn("Missing", out)
+        self.assertIn("No test grew", out)
+
+    def test_growth_still_fails_when_a_test_moves_files(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        head = {
+            "characters": {
+                **file_of((35, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 1)
+        self.assertIn("id 36 strings → characters, k0: regs 31 → 35", out)
+
+    def test_an_inserted_test_does_not_shift_the_next_tests_reference(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "b:plain"},
+            }
+        }
+        head = {
+            "strings": {
+                **file_of((31, 0, 0, 0), (50, 0, 0, 0), (40, 0, 0, 0)),
+                "sources": {"k0": "a:plain", "k1": "c:plain", "k2": "b:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 0)
+        self.assertIn("Missing in the reference (new test added?): 1", out)
+        self.assertIn("id 36 strings, k1", out)
+
+    def test_changed_source_at_the_same_place_still_compares(self):
+        base = {
+            "strings": {
+                **file_of((31, 0, 0, 0)),
+                "sources": {"k0": "a:plain"},
+            }
+        }
+        head = {
+            "strings": {
+                **file_of((35, 0, 0, 0)),
+                "sources": {"k0": "b:plain"},
+            }
+        }
+        code, out = self.run_compare(base, head)
+        self.assertEqual(code, 1)
+        self.assertIn("id 36 strings, k0: regs 31 → 35", out)
+
     def test_one_test_that_grows_fails_even_if_the_file_max_does_not(self):
         base = {"floats": file_of((31, 792, 0, 0), (40, 792, 0, 0))}
         head = {"floats": file_of((35, 792, 0, 0), (40, 792, 0, 0))}
@@ -255,6 +366,9 @@ class Compare(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("id 36 floats, k0: regs 31 → 35", out)
         self.assertIn("**31 / 35.5 / 40 → 35 / 37.5 / 40**", out)
+        self.assertIn(
+            "| 36 (nvidia) | 2 | 35.5 → 37.5 (+6%) | 792 | 0 | 0 | **1** |", out
+        )
 
     def test_one_test_up_another_down_still_fails(self):
         base = {"floats": file_of((31, 0, 0, 0), (40, 0, 0, 0))}
@@ -269,6 +383,7 @@ class Compare(unittest.TestCase):
         )
         self.assertEqual(code, 0)
         self.assertIn("792 / 792 / 792 → 512 / 512 / 512", out)
+        self.assertIn("| 31 | 792 → 512 (-35%) | 8 → 0 (-100%) | 0 | 0 |", out)
 
     def test_a_file_with_the_same_numbers_is_not_printed(self):
         base = {"floats": file_of((31, 0, 0, 0))}
@@ -297,13 +412,15 @@ class Compare(unittest.TestCase):
         code, out = self.run_compare(base, head)
         self.assertEqual(code, 0)
         self.assertIn("n/a → 51 / 51 / 51", out)
+        self.assertIn("| 36 (nvidia) | 1 | n/a |", out)
 
-    def test_slm_growth_fails(self):
+    def test_local_growth_fails(self):
         code, out = self.run_compare(
             {"floats": file_of((31, 0, 0, 0))}, {"floats": file_of((31, 0, 0, 512))}
         )
         self.assertEqual(code, 1)
-        self.assertIn("k0: slm 0 → 512", out)
+        self.assertIn("k0: local 0 → 512", out)
+        self.assertIn("| 0 → 512 (new) |", out)
 
     def test_a_file_that_stops_building_fails(self):
         code, out = self.run_compare(
