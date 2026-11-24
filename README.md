@@ -382,13 +382,13 @@ CI runs the ids whose `ci` is `github:<runner>`
 The six H100 ids belong to
 the optional manual `h100-extended` job in that same GitLab pipeline because a
 node can take hours to get. Without it, a successful pipeline reports the other
-50 ids. For all 56, run `h100-extended` and, after it finishes, retry
+52 ids. For all 58, run `h100-extended` and, after it finishes, retry
 `jlse-summary`, then `jlse-wiki`. The retried summary fetches the H100 artifacts;
 completed downstream jobs do not rerun automatically.
 
 Basic and extended JLSE jobs share `FFMT_RUNTIME_ROOT`; its `modulefiles`
 directory is available alongside `/soft/modulefiles`. The generic upstream
-Clang CUDA/OpenMP jobs load `llvm/release-23.1.6`, whose modulefile selects the
+Clang CUDA/HIP/OpenMP jobs load `llvm/release-23.1.6`, whose modulefile selects the
 x86-64 or AArch64 installation by architecture. Intel LLVM, ROCm,
 AdaptiveCpp, ChipStar, NVCC, and GCC jobs retain their separate toolchains.
 
@@ -416,9 +416,9 @@ A Maintainer must configure the integration once:
    with value `230`, separately from the trigger secret.
 
 Then use Actions > Dispatch JLSE > Run workflow. Enter the mirrored GitLab
-`ref` and leave `run_h100` off for the usual 50-id report and optional manual
+`ref` and leave `run_h100` off for the usual 52-id report and optional manual
 H100. Enable it to make H100 automatic and required, producing the complete
-56-id summary through the same normal stage ordering. Either request creates a
+58-id summary through the same normal stage ordering. Either request creates a
 summary artifact without changing the wiki. The Action submits asynchronous
 CI: without a separate read token, it deliberately does not report eventual
 hardware success.

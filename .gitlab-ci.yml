@@ -68,7 +68,8 @@ a100:
   variables:
     JLSE_SCHEDULER_PARAMETERS: "-n 1 -t 1:45:0 -q gpu_a100"
 
-# ROCm clang OpenMP, native HIP, Kokkos HIP and AdaptiveCpp, on MI300X.
+# ROCm and upstream clang OpenMP, native and upstream clang HIP, Kokkos HIP and
+# AdaptiveCpp, on MI300X.
 mi300x:
   extends: .jlse-batch
   resource_group: mi300x
