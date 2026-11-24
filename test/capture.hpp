@@ -123,9 +123,12 @@ using device_properties = cudaDeviceProp;
 // emitted inside one under one __LINE__ and looks it up under another, and
 // every offload fails with "Failed to load kernel __omp_offloading_*_l<N>".
 // RUN(...) sits at the top level of a lambda, so bare statements are fine.
-#define DEVICE_RUN(...) _t.begin();                                             \
-  _Pragma("omp target teams distribute parallel for num_teams(1) thread_limit(N)") \
-  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; }                               \
+// No num_teams(1) thread_limit(N): with 1 or 2 threads per team, clang-based
+// OpenMP at -O0 gives live locals overlapping addresses
+// (toolchain_bugs/clang_based_omp_O0_shared_stack_overlap.c, llvm#245328).
+#define DEVICE_RUN(...) _t.begin();                     \
+  _Pragma("omp target teams distribute parallel for")   \
+  for (int _i = 0; _i < N; _i++) { __VA_ARGS__; }       \
   _t.end();
 #elif defined(TEST_MODEL_CUDA_HIP)
 // One single-thread launch per RUN, with the N repetitions inside, as on the
