@@ -148,7 +148,7 @@
     "id": 4,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A100-PCIE-40GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -162,7 +162,7 @@
     "id": 5,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -176,7 +176,7 @@
     "id": 6,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -224,7 +224,7 @@
     "id": 9,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A100-PCIE-40GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -537,7 +537,7 @@
     "id": 18,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A100-PCIE-40GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -557,7 +557,7 @@
     "id": 19,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -577,7 +577,7 @@
     "id": 20,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -640,7 +640,7 @@
     "id": 23,
     "notes": "clang CUDA on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O0, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A100-PCIE-40GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1468,7 +1468,7 @@
     "id": 60,
     "notes": "Rome g++ 13.3.0, specifiers path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1497,7 +1497,7 @@
     "id": 61,
     "notes": "Rome g++ 13.3.0, buffer path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1626,7 +1626,7 @@
     "id": 66,
     "notes": "Rome g++ 13.3.0, specifiers path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1655,7 +1655,7 @@
     "id": 67,
     "notes": "Rome g++ 13.3.0, buffer path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1712,7 +1712,7 @@
     "id": 70,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O0, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A40",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
@@ -1728,7 +1728,7 @@
     "id": 71,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on A40 (sm_86), LLVM 20.1.8, -O2, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA A40",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
@@ -1819,7 +1819,7 @@
     "id": 76,
     "notes": "Kokkos 5.2.2 Serial on Rome, g++ 13.3.0, buffer path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "Kokkos Serial",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1833,7 +1833,7 @@
     "id": 77,
     "notes": "Kokkos 5.2.2 Serial on Rome, g++ 13.3.0, buffer path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "Kokkos Serial",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1847,7 +1847,7 @@
     "id": 78,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O0, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "Kokkos Cuda",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1861,7 +1861,7 @@
     "id": 79,
     "notes": "Kokkos 5.2.2 CUDA on A40 (sm_86), llvm release-23.1.6 + cuda 12.9.1, -O2, no fast-math",
     "ci": "jlse:a40",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "Kokkos Cuda",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
