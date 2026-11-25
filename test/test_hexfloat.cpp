@@ -67,7 +67,6 @@ RUN(PRINT("{:.1a}\n", 1.3e-44f));
 RUN(PRINT("[{:012a}]\n", -1.0));
 RUN(PRINT("[{:+012a}]\n", 1.0));
 
-[[maybe_unused]] auto opaque = [](auto v) { volatile decltype(v) x = v; return x; };
 #ifdef FFMT_STD_PATH
 #define EXPECT(want, fmt_str, v) printf("%s\n", want)
 #else

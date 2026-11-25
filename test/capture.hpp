@@ -88,6 +88,16 @@ using device_properties = cudaDeviceProp;
 [[maybe_unused]] static bool device_sync() { return true; }
 #endif
 
+// Returns v through a volatile, so the compiler cannot fold what the caller
+// does with it (fast_math, hexfloat). A function template, not a lambda in the
+// test body: a CUDA extended __device__ lambda (DEVICE_RUN) must not capture
+// a variable whose type is local to a function, as a lambda's closure type
+// in main() is (nvcc rule 12, https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-support.html#extended-lambda-restrictions).
+template <typename T> FMT_HD T opaque(T v) {
+  volatile T x = v;
+  return x;
+}
+
 // What depends on the programming model, for test_body.inc: what a test
 // file needs before its first case (TEST_SETUP), the name of the device its
 // cases run on (TEST_DEVICE, a std::string: test/check_id.py compares it
