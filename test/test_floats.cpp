@@ -84,18 +84,19 @@ RUN(PRINT("{:g}\n", std::numeric_limits<float>::min()));   // smallest normal
 RUN(PRINT("{:e}\n", std::numeric_limits<float>::min()));
 RUN(PRINT("{:g}\n", std::numeric_limits<float>::denorm_min()));
 
-// NaN (quiet)
+// NaN (quiet). UB under fast-math (-ffinite-math-only), test_fast_math.cpp has run-time ones.
 RUN(PRINT("{:f}\n", std::numeric_limits<float>::quiet_NaN()));
 RUN(PRINT("{:g}\n", std::numeric_limits<float>::quiet_NaN()));
 RUN(PRINT("{:F}\n", std::numeric_limits<float>::quiet_NaN()));
 RUN(PRINT("{:f}\n", std::numeric_limits<double>::quiet_NaN()));
 
-// Negative inf (float)
+// Negative inf (float). UB under fast-math (-ffinite-math-only), test_fast_math.cpp has run-time ones.
 RUN(PRINT("{:f}\n", -1.0f / 0.0f));
 RUN(PRINT("{:g}\n", -1.0f / 0.0f));
 RUN(PRINT("{:F}\n", -1.0f / 0.0f));
 
-// Default format for float/double specials (covers ACPP dragonbox inf/nan path)
+// Default format for float/double specials (covers ACPP dragonbox inf/nan path).
+// UB under fast-math (-ffinite-math-only), test_fast_math.cpp has run-time ones.
 RUN(PRINT("{}\n", 1.0 / 0.0));
 RUN(PRINT("{}\n", -1.0 / 0.0));
 RUN(PRINT("{}\n", 0.0 / 0.0));
@@ -244,7 +245,7 @@ RUN(PRINT("[{:#}]\n", 0.5));
 RUN(PRINT("[{:>12}]\n", -0.0));
 RUN(PRINT("[{:<+10}]\n", 1.5e-300));
 RUN(PRINT("[{:#}]\n", 1e-7f));
-RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity()));
+RUN(PRINT("[{:012}]\n", std::numeric_limits<double>::infinity())); // UB under fast-math
 RUN(PRINT("[{:.3}]\n", 3.14159265));                    // no type + precision = g
 
 // Precision above 127 (stored in 8 bits, it wrapped negative).
@@ -264,11 +265,13 @@ RUN(PRINT("{}\n", -0.0f));
 RUN(PRINT("{}\n", std::numeric_limits<double>::max()));
 RUN(PRINT("{}\n", std::numeric_limits<double>::min()));
 RUN(PRINT("{}\n", -0.0));
+// The next three: UB under fast-math (-ffinite-math-only), test_fast_math.cpp has run-time ones.
 RUN(PRINT("{}\n", std::numeric_limits<float>::infinity()));
 RUN(PRINT("{}\n", -std::numeric_limits<float>::infinity()));
 RUN(PRINT("{}\n", std::numeric_limits<float>::quiet_NaN()));
 
 // ── Float formatting fixes ────────────────────────────────────────────────────
+// The NaN and inf cases below: UB under fast-math (-ffinite-math-only), test_fast_math.cpp has run-time ones.
 // '+' on NaN. Buffer path only: on the specifiers path the sign of a NaN is
 // up to the printf implementation (glibc: "+nan", macOS libc: "nan").
 RUN(PRINT("[{:+}]\n", std::numeric_limits<float>::quiet_NaN()));

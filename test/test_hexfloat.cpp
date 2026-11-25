@@ -36,7 +36,7 @@ RUN(PRINT("{:a}\n", 3.14f));
 RUN(PRINT("{:A}\n", 3.14f));
 RUN(PRINT("{:a}\n", 0.0f));
 RUN(PRINT("{:a}\n", -0.0f));
-RUN(PRINT("{:a}\n", std::numeric_limits<float>::infinity()));
+RUN(PRINT("{:a}\n", std::numeric_limits<float>::infinity())); // UB under fast-math
 RUN(PRINT("{:#a}\n", 1.5f));
 
 // ── Writes near the buffer cap ────────────────────────────────────────────────
