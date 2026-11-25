@@ -1276,7 +1276,7 @@
     "id": 52,
     "notes": "nvcc CUDA on GH200 (sm_90), cuda 12.9.1 + g++ 14.3.0, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1296,7 +1296,6 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "many_placeholders:1",
       "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
@@ -1313,7 +1312,7 @@
     "id": 53,
     "notes": "nvcc CUDA on GH200 (sm_90), cuda 12.9.1 + g++ 14.3.0, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1333,7 +1332,6 @@
       "hexfloat:1", "hexfloat:2", "hexfloat:3", "hexfloat:4", "hexfloat:5", "hexfloat:6", "hexfloat:7", "hexfloat:8", "hexfloat:9", "hexfloat:10", "hexfloat:11", "hexfloat:12", "hexfloat:13", "hexfloat:14", "hexfloat:15", "hexfloat:16", "hexfloat:17", "hexfloat:18", "hexfloat:19", "hexfloat:20", "hexfloat:21", "hexfloat:22", "hexfloat:23", "hexfloat:24", "hexfloat:25", "hexfloat:26", "hexfloat:27", "hexfloat:28", "hexfloat:29", "hexfloat:30", "hexfloat:31", "hexfloat:32", "hexfloat:33", "hexfloat:34", "hexfloat:35", "hexfloat:36", "hexfloat:37", "hexfloat:38", "hexfloat:39", "hexfloat:40", "hexfloat:41", "hexfloat:42", "hexfloat:43", "hexfloat:44", "hexfloat:45", "hexfloat:46",
       "hexfloat_sweep:1", "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6",
       "layout:1", "layout:2", "layout:3", "layout:4", "layout:5", "layout:6", "layout:7", "layout:8", "layout:9", "layout:10", "layout:11", "layout:12", "layout:13", "layout:14", "layout:15", "layout:16", "layout:17", "layout:18", "layout:19", "layout:20", "layout:21", "layout:22", "layout:23", "layout:24", "layout:25", "layout:26", "layout:27", "layout:28", "layout:29", "layout:30",
-      "many_placeholders:1",
       "misc:1", "misc:2", "misc:3", "misc:4", "misc:5", "misc:6", "misc:7", "misc:8", "misc:9", "misc:10", "misc:11", "misc:12", "misc:13", "misc:14", "misc:15", "misc:16", "misc:17", "misc:18", "misc:19", "misc:20", "misc:21", "misc:22", "misc:23", "misc:24", "misc:25", "misc:26", "misc:27", "misc:28", "misc:29", "misc:30", "misc:31", "misc:32", "misc:33", "misc:34", "misc:35", "misc:36", "misc:37", "misc:38", "misc:39",
       "negative:accept_valid",
       "null_string:1", "null_string:2", "null_string:3",
@@ -1442,7 +1440,7 @@
     "id": 58,
     "notes": "clang CUDA on GH200 (sm_90), llvm release-23.1.6 + cuda 12.9.1 + g++ 14.3.0, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1456,7 +1454,7 @@
     "id": 59,
     "notes": "clang CUDA on GH200 (sm_90), llvm release-23.1.6 + cuda 12.9.1 + g++ 14.3.0, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "NVIDIA GH200 480GB",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1513,7 +1511,7 @@
     "id": 62,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1542,7 +1540,7 @@
     "id": 63,
     "notes": "GH200 native g++ 14.3.0 (aarch64), buffer path, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -1671,7 +1669,7 @@
     "id": 68,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1700,7 +1698,7 @@
     "id": 69,
     "notes": "GH200 native g++ 14.3.0 (aarch64), buffer path, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "1392db645c5a1250693166fe7d07c859cd0ce7a8",
+    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
     "device": "host",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
