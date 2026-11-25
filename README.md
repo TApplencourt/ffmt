@@ -195,11 +195,9 @@ others (glibc + g++, and most SYCL device runtimes) leave subnormals
 intact. On the buffer path, ffmt formats from the bits: in the fast-math
 ids (`-ffast-math` with g++ on x86, clang CUDA and OpenMP offload) a
 subnormal that reaches it prints correctly (`{:e}` of `5e-324` gives
-`4.940656e-324`, where {fmt} under DAZ prints `0.000000e+00`). If FTZ/DAZ
-is on but clang assumes IEEE subnormals (set at run time or by another
-TU's startup code; seen on arm64, even with `-ffast-math`), an optimized
-build can print `{}` of a subnormal as `0`; `{:e}`, `{:g}` and `{:a}` are
-fine. On the specifiers path the device printf formats the value. Neither
+`4.940656e-324`, where {fmt} under DAZ prints `0.000000e+00`), also when
+FTZ/DAZ is set at run time or by another TU's startup code. On the
+specifiers path the device printf formats the value. Neither
 can undo arithmetic that flushed the value before the call. To keep
 subnormals under `icpx`, compile with
 `-fno-fast-math` (or `-fp-model=precise`); the test ids do, except the

@@ -758,14 +758,10 @@ template <typename T> constexpr auto exp_upper() -> int {
 }
 
 template <typename T> FMT_HD inline auto format_shortest(char *buf, T value) -> int {
-  // Bit test, not value == 0: under -ffast-math (DAZ) a subnormal compares
-  // equal to zero and would print as "0".
-  using carrier = typename float_info<T>::carrier_uint;
-  if ((__builtin_bit_cast(carrier, value) << 1) == 0) {
-    buf[0] = '0';
-    return 1;
-  }
-
+  // No zero test here: to_decimal returns {0, 0} for a zero, which prints
+  // "0" below. A test such as (bit_cast(value) << 1) == 0 is folded by clang
+  // into value == 0.0, which under DAZ (-ffast-math) is true for a subnormal
+  // too, so {} printed 5e-324 as "0" (#33).
   auto dec = to_decimal(value);
   auto significand = static_cast<uint64_t>(dec.significand);
   int sig_size = count_digits(significand);
