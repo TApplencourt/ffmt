@@ -17,6 +17,7 @@ int main() try {
   // Each pass in its own lambda: a file's own declarations stay local to
   // the pass, and RUN(...) sits at the top level of a function body.
   [&]() {
+    [[maybe_unused]] ieee_subnormals _ieee;  // {fmt} without FTZ/DAZ
 #define FFMT_STD_PATH
 // The buffer path cuts each print at FFMT_BUFFER_SIZE: so does the reference.
 #define PRINT(fmt_str, ...) std::cout << ::fmt::format(fmt_str __VA_OPT__(,) __VA_ARGS__) \
