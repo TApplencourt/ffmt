@@ -9,7 +9,7 @@
   "escape_percent": 7,
   "escape_percent_inplace": 12,
   "explicit_float_zero": 4,
-  "fast_math": 16,
+  "fast_math": 34,
   "fill": 34,
   "float_fixed_extreme": 3,
   "float_precision": 5,
