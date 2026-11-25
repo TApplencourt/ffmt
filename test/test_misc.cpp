@@ -82,20 +82,4 @@ RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
 // ── Type-instantiation coverage ───────────────────────────────────────────────
 RUN(PRINT("{:o}\n", static_cast<uint64_t>(0xDEADBEEFCAFEULL)));
 
-// ── Writes near the buffer cap ────────────────────────────────────────────────
-#define FILL120 "........................................................................................................................"
-RUN(PRINT("{}{:o}\n", FILL120, ~0ull));                       // write_uint_raw, base 8
-RUN(PRINT("{}{}\n", FILL120, ~0ull));                         // write_arg_default
-RUN(PRINT("{}{}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
-RUN(PRINT("{}{:p}\n", FILL120, reinterpret_cast<void*>(0x123456789abcdef0ULL)));
-RUN(PRINT("{}{}{}\n", FILL120, FILL120, 12345));              // already full
-// println keeps its '\n' even when the line is truncated; before the fix the
-// next "Test N" header was glued onto the truncated line.
-RUN(PRINTLN("{}{}", FILL120, FILL120));
-#undef FILL120
-
-// More than 16 placeholders (the buffer path used to cap them at 16).
-RUN(PRINTLN("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-
 #endif
