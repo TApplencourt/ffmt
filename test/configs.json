@@ -1653,33 +1653,25 @@
     "id": 72,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O0, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "escape_percent_inplace:1"
-    ],
-    "compiled_but_not_run": [
-      "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12"
-    ]
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   },
   {
     "id": 73,
     "notes": "AdaptiveCpp 25.10.0 generic/SSCP on MI300X (gfx942), LLVM 20.1.8, ROCm 10.1.0, -O2, no fast-math",
     "ci": "jlse:mi300x",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "AMD Instinct MI300X",
     "failed_to_compile": [
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "escape_percent_inplace:1"
-    ],
-    "compiled_but_not_run": [
-      "escape_percent_inplace:2", "escape_percent_inplace:3", "escape_percent_inplace:4", "escape_percent_inplace:5", "escape_percent_inplace:6", "escape_percent_inplace:7", "escape_percent_inplace:8", "escape_percent_inplace:9", "escape_percent_inplace:10", "escape_percent_inplace:11", "escape_percent_inplace:12"
-    ]
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   },
   {
     "id": 74,
