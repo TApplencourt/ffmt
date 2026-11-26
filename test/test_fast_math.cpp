@@ -36,6 +36,13 @@ RUN(EXPECT("2.225073858507201e-308", "{}", 2.2250738585072009e-308));
 RUN(EXPECT("1e-45", "{}", 1e-45f));
 #undef EXPECT
 
+// Normal values: {fmt} is still a valid reference here.
+RUN(PRINT("{:.17g}\n", 0.1));
+RUN(PRINT("{:f}\n", 1e15));
+RUN(PRINT("{:.3e}\n", 9.9995));
+RUN(PRINT("{:.0f}\n", 2.5));
+RUN(PRINT("{}\n", 0.0));
+
 // NaN and infinity that appear at run time. -ffinite-math-only (part of
 // -ffast-math) lets the compiler assume there are none: a literal such as
 // quiet_NaN() may already be garbage before it reaches the call (UB, which
@@ -71,12 +78,5 @@ RUN(EXPECT_BITS("-inf", "{}", double, uint64_t, 0xfff0000000000000ull)); // -inf
 RUN(EXPECT_BITS("nan", "{:e}", double, uint64_t, 0x7ff8000000000000ull));
 RUN(EXPECT_BITS("-inf", "{:.3f}", double, uint64_t, 0xfff0000000000000ull));
 #undef EXPECT_BITS
-
-// Normal values: {fmt} is still a valid reference here.
-RUN(PRINT("{:.17g}\n", 0.1));
-RUN(PRINT("{:f}\n", 1e15));
-RUN(PRINT("{:.3e}\n", 9.9995));
-RUN(PRINT("{:.0f}\n", 2.5));
-RUN(PRINT("{}\n", 0.0));
 
 #endif
