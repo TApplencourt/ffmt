@@ -43,4 +43,40 @@ RUN(PRINT("{:.3e}\n", 9.9995));
 RUN(PRINT("{:.0f}\n", 2.5));
 RUN(PRINT("{}\n", 0.0));
 
+// NaN and infinity that appear at run time. -ffinite-math-only (part of
+// -ffast-math) lets the compiler assume there are none: a literal such as
+// quiet_NaN() may already be garbage before it reaches the call (UB, which
+// clang reports with -Wnan-infinity-disabled), so the floats cases that use
+// one are expected failures on the fast-math ids. A NaN computed or read at
+// run time must still print as one, and ffmt tests the bits, not x != x.
+// Only the integer bits go through opaque: a float parameter may be assumed
+// not NaN. Expectations are literals, from {fmt} built without fast-math,
+// as for the subnormals above: the reference's inlined {fmt} code is built
+// with this file's flags, and this check must not depend on what they do.
+#ifdef FFMT_STD_PATH
+#define EXPECT_BITS(want, fmt_str, T, U, bits) printf("%s\n", want)
+#else
+#define EXPECT_BITS(want, fmt_str, T, U, bits) \
+  PRINT(fmt_str "\n", __builtin_bit_cast(T, opaque(U(bits))))
+#endif
+RUN(EXPECT_BITS("nan", "{}", float, uint32_t, 0x7fc00000u)); // quiet NaN
+RUN(EXPECT_BITS("-nan", "{}", float, uint32_t, 0xffc00000u)); // negative quiet NaN
+RUN(EXPECT_BITS("nan", "{}", float, uint32_t, 0x7f800001u)); // signaling NaN
+RUN(EXPECT_BITS("nan", "{}", float, uint32_t, 0x7fc12345u)); // NaN with a payload
+RUN(EXPECT_BITS("inf", "{}", float, uint32_t, 0x7f800000u)); // inf
+RUN(EXPECT_BITS("-inf", "{}", float, uint32_t, 0xff800000u)); // -inf
+RUN(EXPECT_BITS("nan", "{:f}", float, uint32_t, 0x7fc00000u));
+RUN(EXPECT_BITS("nan", "{:e}", float, uint32_t, 0x7fc00000u));
+RUN(EXPECT_BITS("inf", "{:g}", float, uint32_t, 0x7f800000u));
+RUN(EXPECT_BITS("NAN", "{:F}", float, uint32_t, 0x7fc00000u));
+RUN(EXPECT_BITS("   inf", "{:>6}", float, uint32_t, 0x7f800000u));
+RUN(EXPECT_BITS("      -inf", "{:010}", float, uint32_t, 0xff800000u)); // '0' is ignored for inf/nan
+RUN(EXPECT_BITS("nan", "{}", double, uint64_t, 0x7ff8000000000000ull)); // quiet NaN
+RUN(EXPECT_BITS("-nan", "{}", double, uint64_t, 0xfff8000000000000ull)); // negative quiet NaN
+RUN(EXPECT_BITS("inf", "{}", double, uint64_t, 0x7ff0000000000000ull)); // inf
+RUN(EXPECT_BITS("-inf", "{}", double, uint64_t, 0xfff0000000000000ull)); // -inf
+RUN(EXPECT_BITS("nan", "{:e}", double, uint64_t, 0x7ff8000000000000ull));
+RUN(EXPECT_BITS("-inf", "{:.3f}", double, uint64_t, 0xfff0000000000000ull));
+#undef EXPECT_BITS
+
 #endif
