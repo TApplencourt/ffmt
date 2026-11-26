@@ -163,6 +163,34 @@ template <typename F> __global__ void _ffmt_run_kernel(F f) { f(); }
 #define TEST_DEVICE std::string("host")
 #endif
 
+// IEEE subnormals for the reference pass (test_body.inc), restored after
+// it. Linking with -ffast-math adds crtfastmath.o, whose startup code turns
+// on FTZ/DAZ for the whole process, fmt.o included: {fmt} then prints a
+// subnormal as 0 with {:e} and {:g}, but not with {} (#33). The reference
+// must be what {fmt} prints for the value; ffmt's cases keep the program's
+// own mode. Empty when a device compiler parses this file: main() is host
+// code.
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || defined(__SYCL_DEVICE_ONLY__) \
+    || defined(__NVPTX__) || defined(__AMDGCN__) || defined(__SPIR__) || defined(__SPIRV__)
+struct ieee_subnormals {};
+#elif defined(__x86_64__) || defined(__i386__)
+struct ieee_subnormals {  // MXCSR: FTZ is bit 15, DAZ bit 6
+  unsigned saved = __builtin_ia32_stmxcsr();
+  ieee_subnormals() { __builtin_ia32_ldmxcsr(saved & ~0x8040u); }
+  ~ieee_subnormals() { __builtin_ia32_ldmxcsr(saved); }
+};
+#elif defined(__aarch64__)
+struct ieee_subnormals {  // FPCR: FZ is bit 24
+  uint64_t saved = get();
+  ieee_subnormals() { set(saved & ~(uint64_t(1) << 24)); }
+  ~ieee_subnormals() { set(saved); }
+  static uint64_t get() { uint64_t v; asm volatile("mrs %0, fpcr" : "=r"(v)); return v; }
+  static void set(uint64_t v) { asm volatile("msr fpcr, %0" : : "r"(v)); }
+};
+#else
+struct ieee_subnormals {};
+#endif
+
 // Sends stdout to an anonymous file from start() to stop(), which returns
 // what was written meanwhile.
 struct stdout_capture {
