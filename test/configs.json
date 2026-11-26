@@ -111,7 +111,7 @@
     "id": 3,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -128,7 +128,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_omp",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -237,7 +236,7 @@
     "id": 10,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -253,7 +252,6 @@
     "failed_to_run": [
       "bools:1",
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -275,7 +273,7 @@
     "id": 11,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -290,7 +288,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -351,7 +348,7 @@
     "id": 14,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "5d785a42682dbd3396b07c717e748d3a2d291bcc",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -367,7 +364,6 @@
     "failed_to_run": [
       "bools:1",
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -389,7 +385,7 @@
     "id": 15,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "5d785a42682dbd3396b07c717e748d3a2d291bcc",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -404,7 +400,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -489,7 +484,7 @@
     "id": 17,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "5d785a42682dbd3396b07c717e748d3a2d291bcc",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -506,7 +501,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_omp",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1482,7 +1476,7 @@
     "id": 64,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1498,7 +1492,6 @@
     "failed_to_run": [
       "bools:1",
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1520,7 +1513,7 @@
     "id": 65,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1535,7 +1528,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1830,7 +1822,7 @@
     "id": 82,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1847,7 +1839,6 @@
     "failed_to_run": [
       "bools:1",
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
@@ -1869,7 +1860,7 @@
     "id": 83,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1885,7 +1876,6 @@
     ],
     "failed_to_run": [
       "buffer_cap:1",
-      "characters:9",
       "extra:readme1_sycl",
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
