@@ -174,21 +174,15 @@
     "id": 6,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "7f590f417e14d1e6219d6fab862e3d332a343503",
+    "previous_main_commit": "cdb13d015bda1bb3d2bf979116750e6556243f38",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1",
-      "hexfloat_sweep:1"
-    ],
-    "compiled_but_not_run": [
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ]
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   },
   {
     "id": 7,
@@ -553,7 +547,7 @@
     "id": 20,
     "notes": "clang OpenMP offload to NVPTX on A100 (sm_80), cuda 12.9.1 + llvm release-23.1.6, -O2, fast-math",
     "ci": "jlse:a100",
-    "previous_main_commit": "5d785a42682dbd3396b07c717e748d3a2d291bcc",
+    "previous_main_commit": "cdb13d015bda1bb3d2bf979116750e6556243f38",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
@@ -561,15 +555,10 @@
       "to_underlying:1", "to_underlying:2"
     ],
     "failed_to_run": [
-      "float_sweep:1",
       "floats:57", "floats:58", "floats:59", "floats:60", "floats:159", "floats:174", "floats:175", "floats:176", "floats:177", "floats:178", "floats:179", "floats:180",
-      "hexfloat:24",
-      "hexfloat_sweep:1"
+      "hexfloat:24"
     ],
-    "compiled_but_not_run": [
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ]
+    "compiled_but_not_run": []
   },
   {
     "id": 21,
@@ -1255,21 +1244,15 @@
     "id": 57,
     "notes": "clang OpenMP offload to NVPTX on H100 (sm_90), cuda 12.9.1 + llvm release-23.1.6, -O2, no fast-math",
     "ci": "jlse:h100-extended",
-    "previous_main_commit": "e9f90fa6d235fc981a7d14e88e693707e030d3f9",
+    "previous_main_commit": "cdb13d015bda1bb3d2bf979116750e6556243f38",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "sycl_types:1", "sycl_types:2", "sycl_types:3", "sycl_types:4", "sycl_types:5", "sycl_types:6", "sycl_types:7", "sycl_types:8",
       "sycl_usm_string:1",
       "to_underlying:1", "to_underlying:2"
     ],
-    "failed_to_run": [
-      "float_sweep:1",
-      "hexfloat_sweep:1"
-    ],
-    "compiled_but_not_run": [
-      "float_sweep:2", "float_sweep:3", "float_sweep:4", "float_sweep:5", "float_sweep:6", "float_sweep:7", "float_sweep:8", "float_sweep:9", "float_sweep:10", "float_sweep:11", "float_sweep:12", "float_sweep:13", "float_sweep:14", "float_sweep:15", "float_sweep:16", "float_sweep:17", "float_sweep:18", "float_sweep:19", "float_sweep:20", "float_sweep:21", "float_sweep:22",
-      "hexfloat_sweep:2", "hexfloat_sweep:3", "hexfloat_sweep:4", "hexfloat_sweep:5", "hexfloat_sweep:6"
-    ]
+    "failed_to_run": [],
+    "compiled_but_not_run": []
   },
   {
     "id": 58,

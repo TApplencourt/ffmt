@@ -16,7 +16,8 @@
     uint64_t b = XORSHIFT(st);                                                   \
     if ((b >> 52 & 0x7FF) != 0x7FF) { PRINTLN(fmt, __builtin_bit_cast(double, b)); n++; } \
   }                                                                              \
-  const double p10[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7};                \
+  /* static avoids llvm#245290's invalid OpenMP NVPTX local-address rewrite. */ \
+  static const double p10[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7};       \
   for (int i = 0; i < 200; i++) {                /* k / 10^j and (k + 0.5) / 2^j */ \
     double k = static_cast<double>(XORSHIFT(st) % 100000);                       \
     PRINTLN(fmt, k / p10[XORSHIFT(st) % 8]);                                     \
