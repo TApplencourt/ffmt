@@ -12,7 +12,8 @@
  *
  * Reproduces with the compiler and flags of ids 6 and 20, as set by
  * test/setup/;
- * ffmt hits it there in float_sweep (p10[] in test/sweep_values.inc).
+ * ffmt's unqualified local p10[] hit it in float_sweep and hexfloat_sweep;
+ * test/sweep_values.inc now uses static const to avoid the bad rewrite.
  *
  *   clang -fopenmp --offload-arch=sm_80 -O2 clang_based_omp_O2_const_array.c && ./a.out
  *

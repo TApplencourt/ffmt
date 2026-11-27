@@ -19,7 +19,7 @@ The output matches `fmt::format` exactly, including where {fmt} and
 | SYCL (Intel LLVM)        | intel/llvm `clang++ -fsycl`         | ✅ | Specifiers path, as `icpx -fsycl`. |
 | SYCL (AdaptiveCpp)       | `acpp --acpp-targets=generic`       | ✅ | Buffer path. |
 | OpenMP target → SPIR-V   | `icpx -fiopenmp -fopenmp-targets=spir64` | ✅ | Specifiers path (shares icpx-SYCL backend). |
-| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; at `-O2`, `float_sweep` hits an LLVM bug ([llvm#245290](https://github.com/llvm/llvm-project/issues/245290)). |
+| OpenMP target → NVPTX    | `clang -fopenmp --offload-arch=sm_XX` | ✅ | Buffer path. At `-O0` more than half the tests fail, or never run after a crash; the sweep inputs are `static` at `-O2` to avoid an LLVM bug ([llvm#245290](https://github.com/llvm/llvm-project/issues/245290)). |
 | CUDA                     | `clang++ -x cuda --cuda-gpu-arch=sm_XX` | ✅ | Buffer path. Auto-detected via `__CUDACC__`. |
 | OpenMP target → AMDGPU   | ROCm `clang -fopenmp --offload-arch=gfx942` | ✅ | Buffer path. At `-O0` the same tests break as on NVPTX (precision floats: an LLVM OpenMP shared-stack bug, [llvm#245328](https://github.com/llvm/llvm-project/issues/245328)); `-O2` is clean. |
 | HIP                      | `hipcc -x hip --offload-arch=gfx942` | ✅ | Buffer path. Auto-detected via `__HIPCC__`. |
