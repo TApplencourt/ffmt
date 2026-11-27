@@ -36,7 +36,25 @@
       for (char c : in) b.data[b.len++] = c;
       ffmt::detail::buffer_path::escape_percent_inplace(b);
       b.data[b.len] = '\0';
+#if FFMT_COMPILER_ACPP
+      RUN({
+        ffmt::detail::fmt_buf part;
+        part.push('[');
+        ffmt::detail::buffer_path::flush_buf(part);
+        for (int pos = 0; pos < b.len; pos += 64) {
+          part.len = 0;
+          for (int offset = 0; offset < 64 && pos + offset < b.len; ++offset)
+            part.push(b.data[pos + offset]);
+          ffmt::detail::buffer_path::flush_buf(part);
+        }
+        part.len = 0;
+        part.push(']');
+        part.push('\n');
+        ffmt::detail::buffer_path::flush_buf(part);
+      });
+#else
       RUN(printf("[%s]\n", b.data));
+#endif
 #endif
     }
   }
