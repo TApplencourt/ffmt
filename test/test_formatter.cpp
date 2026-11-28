@@ -11,6 +11,7 @@ struct point { int x; int y; };
 struct boxed { int v; };
 struct swapped { int x; int y; };          // formatter uses positional indices
 struct segment { point a; point b; };      // formatter values are custom types
+struct spec_pair { unsigned a; unsigned b; };
 }
 
 template <>
@@ -42,6 +43,13 @@ struct fmt::formatter<test_fmt::segment> {
     return fmt::format_to(ctx.out(), "{}->{}", g.a, g.b);
   }
 };
+template <>
+struct fmt::formatter<test_fmt::spec_pair> {
+  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  auto format(const test_fmt::spec_pair& p, fmt::format_context& ctx) const {
+    return fmt::format_to(ctx.out(), "[{:x}|{:>5}]", p.a, p.b);
+  }
+};
 
 template <>
 struct ffmt::formatter<test_fmt::point> {
@@ -68,6 +76,12 @@ struct ffmt::formatter<test_fmt::segment> {
     return formatted<detail::fixed_string{"{}->{}"}, test_fmt::point, test_fmt::point>{ {g.a, g.b} };
   }
 };
+template <>
+struct ffmt::formatter<test_fmt::spec_pair> {
+  static constexpr auto format(test_fmt::spec_pair p) {
+    return formatted<detail::fixed_string{"[{:x}|{:>5}]"}, unsigned, unsigned>{ {p.a, p.b} };
+  }
+};
 
 #include "test_body.inc"
 #else
@@ -75,6 +89,7 @@ struct ffmt::formatter<test_fmt::segment> {
 // Custom non-SYCL formatter.
 RUN(PRINTLN("p = {}", test_fmt::point{1, 2}));
 RUN(PRINTLN("b = {}", test_fmt::boxed{42}));
+RUN(PRINTLN("spec = {}", test_fmt::spec_pair{255u, 255u}));
 
 // Mixed primitive + custom (auto-indexed) — exercises the splicer with
 // non-trivial Fmt2 expansion and the runtime args-tuple flatten.

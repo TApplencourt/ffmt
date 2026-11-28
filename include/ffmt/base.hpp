@@ -2217,6 +2217,12 @@ FMT_HD inline void write_literal_segment(fmt_buf &out, const char *str, int from
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
 
+template <fixed_string Fmt, sycl_formattable... Args>
+FMT_HD inline void format_inner(fmt_buf &out, Args... args) {
+  validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(flen(Fmt)));
+  format_lit_rt(out, Fmt.data, static_cast<int>(flen(Fmt)), args...);
+}
+
 // Per-arg dispatch. Primitives use the spec-aware writers; formatter args
 // recurse into format_lit_rt on the formatter's inner format string + values.
 // if constexpr: each arg instantiates only its branch (formatter<T> is
@@ -2237,7 +2243,7 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
         constexpr auto inner_fmt = decltype(inner)::format_string;
         std::apply(
             [&](auto... vs) {
-              format_lit_rt(out, inner_fmt.data, static_cast<int>(flen(inner_fmt)), vs...);
+              format_inner<inner_fmt>(out, vs...);
             },
             inner.values);
       }
@@ -2267,24 +2273,24 @@ FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&
   write_literal_segment(out, ps.str, pos, ps.len);
 }
 
-// Inner walker for formatter sub-strings. These don't have a print_string
-// (no compile-time pre-parse), so we re-parse with find_placeholder.
-// No spec support here: a spec in the formatter's own string is ignored
-// ("[{:x}]" prints like "[{}]"), whereas the specifiers path splices it in
-// and applies it. A spec on the custom argument itself is rejected at compile
-// time (spec_compatible_with_arg).
+// Inner walker for formatter sub-strings, validated by format_inner.
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
   int pos = 0;
   int auto_idx = 0;
-  format_spec empty{};
   while (true) {
     auto ph = find_placeholder(fmt, fmt_len, pos);
     if (!ph) break;
     write_literal_segment(out, fmt, pos, static_cast<int>(ph->open));
-    int idx = (ph->index >= 0) ? ph->index : auto_idx++;
-    dyn_args dyn{0, -1};
-    dispatch_arg(out, idx, /*has_spec*/ false, empty, dyn, args...);
+    int idx = (ph->index >= 0) ? ph->index : auto_idx;
+    format_spec spec = parse_spec(fmt, static_cast<int>(ph->spec_beg),
+                                  static_cast<int>(ph->close),
+                                  ph->index < 0 ? auto_idx + 1 : -1);
+    if (ph->index < 0) auto_idx += 1 + spec.dyn_count;
+    dyn_args dyn{spec.width, spec.precision};
+    if (spec.width_arg >= 0) resolve_int_arg(spec.width_arg, dyn.w, args...);
+    if (spec.prec_arg >= 0) resolve_int_arg(spec.prec_arg, dyn.p, args...);
+    dispatch_arg(out, idx, ph->has_spec && ph->close > ph->spec_beg, spec, dyn, args...);
     pos = static_cast<int>(ph->close) + 1;
   }
   write_literal_segment(out, fmt, pos, fmt_len);

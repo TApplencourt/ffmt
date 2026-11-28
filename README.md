@@ -212,8 +212,7 @@ Two emit paths share the same front-end:
   formats the full output into a fixed-size buffer, then emits it once:
   `printf("%s", buf)` with clang OpenMP, CUDA and HIP (host pass too),
   `__acpp_sscp_print` on AdaptiveCpp devices, `fputs` otherwise. Supports
-  every {fmt} spec except one inside a custom formatter's own string,
-  which is ignored (issue #39).
+  every {fmt} spec, including one inside a custom formatter's own string.
 - **Specifiers path** (DPC++, icpx-OMP-SPIR64) translates the format
   string into a `printf` format and lets the device runtime format
   args directly. Atomic but limited to printf-compatible specs.
