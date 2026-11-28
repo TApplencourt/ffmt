@@ -2227,7 +2227,7 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
 template <sycl_formattable... Args>
 FMT_HD inline void format_lit_specs_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
 
-constexpr bool has_inner_specs(const char *fmt, int fmt_len) {
+consteval bool has_inner_specs(const char *fmt, int fmt_len) {
   int pos = 0;
   while (auto ph = find_placeholder(fmt, fmt_len, pos)) {
     if (ph->has_spec && ph->close > ph->spec_beg) return true;
