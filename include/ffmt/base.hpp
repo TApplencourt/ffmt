@@ -2256,9 +2256,11 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
         constexpr auto inner_fmt = decltype(inner)::format_string;
         std::apply(
             [&](auto... vs) {
-              if constexpr (has_inner_specs(inner_fmt.data, static_cast<int>(flen(inner_fmt)))) {
+              if constexpr (has_inner_specs(decltype(inner)::format_string.data,
+                                            static_cast<int>(flen(decltype(inner)::format_string)))) {
                 validate_format<std::decay_t<decltype(vs)>...>(
-                    inner_fmt.data, static_cast<int>(flen(inner_fmt)));
+                    decltype(inner)::format_string.data,
+                    static_cast<int>(flen(decltype(inner)::format_string)));
                 format_lit_specs_rt(out, inner_fmt.data, static_cast<int>(flen(inner_fmt)), vs...);
               } else {
                 format_lit_rt(out, inner_fmt.data, static_cast<int>(flen(inner_fmt)), vs...);
