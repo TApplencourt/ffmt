@@ -89,7 +89,6 @@ struct ffmt::formatter<test_fmt::spec_pair> {
 // Custom non-SYCL formatter.
 RUN(PRINTLN("p = {}", test_fmt::point{1, 2}));
 RUN(PRINTLN("b = {}", test_fmt::boxed{42}));
-RUN(PRINTLN("spec = {}", test_fmt::spec_pair{255u, 255u}));
 
 // Mixed primitive + custom (auto-indexed) — exercises the splicer with
 // non-trivial Fmt2 expansion and the runtime args-tuple flatten.
@@ -109,5 +108,6 @@ RUN(PRINTLN("{1} then {0}", test_fmt::point{1, 2}, test_fmt::boxed{3}));
 RUN(PRINTLN("{0} {0} {1}", test_fmt::boxed{7}, 5));
 // Nested: the formatter's values are themselves custom types.
 RUN(PRINTLN("seg {} n={}", test_fmt::segment{{1, 2}, {3, 4}}, 9));
+RUN(PRINTLN("spec = {}", test_fmt::spec_pair{255u, 255u}));
 
 #endif
