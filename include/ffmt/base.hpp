@@ -1450,6 +1450,8 @@ struct printf_fmt_buf {
 template <format_spec Spec, char Type, bool Wide>
 consteval printf_fmt_buf build_printf_fmt() {
   printf_fmt_buf buf;
+  constexpr bool pointer_as_hex = Type == 'p' && Spec.width == 0 && !Spec.align;
+  if (pointer_as_hex) { buf.push('0'); buf.push('x'); }
   buf.push('%');
   if (Spec.align == '<' || (!Spec.align && (Type == 'c' || Type == 's'))) buf.push('-');
   if (Spec.sign == '+' || Spec.sign == ' ') buf.push(Spec.sign);
@@ -1457,9 +1459,9 @@ consteval printf_fmt_buf build_printf_fmt() {
   if (Spec.zero_pad && !Spec.align) buf.push('0'); // ignored once an alignment is given
   if (Spec.width > 0) buf.push_int(Spec.width);
   if (Spec.precision >= 0) { buf.push('.'); buf.push_int(Spec.precision); }
-  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o'))
+  if (Wide && (Type == 'd' || Type == 'u' || Type == 'x' || Type == 'X' || Type == 'o' || pointer_as_hex))
     { buf.push('l'); buf.push('l'); }
-  buf.push(Type);
+  buf.push(pointer_as_hex ? 'x' : Type);
   return buf;
 }
 
@@ -1480,7 +1482,13 @@ template <typename U, format_spec Spec> struct conversion {
       Spec.fill.size == 1 && Spec.fill.data[0] == ' ' && Spec.width_arg < 0 && Spec.prec_arg < 0 &&
       !(std::signed_integral<U> && (type == 'x' || type == 'X' || type == 'o')) &&
       !(Spec.alt && (type == 'x' || type == 'X'));
-  static auto arg(U v) { return printf_cast<type, wide>(v); }
+  static auto arg(U v) {
+    if constexpr (type == 'p' && Spec.width == 0 && !Spec.align)
+      return static_cast<std::conditional_t<wide, unsigned long long, unsigned>>(
+          reinterpret_cast<std::uintptr_t>(v));
+    else
+      return printf_cast<type, wide>(v);
+  }
 };
 
 // The placeholder at or after Pos, resolved once for the walkers below.

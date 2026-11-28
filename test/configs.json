@@ -3,7 +3,7 @@
     "id": 0,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -22,7 +22,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -111,7 +110,7 @@
     "id": 3,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -132,7 +131,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
@@ -230,7 +228,7 @@
     "id": 10,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -250,7 +248,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
@@ -267,7 +264,7 @@
     "id": 11,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -286,7 +283,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
@@ -300,7 +296,7 @@
     "id": 12,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, -O2, fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -319,7 +315,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -342,7 +337,7 @@
     "id": 14,
     "notes": "icpx SYCL (DPC++) on PVC, -O0, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -362,7 +357,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
@@ -379,7 +373,7 @@
     "id": 15,
     "notes": "icpx SYCL (DPC++) on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -398,7 +392,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
@@ -478,7 +471,7 @@
     "id": 17,
     "notes": "icpx OpenMP offload to SPIR-V on PVC, -O2, fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "OpenMP device 0",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -499,7 +492,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
@@ -615,7 +607,7 @@
     "id": 24,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -634,7 +626,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -657,7 +648,7 @@
     "id": 26,
     "notes": "host g++ 13 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -676,7 +667,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -699,7 +689,7 @@
     "id": 28,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O0, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -718,7 +708,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -741,7 +730,7 @@
     "id": 30,
     "notes": "host clang++ 18 (ubuntu-24.04), specifiers path, ASan+UBSan, -O2, no fast-math",
     "ci": "github:ubuntu-24.04",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -760,7 +749,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1286,7 +1274,7 @@
     "id": 60,
     "notes": "Rome g++ 13.3.0, specifiers path, -O2, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1305,7 +1293,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1328,7 +1315,7 @@
     "id": 62,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O2, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1347,7 +1334,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1370,7 +1356,7 @@
     "id": 64,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1390,7 +1376,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
@@ -1407,7 +1392,7 @@
     "id": 65,
     "notes": "Intel LLVM 7.2.0 clang++ SYCL on Chiatta Max 1550, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Intel(R) Data Center GPU Max 1550",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1426,7 +1411,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],
@@ -1440,7 +1424,7 @@
     "id": 66,
     "notes": "Rome g++ 13.3.0, specifiers path, -O0, no fast-math",
     "ci": "jlse:rome-extended",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1459,7 +1443,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1482,7 +1465,7 @@
     "id": 68,
     "notes": "GH200 native g++ 14.3.0 (aarch64), specifiers path, -O0, no fast-math",
     "ci": "jlse:gh200-extended",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "host",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1501,7 +1484,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "strings:11"
     ],
     "compiled_but_not_run": []
@@ -1699,7 +1681,7 @@
     "id": 82,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O0, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1720,7 +1702,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "null_string:1",
       "nvptx_o2_ice:1",
       "strings:1"
@@ -1737,7 +1718,7 @@
     "id": 83,
     "notes": "Kokkos 5.2.2 SYCL on Chiatta Max 1550, Intel LLVM 7.2.0 clang++, -O2, no fast-math",
     "ci": "jlse:chiatta",
-    "previous_main_commit": "17dd35343221ec0bdfe3ce69e6c0196e4e3265e5",
+    "previous_main_commit": "f6d0930e9ecd9f15d2742ca6de12a93ccf4c166b",
     "device": "Kokkos SYCL",
     "failed_to_compile": [
       "alternate:1", "alternate:2", "alternate:3", "alternate:4", "alternate:5", "alternate:6", "alternate:7", "alternate:8", "alternate:9", "alternate:10", "alternate:11", "alternate:12", "alternate:13", "alternate:14", "alternate:15", "alternate:16", "alternate:17", "alternate:18", "alternate:19", "alternate:20",
@@ -1757,7 +1738,6 @@
       "fast_math:8", "fast_math:9", "fast_math:10", "fast_math:11",
       "float_sweep:1", "float_sweep:14", "float_sweep:15", "float_sweep:17", "float_sweep:18", "float_sweep:22",
       "floats:90", "floats:91", "floats:92", "floats:93", "floats:96", "floats:97", "floats:100", "floats:101", "floats:102", "floats:105", "floats:106", "floats:107", "floats:110", "floats:111", "floats:112", "floats:139", "floats:140", "floats:141", "floats:142", "floats:143", "floats:144", "floats:145", "floats:147", "floats:148", "floats:153", "floats:154", "floats:155", "floats:158", "floats:166", "floats:167", "floats:168", "floats:169", "floats:171", "floats:172",
-      "misc:37", "misc:38",
       "nvptx_o2_ice:1",
       "strings:1"
     ],

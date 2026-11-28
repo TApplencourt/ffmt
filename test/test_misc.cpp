@@ -41,8 +41,7 @@ RUN(PRINT("{:o}\n", 0u));
 
 // Pointer formatting — fixed-value casts so host and device produce
 // identical addresses (no real &x: device address would diverge from the
-// host {fmt} reference). The null-pointer cases further down fail on the
-// specifiers path except on macOS: glibc's %p prints "(nil)", macOS's "0x0".
+// host {fmt} reference).
 RUN(PRINT("{}\n",         reinterpret_cast<void*>(0xdeadbeef)));
 RUN(PRINT("{:p}\n",       reinterpret_cast<void*>(0xcafef00d)));
 RUN(PRINT("[{:>20p}]\n",  reinterpret_cast<void*>(0xdeadbeef)));
@@ -73,9 +72,7 @@ RUN(PRINTLN(""));
 RUN(PRINTLN("}}{{"));
 
 // ── Misc ──────────────────────────────────────────────────────────────────────
-// Null-pointer formatting — {fmt} (and the buffer path) print "0x0"; the
-// specifiers path passes the pointer to printf's %p, which glibc prints as
-// "(nil)" (macOS prints "0x0").
+// Null-pointer formatting — {fmt} prints "0x0" on both paths.
 RUN(PRINT("{}\n",         static_cast<void*>(nullptr)));
 RUN(PRINT("{:p}\n",       static_cast<void*>(nullptr)));
 
