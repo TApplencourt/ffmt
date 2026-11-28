@@ -2203,6 +2203,14 @@ FMT_HD inline void resolve_int_arg(int idx, int &out, Args&&... args) {
     }, args...);
 }
 
+template <typename... Args>
+FMT_HD inline dyn_args resolve_dyn_args(const format_spec &spec, Args&&... args) {
+  dyn_args dyn{spec.width, spec.precision};
+  if (spec.width_arg >= 0) resolve_int_arg(spec.width_arg, dyn.w, args...);
+  if (spec.prec_arg >= 0) resolve_int_arg(spec.prec_arg, dyn.p, args...);
+  return dyn;
+}
+
 // Copy str[from, to) unescaping "{{" and "}}". Pointer-based: GCC's
 // -Warray-bounds misjudged the index form as possibly negative.
 FMT_HD inline void write_literal_segment(fmt_buf &out, const char *str, int from, int to) {
@@ -2214,8 +2222,10 @@ FMT_HD inline void write_literal_segment(fmt_buf &out, const char *str, int from
 
 // Forward decl: the literal-walking format loop is needed by dispatch_arg
 // (for formatter inner sub-strings) but its definition wants dispatch_arg.
-template <bool WithSpecs, sycl_formattable... Args>
+template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
+template <sycl_formattable... Args>
+FMT_HD inline void format_lit_specs_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args);
 
 constexpr bool has_inner_specs(const char *fmt, int fmt_len) {
   int pos = 0;
@@ -2224,13 +2234,6 @@ constexpr bool has_inner_specs(const char *fmt, int fmt_len) {
     pos = static_cast<int>(ph->close) + 1;
   }
   return false;
-}
-
-template <fixed_string Fmt, sycl_formattable... Args>
-FMT_HD inline void format_inner(fmt_buf &out, Args... args) {
-  validate_format<std::decay_t<Args>...>(Fmt.data, static_cast<int>(flen(Fmt)));
-  constexpr bool with_specs = has_inner_specs(Fmt.data, static_cast<int>(flen(Fmt)));
-  format_lit_rt<with_specs>(out, Fmt.data, static_cast<int>(flen(Fmt)), args...);
 }
 
 // Per-arg dispatch. Primitives use the spec-aware writers; formatter args
@@ -2253,7 +2256,13 @@ FMT_HD inline void dispatch_arg(fmt_buf &out, int idx, bool has_spec,
         constexpr auto inner_fmt = decltype(inner)::format_string;
         std::apply(
             [&](auto... vs) {
-              format_inner<inner_fmt>(out, vs...);
+              if constexpr (has_inner_specs(inner_fmt.data, static_cast<int>(flen(inner_fmt)))) {
+                validate_format<std::decay_t<decltype(vs)>...>(
+                    inner_fmt.data, static_cast<int>(flen(inner_fmt)));
+                format_lit_specs_rt(out, inner_fmt.data, static_cast<int>(flen(inner_fmt)), vs...);
+              } else {
+                format_lit_rt(out, inner_fmt.data, static_cast<int>(flen(inner_fmt)), vs...);
+              }
             },
             inner.values);
       }
@@ -2274,17 +2283,15 @@ FMT_HD inline void format_rt(fmt_buf &out, const print_string<Args...> &ps, A2&&
                                   static_cast<int>(info.close),
                                   info.index < 0 ? auto_idx + 1 : -1);
     if (info.index < 0) auto_idx += 1 + spec.dyn_count;
-    dyn_args dyn{spec.width, spec.precision};
-    if (spec.width_arg >= 0) resolve_int_arg(spec.width_arg, dyn.w, args...);
-    if (spec.prec_arg >= 0)  resolve_int_arg(spec.prec_arg,  dyn.p, args...);
+    dyn_args dyn = resolve_dyn_args(spec, args...);
     dispatch_arg(out, idx, info.has_spec && info.close > info.spec_beg, spec, dyn, args...);
     pos = static_cast<int>(info.close) + 1;
   }
   write_literal_segment(out, ps.str, pos, ps.len);
 }
 
-// Inner walker for formatter sub-strings, validated by format_inner.
-template <bool WithSpecs, sycl_formattable... Args>
+// No-spec inner walker: keep its code generation independent of spec support.
+template <sycl_formattable... Args>
 FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
   int pos = 0;
   int auto_idx = 0;
@@ -2293,21 +2300,29 @@ FMT_HD inline void format_lit_rt(fmt_buf &out, const char *fmt, int fmt_len, Arg
     auto ph = find_placeholder(fmt, fmt_len, pos);
     if (!ph) break;
     write_literal_segment(out, fmt, pos, static_cast<int>(ph->open));
-    if constexpr (WithSpecs) {
-      int idx = (ph->index >= 0) ? ph->index : auto_idx;
-      format_spec spec = parse_spec(fmt, static_cast<int>(ph->spec_beg),
-                                    static_cast<int>(ph->close),
-                                    ph->index < 0 ? auto_idx + 1 : -1);
-      if (ph->index < 0) auto_idx += 1 + spec.dyn_count;
-      dyn_args dyn{spec.width, spec.precision};
-      if (spec.width_arg >= 0) resolve_int_arg(spec.width_arg, dyn.w, args...);
-      if (spec.prec_arg >= 0) resolve_int_arg(spec.prec_arg, dyn.p, args...);
-      dispatch_arg(out, idx, ph->has_spec && ph->close > ph->spec_beg, spec, dyn, args...);
-    } else {
-      int idx = (ph->index >= 0) ? ph->index : auto_idx++;
-      dyn_args dyn{0, -1};
-      dispatch_arg(out, idx, false, empty, dyn, args...);
-    }
+    int idx = (ph->index >= 0) ? ph->index : auto_idx++;
+    dyn_args dyn{0, -1};
+    dispatch_arg(out, idx, /*has_spec*/ false, empty, dyn, args...);
+    pos = static_cast<int>(ph->close) + 1;
+  }
+  write_literal_segment(out, fmt, pos, fmt_len);
+}
+
+template <sycl_formattable... Args>
+FMT_HD inline void format_lit_specs_rt(fmt_buf &out, const char *fmt, int fmt_len, Args... args) {
+  int pos = 0;
+  int auto_idx = 0;
+  while (true) {
+    auto ph = find_placeholder(fmt, fmt_len, pos);
+    if (!ph) break;
+    write_literal_segment(out, fmt, pos, static_cast<int>(ph->open));
+    int idx = (ph->index >= 0) ? ph->index : auto_idx;
+    format_spec spec = parse_spec(fmt, static_cast<int>(ph->spec_beg),
+                                  static_cast<int>(ph->close),
+                                  ph->index < 0 ? auto_idx + 1 : -1);
+    if (ph->index < 0) auto_idx += 1 + spec.dyn_count;
+    dyn_args dyn = resolve_dyn_args(spec, args...);
+    dispatch_arg(out, idx, ph->has_spec && ph->close > ph->spec_beg, spec, dyn, args...);
     pos = static_cast<int>(ph->close) + 1;
   }
   write_literal_segment(out, fmt, pos, fmt_len);
